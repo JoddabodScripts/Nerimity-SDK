@@ -1024,10 +1024,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#buttons-with-ttl" class="md-nav__link">
+  <a href="#poll-with-reactions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Buttons with TTL
+        Poll with reactions
       
     </span>
   </a>
@@ -1212,10 +1212,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#buttons-with-ttl" class="md-nav__link">
+  <a href="#poll-with-reactions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Buttons with TTL
+        Poll with reactions
       
     </span>
   </a>
@@ -1344,18 +1344,13 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">nerimity_sdk</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="k">await</span> <span class="n">sctx</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nerimity-sdk v</span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
-<h3 id="buttons-with-ttl">Buttons with TTL</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nd">@bot</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;poll&quot;</span><span class="p">)</span>
+<h3 id="poll-with-reactions">Poll with reactions</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nd">@bot</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;poll&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Start a yes/no poll&quot;</span><span class="p">)</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">poll</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="s2">&quot;Vote!&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="nd">@bot</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;poll:yes:</span><span class="si">{</span><span class="n">msg</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">on_yes</span><span class="p">(</span><span class="n">bctx</span><span class="p">):</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>        <span class="k">await</span> <span class="n">bctx</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="s2">&quot;You voted Yes!&quot;</span><span class="p">)</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    <span class="nd">@bot</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;poll:no:</span><span class="si">{</span><span class="n">msg</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">on_no</span><span class="p">(</span><span class="n">bctx</span><span class="p">):</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>        <span class="k">await</span> <span class="n">bctx</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="s2">&quot;You voted No!&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">question</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="k">if</span> <span class="n">ctx</span><span class="o">.</span><span class="n">args</span> <span class="k">else</span> <span class="s2">&quot;Do you agree?&quot;</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="n">msg</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">reply</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📊 **</span><span class="si">{</span><span class="n">question</span><span class="si">}</span><span class="s2">**</span><span class="se">\n</span><span class="s2">👍 Yes  |  👎 No&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">rest</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">msg</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s2">&quot;👍&quot;</span><span class="p">)</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">await</span> <span class="n">ctx</span><span class="o">.</span><span class="n">rest</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">channel_id</span><span class="p">,</span> <span class="n">msg</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="s2">&quot;👎&quot;</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="paginator">Paginator</h3>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nd">@bot</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;help&quot;</span><span class="p">)</span>
