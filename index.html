@@ -1171,16 +1171,12 @@ The bot connects over a WebSocket, receives events, and dispatches them to your 
 <td><code>@bot.on("message:created")</code></td>
 </tr>
 <tr>
-<td>Prefix commands</td>
-<td><code>@bot.command("ping")</code></td>
+<td>Prefix + slash commands</td>
+<td><code>@bot.command("ping")</code> — works as <code>!ping</code> and <code>/ping</code></td>
 </tr>
 <tr>
-<td>Slash commands</td>
-<td><code>@bot.slash("info")</code></td>
-</tr>
-<tr>
-<td>Buttons</td>
-<td><code>@bot.button("confirm:{action}")</code></td>
+<td>Prefix-only commands</td>
+<td><code>@bot.command_private("debug")</code></td>
 </tr>
 <tr>
 <td>Argument converters</td>
@@ -1199,12 +1195,24 @@ The bot connects over a WebSocket, receives events, and dispatches them to your 
 <td><code>await ctx.author.send(bot.rest, "Hi!")</code></td>
 </tr>
 <tr>
+<td>Edit messages</td>
+<td><code>await ctx.edit(msg.id, "updated!")</code></td>
+</tr>
+<tr>
+<td>File uploads</td>
+<td><code>await ctx.reply_file("image.png")</code></td>
+</tr>
+<tr>
 <td>Paginator</td>
 <td><code>await Paginator(pages).send(ctx)</code></td>
 </tr>
 <tr>
 <td>Mention helpers</td>
 <td><code>mention(user_id)</code> / <code>ctx.mentions</code></td>
+</tr>
+<tr>
+<td>Webhooks</td>
+<td><code>await Webhook(token).send("Hello!")</code></td>
 </tr>
 <tr>
 <td>Persistent storage</td>
@@ -1215,7 +1223,7 @@ The bot connects over a WebSocket, receives events, and dispatches them to your 
 <td><code>@bot.cron("0 9 * * *")</code></td>
 </tr>
 <tr>
-<td>Event waiting</td>
+<td>Event waiting (typed)</td>
 <td><code>await bot.wait_for("member_joined", ...)</code></td>
 </tr>
 <tr>
@@ -1223,12 +1231,24 @@ The bot connects over a WebSocket, receives events, and dispatches them to your 
 <td><code>await bot.plugins.load(MyPlugin())</code></td>
 </tr>
 <tr>
+<td>Contrib plugins</td>
+<td><code>pip install nerimity-sdk-contrib</code></td>
+</tr>
+<tr>
 <td>Error handlers</td>
 <td><code>@bot.on_command_error</code></td>
 </tr>
 <tr>
+<td>Cooldown feedback</td>
+<td>automatic "try again in Xs" message</td>
+</tr>
+<tr>
 <td>Stale cache detection</td>
 <td><code>user.stale == True</code> after reconnect</td>
+</tr>
+<tr>
+<td>Static analysis</td>
+<td><code>nerimity lint</code></td>
 </tr>
 <tr>
 <td>Debug mode</td>
