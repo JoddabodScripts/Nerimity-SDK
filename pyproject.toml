@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nerimity-sdk"
+version = "0.1.0"
+description = "A fully-featured Python SDK for building Nerimity bots"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["nerimity", "bot", "sdk", "chat"]
+dependencies = [
+    "python-socketio[asyncio_client]>=5.11",
+    "aiohttp>=3.9",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+redis = ["redis>=5.0"]
+sqlite = ["aiosqlite>=0.19"]
+cron = ["croniter>=2.0"]
+watch = ["watchfiles>=0.21"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "watchfiles>=0.21", "croniter>=2.0"]
+docs = ["mkdocs-material>=9.0"]
+
+[project.scripts]
+nerimity = "nerimity_sdk.cli.main:cli"
+nerimity-help = "nerimity_sdk.cli.help:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["nerimity_sdk"]
