@@ -166,25 +166,71 @@ async def slash_ban(sctx):
 
 # ── Buttons ───────────────────────────────────────────────────────────────────
 
+_poll_votes: dict[str, dict[str, set]] = {}  # msg_id → {"yes": set(), "no": set()}
+_poll_questions: dict[str, str] = {}  # msg_id → question
+
 @bot.command("poll", description="Start a yes/no poll", usage="<question>")
 async def poll(ctx):
-    from nerimity_sdk import Button
     question = " ".join(ctx.args) if ctx.args else "Do you agree?"
-    msg = await ctx.reply(
-        f"📊 **{question}**",
-        buttons=[
-            Button(id=f"poll_yes_{ctx.channel_id}", label="👍 Yes"),
-            Button(id=f"poll_no_{ctx.channel_id}",  label="👎 No", alert=True),
+    import aiohttp
+    # Send with buttons in one shot
+    data = {
+        "content": f"📊 **{question}**\n👍 Yes — 0  |  👎 No — 0",
+        "buttons": [
+            {"label": "👍 Yes (0)", "id": "poll_yes_PLACEHOLDER", "alert": False},
+            {"label": "👎 No (0)",  "id": "poll_no_PLACEHOLDER",  "alert": True},
         ]
-    )
+    }
+    async with aiohttp.ClientSession() as s:
+        async with s.post(
+            f"https://nerimity.com/api/channels/{ctx.channel_id}/messages",
+            headers={"Authorization": ctx.rest._token},
+            json=data
+        ) as resp:
+            msg = await resp.json()
 
-@bot.button("poll_yes_{channel_id}")
+    msg_id = msg["id"]
+    _poll_votes[msg_id] = {"yes": set(), "no": set()}
+    _poll_questions[msg_id] = question
+
+    # Re-send with correct IDs now that we have msg_id
+    await ctx.rest.delete_message(ctx.channel_id, msg_id)
+    data["buttons"][0]["id"] = f"poll_yes_{msg_id}"
+    data["buttons"][1]["id"] = f"poll_no_{msg_id}"
+    async with aiohttp.ClientSession() as s:
+        async with s.post(
+            f"https://nerimity.com/api/channels/{ctx.channel_id}/messages",
+            headers={"Authorization": ctx.rest._token},
+            json=data
+        ) as resp:
+            final = await resp.json()
+    # update tracking to final message id
+    _poll_votes[final["id"]] = _poll_votes.pop(msg_id)
+    _poll_questions[final["id"]] = _poll_questions.pop(msg_id)
+
+
+@bot.button("poll_yes_{msg_id}")
 async def on_poll_yes(bctx):
-    await bctx.popup("Vote recorded!", "You voted 👍 Yes")
+    mid = bctx.params["msg_id"]
+    votes = _poll_votes.get(mid)
+    if not votes:
+        await bctx.popup("Poll ended", "This poll is no longer active.")
+        return
+    votes["yes"].add(bctx.user_id)
+    votes["no"].discard(bctx.user_id)
+    await bctx.popup("Voted! 👍", f"Yes — {len(votes['yes'])}  |  No — {len(votes['no'])}")
 
-@bot.button("poll_no_{channel_id}")
+
+@bot.button("poll_no_{msg_id}")
 async def on_poll_no(bctx):
-    await bctx.popup("Vote recorded!", "You voted 👎 No")
+    mid = bctx.params["msg_id"]
+    votes = _poll_votes.get(mid)
+    if not votes:
+        await bctx.popup("Poll ended", "This poll is no longer active.")
+        return
+    votes["no"].add(bctx.user_id)
+    votes["yes"].discard(bctx.user_id)
+    await bctx.popup("Voted! 👎", f"Yes — {len(votes['yes'])}  |  No — {len(votes['no'])}")
 
 
 @bot.button("confirm:{action}:{target}")
