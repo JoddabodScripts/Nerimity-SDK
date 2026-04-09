@@ -9,12 +9,15 @@ pip install nerimity-sdk-contrib
 ```
 
 ```python
-from nerimity_sdk_contrib import WelcomePlugin, AutoModPlugin, StarboardPlugin, LoggingPlugin
+# Replace [name of plugin] with the plugins you want to use, e.g. WelcomePlugin, LoggingPlugin
+from nerimity_sdk_contrib import [name of plugin], [name of plugin]
 
-await bot.plugins.load(WelcomePlugin(channel_id="123"))
-await bot.plugins.load(AutoModPlugin(blocked=["badword"], log_channel_id="456"))
-await bot.plugins.load(StarboardPlugin(channel_id="789", threshold=3))
-await bot.plugins.load(LoggingPlugin(channel_id="000"))
+@bot.on("ready")
+async def on_ready(me):
+    await bot.plugins.load(WelcomePlugin(channel_id="123"))
+    await bot.plugins.load(AutoModPlugin(blocked=["badword"], log_channel_id="456"))
+    await bot.plugins.load(StarboardPlugin(channel_id="789", threshold=3))
+    await bot.plugins.load(LoggingPlugin(channel_id="000"))
 ```
 
 ### Available plugins
