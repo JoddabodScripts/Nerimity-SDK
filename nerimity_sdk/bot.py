@@ -122,38 +122,102 @@ class Bot:
     # ── Decorators ────────────────────────────────────────────────────────────
 
     def on(self, event: str):
+        """Listen for an event every time it happens.
+
+        Usage::
+
+            @bot.on("message:created")
+            async def handler(event): ...
+
+        Use "*" to listen to every event::
+
+            @bot.on("*")
+            async def log_all(event): ...
+        """
         def decorator(fn):
             self.emitter.on(event, fn)
             return fn
         return decorator
 
     def once(self, event: str):
+        """Listen for an event only the first time it happens, then stop.
+
+        Usage::
+
+            @bot.once("ready")
+            async def on_first_ready(me): ...
+        """
         def decorator(fn):
             self.emitter.once(event, fn)
             return fn
         return decorator
 
     def command(self, name: str, **kwargs):
-        """Register a command. Shows in Nerimity's / menu and responds to !prefix."""
+        """Register a command that works as both !name and /name.
+
+        Shows up in Nerimity's slash menu AND responds to the prefix version.
+
+        Usage::
+
+            @bot.command("ping", description="Check if the bot is alive")
+            async def ping(ctx):
+                await ctx.reply("Pong!")
+        """
         return self.router.command(name, public=True, **kwargs)
 
     def command_private(self, name: str, **kwargs):
-        """Register a prefix-only command. Never shown in the / menu."""
+        """Register a prefix-only command — it will NOT appear in the / menu.
+
+        Use this for admin/debug commands you don't want users to discover.
+
+        Usage::
+
+            @bot.command_private("debug")
+            async def debug(ctx):
+                await ctx.reply("secret info")
+        """
         return self.router.command(name, public=False, **kwargs)
 
     def slash(self, name: str, **kwargs):
-        """Alias for @bot.command — registers with API and handles prefix."""
+        """Same as @bot.command — alias for people who prefer the name 'slash'."""
         return self.command(name, **kwargs)
 
     def slash_private(self, name: str, **kwargs):
-        """Alias for @bot.command_private — prefix only, not in / menu."""
+        """Same as @bot.command_private — alias for people who prefer the name 'slash'."""
         return self.command_private(name, **kwargs)
 
     def button(self, pattern: str, ttl: Optional[float] = None):
-        """Decorator: @bot.button("confirm:{action}:{target}")"""
+        """Handle a button click. The pattern matches the button's ID.
+
+        Use {name} segments to capture dynamic parts of the ID.
+
+        Usage::
+
+            @bot.button("confirm:{action}")
+            async def on_confirm(bctx):
+                await bctx.popup("Done!", f"You confirmed: {bctx.params['action']}")
+
+        ttl: how many seconds before this handler expires (None = never)
+        """
         return self.button_router.button(pattern, ttl=ttl)
 
     def cron(self, expr: str):
+        """Run a function on a schedule using a cron expression.
+
+        A cron expression is 5 fields: minute hour day month weekday
+        Examples:
+            "0 9 * * *"    — every day at 09:00 UTC
+            "0 9 * * 1"    — every Monday at 09:00 UTC
+            "*/30 * * * *" — every 30 minutes
+
+        Requires: pip install "nerimity-sdk[cron]"
+
+        Usage::
+
+            @bot.cron("0 9 * * 1")
+            async def weekly():
+                await bot.rest.create_message("CHANNEL_ID", "Good morning!")
+        """
         return self.scheduler.cron(expr)
 
     @overload
