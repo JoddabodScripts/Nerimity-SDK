@@ -6,4 +6,7 @@ dist/
 build/
 *.egg-info/
 site/
-.pytest_cache/
+.venv/
+venv/
+pyproject.toml.bak
+nerimity_sdk_contrib_build/
