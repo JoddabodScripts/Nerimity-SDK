@@ -341,10 +341,10 @@ class Bot:
             "uptime_seconds": round(_time.monotonic() - self._start_time, 1) if self._start_time else 0,
             "messages_seen": self._messages_seen,
             "commands_dispatched": self._commands_dispatched,
-            "cached_users": len(self.cache.users._cache),
-            "cached_servers": len(self.cache.servers._cache),
-            "cached_channels": len(self.cache.channels._cache),
-            "cached_members": len(self.cache.members._cache),
+            "cached_users": len(self.cache.users._data),
+            "cached_servers": len(self.cache.servers._data),
+            "cached_channels": len(self.cache.channels._data),
+            "cached_members": len(self.cache.members._data),
             "rate_limit_hits": self.rest.rate_limit_hits,
         }
 
