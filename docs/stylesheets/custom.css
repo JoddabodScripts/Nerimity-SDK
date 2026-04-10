@@ -88,20 +88,43 @@ body, [data-md-color-scheme="slate"] {
   border-right: 1px solid var(--arc-border);
 }
 
+/* Section headers (Getting Started, API Reference, etc.) */
+.md-nav__title,
+.md-nav__item--section > .md-nav__link,
+.md-nav--secondary .md-nav__title {
+  color: var(--arc-purple) !important;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+
 .md-nav__link {
   border-radius: var(--arc-radius-sm);
-  padding: 0.3rem 0.6rem;
   transition: background var(--arc-transition), color var(--arc-transition);
   font-size: 0.82rem;
+  /* let Material control padding so the box aligns with the text */
+}
+
+.md-nav__item {
+  border-radius: var(--arc-radius-sm);
+  transition: background var(--arc-transition);
+}
+
+.md-nav__item:has(> .md-nav__link:hover) {
+  background: rgba(167,139,250,0.1);
+}
+
+.md-nav__item:has(> .md-nav__link--active) {
+  background: rgba(167,139,250,0.15);
 }
 
 .md-nav__link:hover {
-  background: rgba(167,139,250,0.1);
   color: var(--arc-purple) !important;
 }
 
 .md-nav__link--active {
-  background: rgba(167,139,250,0.15) !important;
   color: var(--arc-purple) !important;
   font-weight: 500;
 }
