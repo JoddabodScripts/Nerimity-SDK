@@ -58,7 +58,7 @@ class LevelingPlugin(PluginBase):
         self._last_xp[cooldown_key] = now
 
         store_key = self._key(msg.server_id, uid)
-        xp: int = (await self.bot.store.get(store_key)) or 0
+        xp: int = int((await self.bot.store.get(store_key)) or 0)
         old_level = _level_for_xp(xp)
         xp += self.xp_per_message
         await self.bot.store.set(store_key, xp)
@@ -72,7 +72,7 @@ class LevelingPlugin(PluginBase):
             )
 
     async def get_xp(self, server_id: str, user_id: str) -> int:
-        return (await self.bot.store.get(self._key(server_id, user_id))) or 0
+        return int((await self.bot.store.get(self._key(server_id, user_id))) or 0)
 
     async def get_level(self, server_id: str, user_id: str) -> int:
         return _level_for_xp(await self.get_xp(server_id, user_id))
