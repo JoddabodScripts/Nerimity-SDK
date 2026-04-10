@@ -38,6 +38,9 @@ nav:
     - Installation: guide/installation.md
     - Quick Start: guide/quickstart.md
     - Configuration: guide/configuration.md
+    - Recipes: guide/recipes.md
+    - Hosting (24/7): guide/hosting.md
+    - Troubleshooting: guide/troubleshooting.md
   - API Reference:
     - Bot: api/bot.md
     - Context: api/context.md
