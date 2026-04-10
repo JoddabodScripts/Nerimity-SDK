@@ -30,7 +30,13 @@ cd my-bot
 copy .env.example .env
 ```
 
-Open `.env` in Notepad and paste your token:
+Open `.env` in Notepad — run this in Command Prompt (`.env` is hidden in File Explorer, so open it this way):
+
+```
+notepad .env
+```
+
+Paste your token:
 
 ```
 NERIMITY_TOKEN=paste_your_token_here

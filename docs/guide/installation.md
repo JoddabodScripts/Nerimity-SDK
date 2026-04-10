@@ -77,7 +77,13 @@ Now set your token. In Command Prompt:
 copy .env.example .env
 ```
 
-Open `.env` in Notepad and replace the placeholder with your token:
+Open `.env` in Notepad by running this in Command Prompt (`.env` files are hidden in File Explorer, so use this instead):
+
+```
+notepad .env
+```
+
+Replace the placeholder with your token:
 
 ```
 NERIMITY_TOKEN=paste_your_token_here
