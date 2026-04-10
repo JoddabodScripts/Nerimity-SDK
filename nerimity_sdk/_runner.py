@@ -71,10 +71,9 @@ def launch(script: str) -> None:
 
         if restart_reason:
             print(f"\n[nerimity] {restart_reason} — restarting...\n", flush=True)
-        elif proc.returncode != 0:
+        elif proc.returncode not in (0, -2, 130):  # 130 = 128+SIGINT, -2 = SIGINT on Unix
             print(f"\n[nerimity] Bot exited with code {proc.returncode} — restarting in 2s...\n",
                   flush=True)
             time.sleep(2)
         else:
-            # Clean exit (e.g. Ctrl-C propagated to child) — stop the loop
             return
