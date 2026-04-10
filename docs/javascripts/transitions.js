@@ -9,19 +9,29 @@
     el.classList.add(cls);
   };
 
-  const tabHrefs = () =>
-    [...document.querySelectorAll('.md-tabs__link')].map(a => a.href);
+  // Return index of which tab "owns" a given pathname
+  const tabIndex = (pathname) => {
+    const tabs = [...document.querySelectorAll('.md-tabs__link')];
+    // find the longest matching tab prefix
+    let best = -1, bestLen = -1;
+    tabs.forEach((a, i) => {
+      const tp = new URL(a.href).pathname;
+      if (pathname.startsWith(tp) && tp.length > bestLen) {
+        best = i; bestLen = tp.length;
+      }
+    });
+    return best;
+  };
 
-  let prevHref = location.href;
   let pendingClass = null;
 
   document.addEventListener('click', e => {
     const tab  = e.target.closest('.md-tabs__link');
     const side = e.target.closest('.md-nav__link:not(.md-tabs__link)');
+
     if (tab) {
-      const tabs = tabHrefs();
-      const pi = tabs.findIndex(h => prevHref.startsWith(h));
-      const ni = tabs.indexOf(tab.href);
+      const pi = tabIndex(location.pathname);
+      const ni = tabIndex(new URL(tab.href).pathname);
       pendingClass = ni >= pi ? 'anim-left' : 'anim-right';
     } else if (side) {
       const rect = side.getBoundingClientRect();
@@ -30,19 +40,13 @@
   }, true);
 
   const init = () => {
-    // First load
     play('anim-fadein');
-    prevHref = location.href;
-
-    // Every instant-nav swap
     window.document$.subscribe(() => {
       play(pendingClass || 'anim-fadein');
       pendingClass = null;
-      prevHref = location.href;
     });
   };
 
-  // Wait for Material to expose window.document$
   if (window.document$) {
     init();
   } else {
