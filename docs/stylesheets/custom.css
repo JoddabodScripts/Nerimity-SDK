@@ -31,17 +31,26 @@ body, [data-md-color-scheme="slate"] {
 }
 
 /* ── Page transition animations ── */
-@keyframes animLeft    { from { opacity:0; transform:translateX(28px);  } to { opacity:1; transform:none; } }
-@keyframes animRight   { from { opacity:0; transform:translateX(-28px); } to { opacity:1; transform:none; } }
-@keyframes animUp      { from { opacity:0; transform:translateY(22px);  } to { opacity:1; transform:none; } }
-@keyframes animDown    { from { opacity:0; transform:translateY(-22px); } to { opacity:1; transform:none; } }
-@keyframes animFadeIn  { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:none; } }
+@keyframes animLeft   { 0% { opacity:0; transform:translateX(80px);  filter:blur(8px); } 40% { opacity:1; filter:blur(2px); } 100% { transform:none; filter:blur(0); } }
+@keyframes animRight  { 0% { opacity:0; transform:translateX(-80px); filter:blur(8px); } 40% { opacity:1; filter:blur(2px); } 100% { transform:none; filter:blur(0); } }
+@keyframes animUp     { 0% { opacity:0; transform:translateY(80px);  filter:blur(8px); } 40% { opacity:1; filter:blur(2px); } 100% { transform:none; filter:blur(0); } }
+@keyframes animDown   { 0% { opacity:0; transform:translateY(-80px); filter:blur(8px); } 40% { opacity:1; filter:blur(2px); } 100% { transform:none; filter:blur(0); } }
+@keyframes animFadeIn { 0% { opacity:0; transform:translateY(-24px); filter:blur(8px); } 40% { opacity:1; filter:blur(2px); } 100% { transform:none; filter:blur(0); } }
 
-.md-content__inner.anim-left    { animation: animLeft   180ms cubic-bezier(0.4,0,0.2,1) both; }
-.md-content__inner.anim-right   { animation: animRight  180ms cubic-bezier(0.4,0,0.2,1) both; }
-.md-content__inner.anim-up      { animation: animUp     180ms cubic-bezier(0.4,0,0.2,1) both; }
-.md-content__inner.anim-down    { animation: animDown   180ms cubic-bezier(0.4,0,0.2,1) both; }
-.md-content__inner.anim-fadein  { animation: animFadeIn 220ms cubic-bezier(0.4,0,0.2,1) both; }
+@keyframes exitLeft   { from { opacity:1; transform:none;             filter:blur(0); } to { opacity:0; transform:translateX(-80px); filter:blur(8px); } }
+@keyframes exitRight  { from { opacity:1; transform:none;             filter:blur(0); } to { opacity:0; transform:translateX(80px);  filter:blur(8px); } }
+@keyframes exitUp     { from { opacity:1; transform:none;             filter:blur(0); } to { opacity:0; transform:translateY(-80px); filter:blur(8px); } }
+@keyframes exitDown   { from { opacity:1; transform:none;             filter:blur(0); } to { opacity:0; transform:translateY(80px);  filter:blur(8px); } }
+
+.md-content__inner.anim-left    { animation: animLeft   2s cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-right   { animation: animRight  2s cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-up      { animation: animUp     2s cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-down    { animation: animDown   2s cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-fadein  { animation: animFadeIn 2s cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.exit-left    { animation: exitLeft   0.3s cubic-bezier(0.4,0,1,1) both; }
+.md-content__inner.exit-right   { animation: exitRight  0.3s cubic-bezier(0.4,0,1,1) both; }
+.md-content__inner.exit-up      { animation: exitUp     0.3s cubic-bezier(0.4,0,1,1) both; }
+.md-content__inner.exit-down    { animation: exitDown   0.3s cubic-bezier(0.4,0,1,1) both; }
 
 /* ── Header ── */
 .md-header {
