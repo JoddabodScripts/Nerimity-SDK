@@ -10,10 +10,26 @@ theme:
     - scheme: slate
       primary: deep purple
       accent: purple
+  font:
+    text: Inter
+    code: JetBrains Mono
   features:
     - navigation.tabs
     - navigation.sections
+    - navigation.top
+    - navigation.instant
+    - navigation.instant.progress
     - content.code.copy
+    - search.highlight
+    - search.suggest
+    - search.share
+
+extra_css:
+  - stylesheets/custom.css
+
+plugins:
+  - search:
+      lang: en
 
 extra:
   generator: false
@@ -31,6 +47,8 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - tables
+  - pymdownx.tabbed:
+      alternate_style: true
 
 nav:
   - Home: index.md
@@ -48,6 +66,8 @@ nav:
     - Slash Commands: api/slash.md
     - Buttons: api/buttons.md
     - Events: api/events.md
+    - Webhooks: api/webhooks.md
+    - OAuth2: api/oauth2.md
     - Cache: api/cache.md
     - Permissions: api/permissions.md
     - Plugins: api/plugins.md
@@ -56,3 +76,4 @@ nav:
     - Utilities: api/utils.md
   - Example Bot: example.md
   - Plugin Marketplace: plugins.md
+  - Changelog: changelog.md
