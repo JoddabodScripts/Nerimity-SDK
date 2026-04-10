@@ -173,6 +173,10 @@ class RESTClient:
         """Fetch server info from the API."""
         return await self.request("GET", f"/servers/{server_id}")
 
+    async def fetch_channel(self, channel_id: str) -> dict:
+        """Fetch a channel by ID from the API."""
+        return await self.request("GET", f"/channels/{channel_id}")
+
     async def close(self) -> None:
         if self._session and not self._session.closed:
             await self._session.close()

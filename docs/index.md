@@ -113,5 +113,8 @@ bot.run()
 | ctx.ensure_member() | API fallback for the command author's member object |
 | Request timeout | `bot.rest.timeout = 30.0` (default) |
 | Disable built-in /stats | `Bot(disable_builtin_stats=True)` |
+| Edit message with buttons | `await ctx.edit(msg.id, "new content", buttons=[...])` |
+| Silent reply | `await ctx.reply_silent("shh")` |
+| Fetch channel from API | `await bot.rest.fetch_channel(channel_id)` |
 
 See the [Getting Started guide](guide/installation.md) or the [Example Bot](example.md) for a full working example.

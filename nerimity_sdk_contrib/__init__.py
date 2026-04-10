@@ -42,8 +42,9 @@ from nerimity_sdk_contrib.afk import AFKPlugin
 from nerimity_sdk_contrib.suggestions import SuggestionPlugin
 from nerimity_sdk_contrib.warn import WarnPlugin
 from nerimity_sdk_contrib.message_filter import MessageFilterPlugin
+from nerimity_sdk_contrib.message_snapshot import MessageSnapshotPlugin
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 
 __all__ = [
     "WelcomePlugin",
@@ -68,4 +69,5 @@ __all__ = [
     "SuggestionPlugin",
     "WarnPlugin",
     "MessageFilterPlugin",
+    "MessageSnapshotPlugin",
 ]

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nerimity-sdk-contrib"
-version = "1.0.7"
+version = "1.0.8"
 description = "Ready-made plugins for nerimity-sdk bots"
 readme = "README.md"
 requires-python = ">=3.10"

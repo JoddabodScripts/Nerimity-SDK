@@ -46,6 +46,7 @@ async def on_ready(me):
 | `SuggestionPlugin` | `/suggest <idea>` — posts to suggestions channel with 👍/👎 reactions | `channel_id`, `upvote`, `downvote` |
 | `WarnPlugin` | `/warn @user <reason>` — stores warnings, auto-kicks at threshold | `threshold`, `log_channel_id` |
 | `MessageFilterPlugin` | Block links, invites, or custom regex patterns | `block_links`, `block_invites`, `patterns`, `log_channel_id`, `exempt_roles` |
+| `MessageSnapshotPlugin` | Logs deleted and edited messages to a channel before they're gone | `log_channel_id` |
 
 ---
 

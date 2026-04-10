@@ -27,7 +27,7 @@ from nerimity_sdk.storage import MemoryStore, Store
 from nerimity_sdk.utils.logging import configure_logger, get_logger
 from nerimity_sdk.models import Message, User
 
-__version__ = "1.0.7"
+__version__ = "1.0.8"
 
 
 class Bot:
@@ -317,7 +317,7 @@ class Bot:
             )
         """
         if count == 1:
-            future: asyncio.Future = asyncio.get_event_loop().create_future()
+            future: asyncio.Future = asyncio.get_running_loop().create_future()
 
             async def _listener(payload) -> None:
                 if check and not check(payload):
@@ -333,7 +333,7 @@ class Bot:
                 raise
         else:
             collected: list = []
-            future_n: asyncio.Future = asyncio.get_event_loop().create_future()
+            future_n: asyncio.Future = asyncio.get_running_loop().create_future()
 
             async def _listener_n(payload) -> None:
                 if check and not check(payload):

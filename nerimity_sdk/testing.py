@@ -81,3 +81,13 @@ class MockBot(Bot):
         from nerimity_sdk.events.payloads import deserialize
         typed = deserialize(event, data) if isinstance(data, dict) else data
         await self.emitter.emit(event, typed)
+
+    async def simulate_slash(self, command: str, args: list | None = None,
+                              channel_id: str = "100",
+                              server_id: str | None = None,
+                              author_id: str = "42") -> None:
+        """Simulate a slash command invocation for testing slash handlers."""
+        args_str = " ".join(str(a) for a in (args or []))
+        content = f"/{command}" + (f" {args_str}" if args_str else "")
+        await self.simulate_message(content, channel_id=channel_id,
+                                    server_id=server_id, author_id=author_id)

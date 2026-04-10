@@ -103,6 +103,16 @@ class Context:
         data = await self.rest.create_message(self.channel_id, content, buttons=btn_data)
         return Message.from_dict(data)
 
+    async def reply_silent(self, content: str) -> "Message":
+        """Send a message that doesn't trigger a notification."""
+        from nerimity_sdk.models import Message
+        from nerimity_sdk.commands.builders import MessageBuilder
+        data = await self.rest.request(
+            "POST", f"/channels/{self.channel_id}/messages",
+            json=MessageBuilder().content(content).silent().build()
+        )
+        return Message.from_dict(data)
+
     async def reply_file(self, path: str, content: str = "") -> "Message":
         """Upload a file to the Nerimity CDN then send it in this channel.
 
@@ -117,16 +127,18 @@ class Context:
                                                nerimity_file_id=file_id)
         return Message.from_dict(data)
 
-    async def edit(self, message_id: str, content: str) -> "Message":
-        """Edit one of the bot's own messages.
-
-        Usage::
-
-            msg = await ctx.reply("thinking...")
-            await ctx.edit(msg.id, "done!")
-        """
+    async def edit(self, message_id: str, content: str,
+                   buttons: list | None = None) -> "Message":
+        """Edit one of the bot's own messages, optionally updating buttons too."""
         from nerimity_sdk.models import Message
-        data = await self.rest.update_message(self.channel_id, message_id, content)
+        btn_data = None
+        if buttons is not None:
+            btn_data = [
+                {"label": str(b.label), "id": str(b.id), "alert": getattr(b, "alert", False)}
+                for b in buttons
+            ]
+        data = await self.rest.update_message(self.channel_id, message_id, content,
+                                               buttons=btn_data)
         return Message.from_dict(data)
 
     async def react(self, emoji: str, emoji_id: Optional[str] = None,
@@ -151,7 +163,7 @@ class Context:
         if self._emitter is None:
             raise RuntimeError("ctx.ask() requires an emitter")
 
-        future: asyncio.Future = asyncio.get_event_loop().create_future()
+        future: asyncio.Future = asyncio.get_running_loop().create_future()
 
         async def _listener(event) -> None:
             from nerimity_sdk.events.payloads import MessageCreatedEvent

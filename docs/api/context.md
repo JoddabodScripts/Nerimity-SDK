@@ -78,7 +78,11 @@ Accepts: `no`, `n`, `nope`, `cancel`, `abort` → `False`
 ### `await ctx.fetch_messages(limit=50, before=None, after=None)`
 Fetch messages from the channel. Returns `list[Message]`.
 
-### `await ctx.delete()`
+### `await ctx.reply_silent(content)`
+Send a message that doesn't trigger a notification.
+
+### `await ctx.edit(message_id, content, buttons=None)`
+Edit one of the bot's own messages. Optionally update buttons at the same time.
 Delete the triggering message.
 
 ### `await ctx.reply_paginated(text, max_length=1800)`

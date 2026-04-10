@@ -149,3 +149,21 @@ async def recall(ctx):
 - [Buttons](../api/buttons.md) — interactive button handlers
 - [Plugins](../api/plugins.md) — split your bot into reloadable modules
 - [Example Bot](../example.md) — a complete bot showing everything at once
+
+## Testing
+
+Use `MockBot` to unit test without a real connection:
+
+```python
+from nerimity_sdk.testing import MockBot
+
+bot = MockBot(prefix="/")
+
+@bot.command("ping")
+async def ping(ctx):
+    await ctx.reply("Pong!")
+
+await bot.simulate_message("/ping")           # simulate a prefix/slash message
+await bot.simulate_slash("ping")              # simulate a slash command directly
+await bot.simulate_event("server:member_joined", {...})  # simulate any gateway event
+```
