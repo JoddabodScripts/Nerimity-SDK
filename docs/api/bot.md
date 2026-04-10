@@ -69,7 +69,23 @@ async def handler(bctx: ButtonContext, error: Exception): ...
 | `bot.router` | `CommandRouter` | Prefix command router |
 | `bot.slash_router` | `SlashRouter` | Slash command router |
 | `bot.button_router` | `ButtonRouter` | Button handler router |
-| `bot.stats` | `dict` | Runtime stats: uptime, messages seen, commands dispatched, cache sizes |
+| `bot.stats` | `dict` | Runtime stats: uptime, messages seen, commands dispatched, rate limit hits, cache sizes |
+
+## Health endpoint
+
+```python
+bot = Bot(token="...", health_port=8080)
+```
+
+Starts a lightweight HTTP server alongside the bot:
+- `GET /health` → `{"status": "ok", "uptime": 123.4}`
+- `GET /stats` → full `bot.stats` dict as JSON
+
+Useful for uptime monitors, container health checks, and Kubernetes liveness probes.
+
+## Built-in /stats command
+
+Every bot automatically gets a `/stats` slash command that posts a formatted stats embed. No setup needed.
 
 ## Methods
 

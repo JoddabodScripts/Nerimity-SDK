@@ -12,6 +12,7 @@ bot = Bot(
     cache_invalidate_on_disconnect=True,  # wipe cache on disconnect
     debug=False,                 # pretty-print all gateway payloads
     json_logs=False,             # structured JSON log output (for Docker/cloud)
+    health_port=None,            # expose /health and /stats HTTP endpoints on this port
     watch=False,                 # hot-reload plugins on file save (legacy)
     watch_paths=["plugins"],     # directories to watch
     store=None,                  # persistent storage backend

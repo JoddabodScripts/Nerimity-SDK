@@ -213,6 +213,20 @@ class Context:
         """Pin the triggering message in this channel."""
         await self.rest.pin_message(self.channel_id, self.message.id)
 
+    async def reply_dm(self, content: str) -> "Message":
+        """Send a DM to the command author instead of replying in the channel."""
+        from nerimity_sdk.models import Message
+        channel_data = await self.rest.open_dm(self.author.id)
+        data = await self.rest.create_message(channel_data["id"], content)
+        return Message.from_dict(data)
+
+    async def reply_then_delete(self, content: str, delay: float = 5.0) -> None:
+        """Send a message then delete it after `delay` seconds."""
+        import asyncio
+        msg = await self.reply(content)
+        await asyncio.sleep(delay)
+        await self.rest.delete_message(self.channel_id, msg.id)
+
     async def fetch_messages(self, limit: int = 50, before: Optional[str] = None,
                               after: Optional[str] = None) -> list["Message"]:
         from nerimity_sdk.models import Message

@@ -94,16 +94,48 @@ def run(bot_file: str) -> None:
 
     print(f"{c['BOLD']}{c['INFO']}[dev]{c['RESET']} Watching {directory} for changes...\n")
 
+    # Dashboard state — populated via the health endpoint if health_port is set
+    _stats_url: str | None = None
+
+    def _try_read_health_port() -> str | None:
+        """Check if the bot exposes a health port via env var NERIMITY_HEALTH_PORT."""
+        port = os.environ.get("NERIMITY_HEALTH_PORT")
+        return f"http://127.0.0.1:{port}/stats" if port else None
+
+    def _fetch_stats(url: str) -> dict | None:
+        try:
+            import urllib.request, json as _json
+            with urllib.request.urlopen(url, timeout=1) as r:
+                return _json.loads(r.read())
+        except Exception:
+            return None
+
+    def _render_dashboard(stats: dict) -> str:
+        up = stats.get("uptime_seconds", 0)
+        h, rem = divmod(int(up), 3600)
+        m, s = divmod(rem, 60)
+        uptime = f"{h:02d}:{m:02d}:{s:02d}"
+        return (
+            f"\r{c['BOLD']}[dev dashboard]{c['RESET']}  "
+            f"uptime {c['INFO']}{uptime}{c['RESET']}  "
+            f"msgs {c['INFO']}{stats.get('messages_seen', '?')}{c['RESET']}  "
+            f"cmds {c['INFO']}{stats.get('commands_dispatched', '?')}{c['RESET']}  "
+            f"rl_hits {c['WARNING']}{stats.get('rate_limit_hits', 0)}{c['RESET']}  "
+            f"cache u={stats.get('cached_users','?')} "
+            f"s={stats.get('cached_servers','?')} "
+            f"ch={stats.get('cached_channels','?')}  "
+        )
+
     while True:
         snapshot = _snapshot(directory)
-
-        # Build the subprocess command — same Python interpreter, force dev flags via env
         env = os.environ.copy()
         env["NERIMITY_DEBUG"] = "1"
-        env["NERIMITY_WATCH"] = "0"  # we handle watching ourselves
+        env["NERIMITY_WATCH"] = "0"
 
         cmd = [sys.executable, bot_file]
         proc = subprocess.Popen(cmd, env=env)
+        _stats_url = _try_read_health_port()
+        _dashboard_tick = 0
 
         try:
             while proc.poll() is None:
@@ -121,6 +153,15 @@ def run(bot_file: str) -> None:
                         proc.kill()
                     break
                 snapshot = current
+
+                # Live dashboard (every 2s) if health endpoint is available
+                if _stats_url:
+                    _dashboard_tick += 1
+                    if _dashboard_tick % 4 == 0:
+                        stats = _fetch_stats(_stats_url)
+                        if stats:
+                            sys.stdout.write(_render_dashboard(stats))
+                            sys.stdout.flush()
         except KeyboardInterrupt:
             print(f"\n{c['DIM']}[dev] Stopping.{c['RESET']}")
             proc.terminate()

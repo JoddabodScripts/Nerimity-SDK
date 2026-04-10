@@ -80,8 +80,15 @@ bot.run()
 | Static analysis | `nerimity lint` |
 | Debug mode | `Bot(debug=True)` |
 | JSON structured logs | `Bot(json_logs=True)` |
-| Runtime stats | `bot.stats` — uptime, messages, commands, cache sizes |
+| Runtime stats | `bot.stats` — uptime, messages, commands, cache sizes, rate limit hits |
 | Auto-restart on crash | enabled by default in `bot.run()` |
 | Auto-restart on file save | enabled by default in `bot.run()` |
+| Health check endpoint | `Bot(health_port=8080)` → `GET /health` and `GET /stats` |
+| Live dev dashboard | `nerimity dev bot.py` with `NERIMITY_HEALTH_PORT` set |
+| Built-in /stats command | every bot gets `/stats` automatically |
+| DM reply | `await ctx.reply_dm("hi")` |
+| Auto-delete reply | `await ctx.reply_then_delete("done", delay=5)` |
+| Fetch user by ID | `await bot.rest.fetch_user(user_id)` |
+| Bulk role assign | `await bot.rest.add_roles(server_id, user_id, [role1, role2])` |
 
 See the [Getting Started guide](guide/installation.md) or the [Example Bot](example.md) for a full working example.

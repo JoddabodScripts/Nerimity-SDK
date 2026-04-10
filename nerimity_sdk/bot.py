@@ -27,7 +27,7 @@ from nerimity_sdk.storage import MemoryStore, Store
 from nerimity_sdk.utils.logging import configure_logger, get_logger
 from nerimity_sdk.models import Message, User
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 class Bot:
@@ -73,6 +73,7 @@ class Bot:
         shard_count: int = 1,
         logger=None,
         json_logs: bool = False,
+        health_port: Optional[int] = None,
     ) -> None:
         configure_logger(
             level=logging.DEBUG if debug else logging.INFO,
@@ -124,6 +125,25 @@ class Bot:
         self.emitter.on("server:channel_deleted", self._on_channel_deleted)
         self.emitter.on("disconnect", self._on_disconnect)
         self.emitter.on("inbox:opened", self._on_inbox_opened)
+
+        # Built-in /stats command
+        @self.router.command("stats", description="Show bot runtime stats", public=True)
+        async def _builtin_stats(ctx):
+            s = self.stats
+            up = s["uptime_seconds"]
+            h, rem = divmod(int(up), 3600)
+            m, sec = divmod(rem, 60)
+            await ctx.reply(
+                f"📊 **Bot Stats**\n"
+                f"⏱ Uptime: `{h:02d}:{m:02d}:{sec:02d}`\n"
+                f"💬 Messages seen: `{s['messages_seen']}`\n"
+                f"⚡ Commands dispatched: `{s['commands_dispatched']}`\n"
+                f"🚦 Rate limit hits: `{s['rate_limit_hits']}`\n"
+                f"🗄 Cache — users: `{s['cached_users']}` "
+                f"servers: `{s['cached_servers']}` "
+                f"channels: `{s['cached_channels']}` "
+                f"members: `{s['cached_members']}`"
+            )
 
     # ── Decorators ────────────────────────────────────────────────────────────
 
@@ -325,6 +345,7 @@ class Bot:
             "cached_servers": len(self.cache.servers._cache),
             "cached_channels": len(self.cache.channels._cache),
             "cached_members": len(self.cache.members._cache),
+            "rate_limit_hits": self.rest.rate_limit_hits,
         }
 
     @property
@@ -541,6 +562,10 @@ class Bot:
             shard_id=self.shard_id, shard_count=self.shard_count,
         )
         await self._gateway.connect()
+        if self._health_port:
+            from nerimity_sdk.health import HealthServer
+            self._health_server = HealthServer(self, self._health_port)
+            await self._health_server.start()
 
     async def close(self) -> None:
         self.logger.info("[Bot] Shutting down...")
@@ -549,6 +574,8 @@ class Bot:
             self._watcher.stop()
         if self._gateway:
             await self._gateway.disconnect()
+        if self._health_server:
+            await self._health_server.stop()
         await self.rest.close()
         self.logger.info("[Bot] Goodbye.")
 

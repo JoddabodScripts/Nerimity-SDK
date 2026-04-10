@@ -29,8 +29,11 @@ from nerimity_sdk_contrib.poll import PollPlugin
 from nerimity_sdk_contrib.antispam import AntiSpamPlugin
 from nerimity_sdk_contrib.leveling import LevelingPlugin
 from nerimity_sdk_contrib.tickets import TicketPlugin
+from nerimity_sdk_contrib.giveaway import GiveawayPlugin
+from nerimity_sdk_contrib.reminders import ReminderPlugin
+from nerimity_sdk_contrib.translate import TranslatePlugin
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 __all__ = [
     "WelcomePlugin",
@@ -42,4 +45,7 @@ __all__ = [
     "AntiSpamPlugin",
     "LevelingPlugin",
     "TicketPlugin",
+    "GiveawayPlugin",
+    "ReminderPlugin",
+    "TranslatePlugin",
 ]

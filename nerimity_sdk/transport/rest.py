@@ -36,6 +36,7 @@ class RESTClient:
         self._buckets: dict[str, RateLimitBucket] = {}
         self._global_lock = asyncio.Lock()
         self._global_reset: float = 0.0
+        self.rate_limit_hits: int = 0
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
@@ -72,6 +73,7 @@ class RESTClient:
                 if resp.status == 429:
                     data = await resp.json()
                     retry_after = data.get("retry_after", 1.0)
+                    self.rate_limit_hits += 1
                     if data.get("global"):
                         self._global_reset = time.monotonic() + retry_after
                     else:
@@ -103,6 +105,17 @@ class RESTClient:
                 return await resp.text()
 
         raise RuntimeError(f"Request {method} {path} failed after 5 attempts")
+
+    async def fetch_user(self, user_id: str) -> dict:
+        """Fetch a user by ID from the API."""
+        return await self.request("GET", f"/users/{user_id}")
+
+    async def add_roles(self, server_id: str, user_id: str, role_ids: list[str]) -> None:
+        """Assign multiple roles to a member in one call (sequential, Nerimity has no bulk endpoint)."""
+        import asyncio
+        await asyncio.gather(*[
+            self.add_role(server_id, user_id, rid) for rid in role_ids
+        ])
 
     async def close(self) -> None:
         if self._session and not self._session.closed:

@@ -33,6 +33,9 @@ async def on_ready(me):
 | `AntiSpamPlugin` | Rate-limits messages per user, auto-kicks/bans/deletes on threshold | `max_messages`, `window`, `action` (`"kick"`, `"ban"`, `"delete"`), `log_channel_id` |
 | `LevelingPlugin` | XP per message with cooldown, level-up announcements, persistent storage | `announce_channel_id`, `xp_per_message`, `xp_cooldown` |
 | `TicketPlugin` | DM-based support tickets — users DM the bot, staff reply via a channel | `staff_channel_id`, `open_message`, `close_message` |
+| `GiveawayPlugin` | React-to-enter giveaway with random winner after a duration | loaded once, then `await plugin.start(ctx, prize, duration, emoji)` |
+| `ReminderPlugin` | `!remind 10m take a break` — DMs the user after the time | loaded once, then `await plugin.set(ctx)` |
+| `TranslatePlugin` | Auto-translate messages in a channel (MyMemory, no API key needed) | `watch_channel_id`, `target_lang` |
 
 ---
 

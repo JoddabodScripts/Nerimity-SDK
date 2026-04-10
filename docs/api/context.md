@@ -22,6 +22,16 @@ Passed to every prefix command handler. Wraps the triggering message with conven
 ### `await ctx.reply(content)`
 Send a message to the same channel. Returns `Message`.
 
+### `await ctx.reply_dm(content)`
+Send a DM to the command author instead of replying in the channel. Returns `Message`.
+
+### `await ctx.reply_then_delete(content, delay=5.0)`
+Send a message then automatically delete it after `delay` seconds.
+
+```python
+await ctx.reply_then_delete("✅ Done!", delay=3)
+```
+
 ### `await ctx.reply_embed(embed)`
 Send an embed to the same channel. Returns `Message`.
 
