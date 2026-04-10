@@ -125,14 +125,14 @@ async def debug(ctx):
 ```python
 from nerimity_sdk import JsonStore
 
-bot = Bot(token=os.environ["NERIMITY_TOKEN"], prefix="!", store=JsonStore("data.json"))
+bot = Bot(token=os.environ["NERIMITY_TOKEN"], store=JsonStore("data.json"))
 
 @bot.command("remember", description="Remember a value")
 async def remember(ctx):
     if not ctx.args:
-        return await ctx.reply("Usage: !remember <value>")
-    await bot.store.set(f"user:{ctx.author.id}:note", ctx.args[0])
-    await ctx.reply(f"Remembered: {ctx.args[0]}")
+        return await ctx.reply("Usage: /remember <value>")
+    await bot.store.set(f"user:{ctx.author.id}:note", ctx.rest_text)
+    await ctx.reply(f"Remembered: {ctx.rest_text}")
 
 @bot.command("recall", description="Recall your saved value")
 async def recall(ctx):

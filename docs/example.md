@@ -35,10 +35,10 @@ async def kick(ctx):
 ### Slash command
 
 ```python
-@bot.slash("info", description="Show bot info")
-async def slash_info(sctx):
+@bot.command("info", description="Show bot info")
+async def slash_info(ctx):
     from nerimity_sdk import __version__
-    await sctx.reply(f"nerimity-sdk v{__version__}")
+    await ctx.reply(f"nerimity-sdk v{__version__}")
 ```
 
 ### Poll with buttons

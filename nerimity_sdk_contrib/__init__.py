@@ -44,7 +44,7 @@ from nerimity_sdk_contrib.warn import WarnPlugin
 from nerimity_sdk_contrib.message_filter import MessageFilterPlugin
 from nerimity_sdk_contrib.message_snapshot import MessageSnapshotPlugin
 
-__version__ = "1.0.8"
+__version__ = "1.0.9"
 
 __all__ = [
     "WelcomePlugin",

@@ -14,6 +14,7 @@ Passed to every prefix command handler. Wraps the triggering message with conven
 | `ctx.channel` | `Channel \| None` | Channel from cache |
 | `ctx.member` | `Member \| None` | Author's server member from cache |
 | `ctx.args` | `list` | Parsed positional arguments (converted if `args=` set) |
+| `ctx.rest_text` | `str` | All remaining args joined as one string — useful for "rest of message" |
 | `ctx.flags` | `dict` | Named flags (`--flag=value`) |
 | `ctx.mentions` | `list[User]` | Resolved `[@:id]` mentions from message content |
 
