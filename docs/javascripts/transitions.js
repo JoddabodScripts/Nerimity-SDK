@@ -14,6 +14,10 @@
     CLASSES.forEach(c => clone.classList.remove(c));
     clone.classList.add(cls);
     el.replaceWith(clone);
+
+    // Freeze scroll for the duration of the enter animation so it doesn't fight
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => { document.body.style.overflow = ''; }, 2000);
   };
 
   const tabIndex = (pathname) => {
@@ -74,6 +78,8 @@
   const init = () => {
     play('anim-fadein');
     window.document$.subscribe(() => {
+      // Snap to top instantly before animation so scroll doesn't fight
+      window.scrollTo({ top: 0, behavior: 'instant' });
       play(pendingEnter || 'anim-fadein');
       pendingEnter = null;
       pendingExit  = null;
