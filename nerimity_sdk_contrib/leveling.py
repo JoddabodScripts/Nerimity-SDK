@@ -34,8 +34,8 @@ class LevelingPlugin(PluginBase):
                  xp_per_message: int = 10, xp_cooldown: float = 60.0) -> None:
         super().__init__()
         self.announce_channel_id = announce_channel_id
-        self.xp_per_message = xp_per_message
-        self.xp_cooldown = xp_cooldown
+        self.xp_per_message = int(xp_per_message)
+        self.xp_cooldown = float(xp_cooldown)
         self._last_xp: dict[str, float] = {}  # "server:user" → monotonic time
 
     def _key(self, server_id: str, user_id: str) -> str:
