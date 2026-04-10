@@ -363,4 +363,4 @@ pip install "nerimity-sdk[redis]"    # RedisStore
 [https://nerimitysdk.readthedocs.io/en/latest/](https://nerimitysdk.readthedocs.io/en/latest/)
 ---
 
-Built by [@Lyney:SHOW on Nerimity]([https://nerimity.com](https://nerimity.com/app/profile/1750075711936438273)) · [JoddabodScripts on GitHub](https://github.com/JoddabodScripts)
+Built by [@Lyney:SHOW on Nerimity](https://nerimity.com/app/profile/1750075711936438273) · [JoddabodScripts on GitHub](https://github.com/JoddabodScripts)
