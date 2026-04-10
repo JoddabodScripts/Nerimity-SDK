@@ -31,32 +31,17 @@ body, [data-md-color-scheme="slate"] {
 }
 
 /* ── Page transition animations ── */
-@keyframes firstLoad {
-  from { opacity: 0; transform: translateY(-18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(32px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(-32px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideInDown {
-  from { opacity: 0; transform: translateY(-24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+@keyframes animLeft    { from { opacity:0; transform:translateX(28px);  } to { opacity:1; transform:none; } }
+@keyframes animRight   { from { opacity:0; transform:translateX(-28px); } to { opacity:1; transform:none; } }
+@keyframes animUp      { from { opacity:0; transform:translateY(22px);  } to { opacity:1; transform:none; } }
+@keyframes animDown    { from { opacity:0; transform:translateY(-22px); } to { opacity:1; transform:none; } }
+@keyframes animFadeIn  { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:none; } }
 
-.anim-first-load  { animation: firstLoad   220ms cubic-bezier(0.4,0,0.2,1) both; }
-.anim-slide-left  { animation: slideInLeft  220ms cubic-bezier(0.4,0,0.2,1) both; }
-.anim-slide-right { animation: slideInRight 220ms cubic-bezier(0.4,0,0.2,1) both; }
-.anim-slide-up    { animation: slideInUp    220ms cubic-bezier(0.4,0,0.2,1) both; }
-.anim-slide-down  { animation: slideInDown  220ms cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-left    { animation: animLeft   180ms cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-right   { animation: animRight  180ms cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-up      { animation: animUp     180ms cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-down    { animation: animDown   180ms cubic-bezier(0.4,0,0.2,1) both; }
+.md-content__inner.anim-fadein  { animation: animFadeIn 220ms cubic-bezier(0.4,0,0.2,1) both; }
 
 /* ── Header ── */
 .md-header {
