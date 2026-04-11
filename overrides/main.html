@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — nerimity-sdk</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Inter',sans-serif;background:#1a1a2e;color:#e2e8f0;height:100vh;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+  .top{display:flex;justify-content:space-between;padding:2rem 2.5rem;font-size:.72rem;letter-spacing:.12em;color:rgba(255,255,255,.2);text-transform:uppercase;line-height:1.8}
+  .center{flex:1;display:flex;flex-direction:column;justify-content:center;padding:0 2.5rem}
+  .big{font-size:clamp(5rem,18vw,14rem);font-weight:700;letter-spacing:-.05em;line-height:.9;background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .msg{margin-top:1.5rem;font-size:clamp(1rem,2.5vw,1.3rem);font-weight:300;color:rgba(255,255,255,.4);max-width:460px;line-height:1.5}
+  .msg strong{color:#e2e8f0;font-weight:500}
+  .actions{margin-top:2rem;display:flex;gap:.75rem;flex-wrap:wrap}
+  a.btn{border-radius:999px;font-size:.82rem;font-weight:500;padding:.6rem 1.4rem;text-decoration:none;transition:opacity .2s}
+  a.btn:hover{opacity:.8}
+  .p{background:linear-gradient(135deg,#a78bfa,#f472b6);color:#fff}
+  .g{border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.4)}
+  .marquee{overflow:hidden;border-top:1px solid rgba(255,255,255,.06);padding:.9rem 0;white-space:nowrap}
+  .track{display:inline-flex;gap:2.5rem;animation:mq 18s linear infinite}
+  .track span{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.18)}
+  .dot{color:#a78bfa!important}
+  @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><div>ERR // 404 // PAGE</div><div id="ts"></div></div>
+  <div style="text-align:right"><div>nerimity-sdk</div><div>docs</div></div>
+</div>
+<div class="center">
+  <div class="big">404</div>
+  <p class="msg">This page <strong>doesn't exist</strong> or it moved.<br>The rest of the docs are fine.</p>
+  <div class="actions">
+    <a class="btn p" href="/">Go home</a>
+    <a class="btn g" href="/guide/quickstart/">Quick start</a>
+    <a class="btn g" href="/guide/installation/">Installation</a>
+  </div>
+</div>
+<div class="marquee"><div class="track" id="tr"></div></div>
+<script>
+  const pad = n => String(n).padStart(2,'0');
+  const tick = () => { const d = new Date(); document.getElementById('ts').textContent = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds()); };
+  tick(); setInterval(tick, 1000);
+  const items = ['page not found','·','nerimity-sdk','·','404','·','lost in the void','·','check the url','·','nerimity-sdk','·'];
+  const html = items.map(t => t==='·'?'<span class="dot">·</span>':'<span>'+t+'</span>').join('');
+  document.getElementById('tr').innerHTML = html + html;
+</script>
+</body>
+</html>
