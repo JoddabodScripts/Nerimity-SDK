@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bot Builder — nerimity-sdk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -265,8 +264,16 @@
 <body>
 
 <div class="header">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+    <a href="./" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.2s" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">← back to docs</a>
+    <div style="display:flex;gap:1rem">
+      <a href="./guide/quickstart/" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">Quick start</a>
+      <a href="./api/bot/" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">API reference</a>
+      <a href="./plugins/" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">Plugins</a>
+    </div>
+  </div>
   <h1>Bot Builder</h1>
-  <p class="subtitle">Configure your bot and get a ready-to-run <code style="font-family:JetBrains Mono;font-size:0.85em;color:var(--purple)">bot.py</code> — no Python knowledge needed to get started.</p>
+  <p class="subtitle">Pick what you want, get a working <code style="font-family:JetBrains Mono;font-size:0.85em;color:var(--purple)">bot.py</code>. Fill in the channel IDs and you're good to go.</p>
 </div>
 
 <div class="layout">
@@ -286,23 +293,23 @@
 
     <label style="margin-top:1.2rem;margin-bottom:0.6rem">Options</label>
     <div class="toggle-row">
-      <div>Auto-restart on crash<br><span>Restarts the bot if it crashes</span></div>
+      <div>Auto-restart on crash<br><span>Restarts if something breaks</span></div>
       <label class="switch"><input type="checkbox" id="autoRestart" checked onchange="generate()"><span class="slider"></span></label>
     </div>
     <div class="toggle-row">
-      <div>Auto-restart on file save<br><span>Reloads when you edit bot.py</span></div>
+      <div>Auto-restart on file save<br><span>Reloads when you save bot.py</span></div>
       <label class="switch"><input type="checkbox" id="autoReload" checked onchange="generate()"><span class="slider"></span></label>
     </div>
     <div class="toggle-row">
-      <div>JSON structured logs<br><span>Machine-readable log output</span></div>
+      <div>JSON logs<br><span>Structured log output</span></div>
       <label class="switch"><input type="checkbox" id="jsonLogs" onchange="generate()"><span class="slider"></span></label>
     </div>
     <div class="toggle-row">
-      <div>Health endpoint<br><span>GET /health and GET /stats on port 8080</span></div>
+      <div>Health endpoint<br><span>GET /health on port 8080</span></div>
       <label class="switch"><input type="checkbox" id="health" onchange="generate()"><span class="slider"></span></label>
     </div>
     <div class="toggle-row">
-      <div>Persistent storage (JsonStore)<br><span>Save data between restarts</span></div>
+      <div>Persistent storage<br><span>Saves data between restarts</span></div>
       <label class="switch"><input type="checkbox" id="store" onchange="generate()"><span class="slider"></span></label>
     </div>
   </div>
@@ -320,25 +327,25 @@
     <div id="pluginList">
       <div class="toggle-row"><div>WelcomePlugin<br><span>Greet new members</span></div><label class="switch"><input type="checkbox" data-plugin="WelcomePlugin" onchange="generate()"><span class="slider"></span></label></div>
       <div class="toggle-row"><div>LoggingPlugin<br><span>Log joins, leaves, edits, deletes</span></div><label class="switch"><input type="checkbox" data-plugin="LoggingPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>AutoModPlugin<br><span>Delete messages matching a word list</span></div><label class="switch"><input type="checkbox" data-plugin="AutoModPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>AntiSpamPlugin<br><span>Rate-limit messages, auto-kick spammers</span></div><label class="switch"><input type="checkbox" data-plugin="AntiSpamPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>LevelingPlugin<br><span>XP per message, /level, /leaderboard</span></div><label class="switch"><input type="checkbox" data-plugin="LevelingPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>AutoModPlugin<br><span>Delete messages with blocked words</span></div><label class="switch"><input type="checkbox" data-plugin="AutoModPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>AntiSpamPlugin<br><span>Kick/ban users who spam</span></div><label class="switch"><input type="checkbox" data-plugin="AntiSpamPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>LevelingPlugin<br><span>XP system, /level, /leaderboard</span></div><label class="switch"><input type="checkbox" data-plugin="LevelingPlugin" onchange="generate()"><span class="slider"></span></label></div>
       <div class="toggle-row"><div>WarnPlugin<br><span>/warn, /warnings, /clearwarns</span></div><label class="switch"><input type="checkbox" data-plugin="WarnPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>StarboardPlugin<br><span>Repost highly-reacted messages</span></div><label class="switch"><input type="checkbox" data-plugin="StarboardPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>BirthdayPlugin<br><span>/birthday MM-DD, daily announcements</span></div><label class="switch"><input type="checkbox" data-plugin="BirthdayPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>ReminderPlugin<br><span>/remind 10m take a break</span></div><label class="switch"><input type="checkbox" data-plugin="ReminderPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>AFKPlugin<br><span>/afk — notifies on mention</span></div><label class="switch"><input type="checkbox" data-plugin="AFKPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>StarboardPlugin<br><span>Repost popular messages</span></div><label class="switch"><input type="checkbox" data-plugin="StarboardPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>BirthdayPlugin<br><span>/birthday, daily announcements</span></div><label class="switch"><input type="checkbox" data-plugin="BirthdayPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>ReminderPlugin<br><span>/remind 10m do something</span></div><label class="switch"><input type="checkbox" data-plugin="ReminderPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>AFKPlugin<br><span>/afk, pings back when mentioned</span></div><label class="switch"><input type="checkbox" data-plugin="AFKPlugin" onchange="generate()"><span class="slider"></span></label></div>
     </div>
   </div>
 
   <!-- Events -->
   <div class="card">
     <h2>Event listeners</h2>
-    <div class="toggle-row"><div>on_ready<br><span>Fires when the bot connects</span></div><label class="switch"><input type="checkbox" id="evReady" checked onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>message:created<br><span>Fires on every new message</span></div><label class="switch"><input type="checkbox" id="evMessage" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>server:member_joined<br><span>Fires when someone joins</span></div><label class="switch"><input type="checkbox" id="evJoin" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>server:member_left<br><span>Fires when someone leaves</span></div><label class="switch"><input type="checkbox" id="evLeave" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>on_command_error<br><span>Catch and handle command errors</span></div><label class="switch"><input type="checkbox" id="evError" checked onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>on_ready<br><span>Runs when the bot connects</span></div><label class="switch"><input type="checkbox" id="evReady" checked onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>message:created<br><span>Runs on every new message</span></div><label class="switch"><input type="checkbox" id="evMessage" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>server:member_joined<br><span>Runs when someone joins</span></div><label class="switch"><input type="checkbox" id="evJoin" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>server:member_left<br><span>Runs when someone leaves</span></div><label class="switch"><input type="checkbox" id="evLeave" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>on_command_error<br><span>Catch errors so users see a message</span></div><label class="switch"><input type="checkbox" id="evError" checked onchange="generate()"><span class="slider"></span></label></div>
   </div>
 
   <!-- Output -->
