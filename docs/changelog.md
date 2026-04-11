@@ -1,3 +1,8 @@
+---
+hide:
+  - toc
+---
+
 # Changelog
 
 All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semver.org/).
@@ -5,6 +10,24 @@ All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semve
 ## [Unreleased]
 
 Nothing yet.
+
+## [1.2.0] — 2026-04-11
+
+### Added in 1.2.0 — Core SDK
+
+- **`I18n`** (`nerimity_sdk.i18n`) — lightweight localization helper. Load JSON locale files, resolve per-guild locale overrides from the bot store, and translate strings with `{placeholder}` substitution via `i18n.t(key, locale, **kwargs)`.
+- **`CircuitBreaker`** / **`CircuitOpenError`** (`nerimity_sdk.transport.circuit_breaker`) — async circuit breaker for REST calls. Trips open after *N* consecutive failures and allows a probe call after a configurable recovery timeout. States: `CLOSED → OPEN → HALF_OPEN → CLOSED`.
+- **`MiddlewarePipeline`** (`nerimity_sdk.commands.middleware`) — composable middleware chain for prefix commands. Use `pipeline.use(fn)` to stack middleware, `pipeline.build()` to get a single composed middleware, or `@pipeline.apply` to decorate a handler directly. Built-in middleware: `log_middleware`, `guild_only_middleware`, `dm_only_middleware`, `require_permission_middleware(*perms)`.
+- **`EventBus`** (`nerimity_sdk.events.bus`) — pub/sub event bus with wildcard topic matching. `*` matches one segment, `**` matches any depth. Supports `subscribe`, `unsubscribe`, `publish`, and `wait_for(pattern, timeout, predicate)` for one-shot async waits.
+- **`CooldownManager`** / **`CooldownError`** (`nerimity_sdk.commands.cooldowns`) — sliding-window token-bucket cooldowns. Supports `"user"`, `"server"`, and `"channel"` scopes. Use `cm.check(command, scope_key=..., rate=1, per=5)` or the `@cm.cooldown(rate, per, scope)` decorator.
+
+### Added in 1.2.0 — Contrib plugins
+
+- **`QuizPlugin`** — channel-based trivia quiz game. `/quiz [rounds]` starts a multi-round quiz; first correct answer wins the round. Loads questions from a JSON file or uses the built-in set. `/quizstop` ends the current quiz. Configurable `answer_timeout`.
+- **`TagPlugin`** — custom server text snippets. `/tag <name>` retrieves a tag; `/tag add <name> <content>` creates one (mod only); `/tag delete <name>` removes it; `/tag list` shows all tags. Tags are persisted in the bot store. Supports `mod_role_ids` gating.
+- **`EconomyPlugin`** — virtual coin economy. `/balance [user]`, `/daily` (24 h cooldown), `/give @user <amount>`, `/richest` (top-10 leaderboard). Configurable `daily_amount`, `currency_name`, `currency_emoji`, and `starting_balance`.
+- **`PinboardPlugin`** — community-driven message pinboard. Reacting with the configured emoji (default 📌) nominates a message; once it reaches *threshold* reactions it is forwarded to the pinboard channel (deduped). `/pinboard` shows the last 5 pins.
+- **`RaidGuardPlugin`** — automatic lockdown on member-join spike. Monitors join rate; if more than *threshold* members join within *window* seconds an alert is posted to the configured channel. `/raidguard status`, `/raidguard lock`, `/raidguard unlock` (mod only).
 
 ## [1.1.0] — 2026-04-11
 

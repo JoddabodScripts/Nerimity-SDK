@@ -101,7 +101,23 @@ class Context:
                 for b in buttons
             ]
         data = await self.rest.create_message(self.channel_id, content, buttons=btn_data)
-        return Message.from_dict(data)
+        self._last_reply: Optional["Message"] = Message.from_dict(data)
+        return self._last_reply
+
+    async def edit_reply(self, content: str, buttons: list | None = None) -> "Message":
+        """Edit the bot's most recent reply in this context.
+
+        Sends a new message if no reply has been sent yet.
+
+        Usage::
+
+            msg = await ctx.reply("Loading...")
+            await asyncio.sleep(1)
+            await ctx.edit_reply("Done! ✅")
+        """
+        if not hasattr(self, "_last_reply") or self._last_reply is None:
+            return await self.reply(content, buttons=buttons)
+        return await self.edit(self._last_reply.id, content, buttons=buttons)
 
     async def reply_silent(self, content: str) -> "Message":
         """Send a message that doesn't trigger a notification."""

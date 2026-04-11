@@ -48,6 +48,11 @@ from nerimity_sdk_contrib.custom_commands import CustomCommandPlugin
 from nerimity_sdk_contrib.auto_reply import AutoReplyPlugin
 from nerimity_sdk_contrib.server_stats import ServerStatsPlugin
 from nerimity_sdk_contrib.temp_channel import TempChannelPlugin
+from nerimity_sdk_contrib.quiz import QuizPlugin
+from nerimity_sdk_contrib.tags import TagPlugin
+from nerimity_sdk_contrib.economy import EconomyPlugin
+from nerimity_sdk_contrib.pinboard import PinboardPlugin
+from nerimity_sdk_contrib.raid_guard import RaidGuardPlugin
 
 __version__ = "1.0.9"
 
@@ -80,4 +85,9 @@ __all__ = [
     "AutoReplyPlugin",
     "ServerStatsPlugin",
     "TempChannelPlugin",
+    "QuizPlugin",
+    "TagPlugin",
+    "EconomyPlugin",
+    "PinboardPlugin",
+    "RaidGuardPlugin",
 ]

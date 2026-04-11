@@ -26,6 +26,18 @@ from nerimity_sdk.utils.embed import Embed
 from nerimity_sdk.webhooks import Webhook
 from nerimity_sdk.oauth2 import OAuth2Client
 from nerimity_sdk.transport.ratelimit import RateLimitBackend, LocalRateLimitBackend, RedisRateLimiter
+from nerimity_sdk.testing import MockBot, MockContext, make_context, make_message, make_user
+from nerimity_sdk.i18n import I18n
+from nerimity_sdk.transport.circuit_breaker import CircuitBreaker, CircuitOpenError
+from nerimity_sdk.commands.middleware import (
+    MiddlewarePipeline,
+    log_middleware,
+    guild_only_middleware,
+    dm_only_middleware,
+    require_permission_middleware,
+)
+from nerimity_sdk.events.bus import EventBus
+from nerimity_sdk.commands.cooldowns import CooldownManager, CooldownError
 
 __all__ = [
     "__version__",
@@ -63,4 +75,17 @@ __all__ = [
     "Webhook", "OAuth2Client",
     # Rate limiting
     "RateLimitBackend", "LocalRateLimitBackend", "RedisRateLimiter",
+    # Testing
+    "MockBot", "MockContext", "make_context", "make_message", "make_user",
+    # i18n
+    "I18n",
+    # Circuit breaker
+    "CircuitBreaker", "CircuitOpenError",
+    # Middleware
+    "MiddlewarePipeline", "log_middleware", "guild_only_middleware",
+    "dm_only_middleware", "require_permission_middleware",
+    # Event bus
+    "EventBus",
+    # Cooldowns
+    "CooldownManager", "CooldownError",
 ]

@@ -27,7 +27,7 @@ from nerimity_sdk.storage import MemoryStore, Store
 from nerimity_sdk.utils.logging import configure_logger, get_logger
 from nerimity_sdk.models import Message, User
 
-__version__ = "1.0.9"
+__version__ = "1.1.0"
 
 
 class Bot:
@@ -121,6 +121,7 @@ class Bot:
         self._slash_error_handler: Optional[Callable] = None
         self._button_error_handler: Optional[Callable] = None
         self._ratelimit_handler: Optional[Callable] = None
+        self._middleware: list[Callable] = []
 
         # Wire internal gateway events
         self.emitter.on("user:authenticated", self._on_authenticated)
@@ -347,10 +348,25 @@ class Bot:
             try:
                 return await asyncio.wait_for(future_n, timeout=timeout)
             except asyncio.TimeoutError:
-                # Return whatever was collected instead of raising
                 return collected if collected else []
             finally:
                 self.emitter.off(event, _listener_n)
+
+    async def collect(self, event: str, *, count: int = 10,
+                      timeout: float = 60.0, check=None) -> list:
+        """Collect multiple events into a list, stopping at *count* or *timeout*.
+
+        Unlike ``wait_for``, this always returns a list and never raises on timeout.
+
+        Usage::
+
+            messages = await bot.collect(
+                "message:created",
+                count=5, timeout=30,
+                check=lambda e: e.message.channel_id == "123",
+            )
+        """
+        return await self.wait_for(event, check=check, timeout=timeout, count=count)
 
     @property
     def stats(self) -> dict:
@@ -409,6 +425,25 @@ class Bot:
             self._ratelimit_handler = fn
             return fn
         return decorator
+
+    def use(self, fn: Callable) -> Callable:
+        """Register a middleware function that runs before every command.
+
+        The middleware receives ``(ctx, next)`` — call ``await next()`` to
+        continue to the command handler, or skip it to block the command.
+
+        Usage::
+
+            @bot.use
+            async def log_commands(ctx, next):
+                print(f"{ctx.author.username}: {ctx.message.content}")
+                await next()
+
+            # Or as a regular function call:
+            bot.use(my_middleware)
+        """
+        self._middleware.append(fn)
+        return fn
 
     # ── Internal event handlers ───────────────────────────────────────────────
 
@@ -509,10 +544,26 @@ class Bot:
 
     async def _dispatch_command(self, ctx) -> bool:
         try:
-            handled = await self.router.dispatch(ctx)
-            if handled:
-                self._commands_dispatched += 1
-            return handled
+            # Build middleware chain around the actual dispatch
+            async def _run_command():
+                handled = await self.router.dispatch(ctx)
+                if handled:
+                    self._commands_dispatched += 1
+                return handled
+
+            if self._middleware:
+                result = [False]
+                async def _make_next(i):
+                    async def _next():
+                        if i < len(self._middleware):
+                            await self._middleware[i](ctx, await _make_next(i + 1))
+                        else:
+                            result[0] = await _run_command()
+                    return _next
+                await (await _make_next(0))()
+                return result[0]
+            else:
+                return await _run_command()
         except Exception as exc:
             if self._command_error_handler:
                 await self._command_error_handler(ctx, exc)

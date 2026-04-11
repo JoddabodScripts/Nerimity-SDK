@@ -5,7 +5,7 @@ from typing import Any, Optional
 from unittest.mock import AsyncMock, MagicMock
 
 from nerimity_sdk.bot import Bot
-from nerimity_sdk.models import Message, User, Channel, Server
+from nerimity_sdk.models import Message, User
 from nerimity_sdk.context.ctx import Context
 
 
@@ -76,7 +76,6 @@ class MockContext(Context):
                            author=make_user(id=author_id))
         rest = MagicMock()
         cache = __import__("nerimity_sdk.cache.store", fromlist=["Cache"]).Cache()
-
         ctx = cls(msg, rest, cache, [], {})
 
         async def _fake_create_message(channel_id, text, **kw):
@@ -94,30 +93,42 @@ class MockContext(Context):
         return ctx
 
     def assert_replied_with(self, text: str) -> None:
-        """Assert that the bot replied with the given text (exact match)."""
         assert text in self.replies, (
             f"Expected reply {text!r} not found. Replies were: {self.replies}"
         )
 
     def assert_replied_contains(self, substring: str) -> None:
-        """Assert that at least one reply contains the given substring."""
         assert any(substring in r for r in self.replies), (
             f"No reply contained {substring!r}. Replies were: {self.replies}"
         )
 
     def assert_no_reply(self) -> None:
-        """Assert that the bot sent no reply."""
         assert not self.replies, f"Expected no reply but got: {self.replies}"
 
     def assert_reacted_with(self, emoji: str) -> None:
-        """Assert that the bot reacted with the given emoji."""
         assert emoji in self.reactions, (
             f"Expected reaction {emoji!r} not found. Reactions were: {self.reactions}"
         )
 
 
 class MockBot(Bot):
-    """A Bot subclass that never connects to the real gateway — for testing."""
+    """A Bot subclass that never connects to the real gateway — for testing.
+
+    Usage::
+
+        bot = MockBot()
+
+        @bot.command("ping")
+        async def ping(ctx):
+            await ctx.reply("Pong!")
+
+        async def test_ping():
+            await bot.simulate_message("!ping")
+            # or use MockContext for direct assertion:
+            ctx = MockContext.create("!ping")
+            await ping(ctx)
+            ctx.assert_replied_with("Pong!")
+    """
 
     def __init__(self, prefix: str = "!", **kwargs) -> None:
         super().__init__(token="mock_token", prefix=prefix, **kwargs)
@@ -136,7 +147,6 @@ class MockBot(Bot):
                                 server_id: Optional[str] = None,
                                 author_id: str = "42") -> None:
         from nerimity_sdk.events.payloads import MessageCreatedEvent
-        from nerimity_sdk.models import Message, User
         msg = Message(
             id="999", channel_id=channel_id, type=0, content=content,
             created_by=User(id=author_id, username="Tester", tag="0001", hex_color=""),
@@ -154,52 +164,6 @@ class MockBot(Bot):
                               channel_id: str = "100",
                               server_id: str | None = None,
                               author_id: str = "42") -> None:
-        """Simulate a slash command invocation for testing slash handlers."""
-        args_str = " ".join(str(a) for a in (args or []))
-        content = f"/{command}" + (f" {args_str}" if args_str else "")
-        await self.simulate_message(content, channel_id=channel_id,
-                                    server_id=server_id, author_id=author_id)
-
-
-class MockBot(Bot):
-    """A Bot subclass that never connects to the real gateway — for testing."""
-
-    def __init__(self, prefix: str = "!", **kwargs) -> None:
-        super().__init__(token="mock_token", prefix=prefix, **kwargs)
-        self.rest.create_message = AsyncMock(return_value={
-            "id": "1", "channelId": "100", "type": 0, "content": "",
-            "createdBy": {"id": "0", "username": "Bot", "tag": "0000", "hexColor": ""},
-            "createdAt": 0,
-        })
-        self.rest.add_reaction = AsyncMock(return_value={})
-        self.rest.remove_reaction = AsyncMock(return_value={})
-
-    async def start(self) -> None:
-        self._ready.set()
-
-    async def simulate_message(self, content: str, channel_id: str = "100",
-                                server_id: Optional[str] = None,
-                                author_id: str = "42") -> None:
-        from nerimity_sdk.events.payloads import MessageCreatedEvent
-        from nerimity_sdk.models import Message, User
-        msg = Message(
-            id="999", channel_id=channel_id, type=0, content=content,
-            created_by=User(id=author_id, username="Tester", tag="0001", hex_color=""),
-            created_at=0, server_id=server_id,
-        )
-        event = MessageCreatedEvent(message=msg, socket_id="", server_id=server_id)
-        await self.emitter.emit("message:created", event)
-
-    async def simulate_event(self, event: str, data: Any = None) -> None:
-        from nerimity_sdk.events.payloads import deserialize
-        typed = deserialize(event, data) if isinstance(data, dict) else data
-        await self.emitter.emit(event, typed)
-
-    async def simulate_slash(self, command: str, args: list | None = None,
-                              channel_id: str = "100",
-                              server_id: str | None = None,
-                              author_id: str = "42") -> None:
-        """Simulate a slash command invocation for testing slash handlers."""
         args_str = " ".join(str(a) for a in (args or []))
         content = f"/{command}" + (f" {args_str}" if args_str else "")
         await self.simulate_message(content, channel_id=channel_id,

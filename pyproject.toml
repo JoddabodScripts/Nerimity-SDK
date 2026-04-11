@@ -31,3 +31,4 @@ nerimity-lint = "nerimity_sdk.cli.lint:run_lint"
 
 [tool.hatch.build.targets.wheel]
 packages = ["nerimity_sdk"]
+include = ["nerimity_sdk/py.typed"]

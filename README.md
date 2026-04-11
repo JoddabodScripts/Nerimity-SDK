@@ -202,4 +202,4 @@ Then follow the same steps above — just use `cp .env.example .env` instead of 
 
 ---
 
-Built by [@Lyney:SHOW on Nerimity](https://nerimity.com/app/profile/1750075711936438273) · [JoddabodScripts on GitHub](https://github.com/JoddabodScripts)
+Built by [@Kansane:TETO on Nerimity](https://nerimity.com/app/profile/1750075711936438273) · [JoddabodScripts on GitHub](https://github.com/JoddabodScripts)

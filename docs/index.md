@@ -147,3 +147,7 @@ NERIMITY_TOKEN=paste_your_token_here
 | Fetch channel from API | `await bot.rest.fetch_channel(channel_id)` |
 
 See the [Getting Started guide](guide/installation.md) or the [Example Bot](example.md) for a full working example.
+
+---
+
+Built by [@Kansane:TETO on Nerimity](https://nerimity.com/app/profile/1750075711936438273) · [JoddabodScripts on GitHub](https://github.com/JoddabodScripts)
