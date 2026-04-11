@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bot Builder — nerimity-sdk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #1a1a2e;
+    --surface:   #16213e;
+    --surface2:  #0f3460;
+    --border:    rgba(255,255,255,0.07);
+    --purple:    #a78bfa;
+    --pink:      #f472b6;
+    --text:      #e2e8f0;
+    --text-dim:  #94a3b8;
+    --radius:    14px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.3rem;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .header {
+    max-width: 1100px;
+    margin: 0 auto 2rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+
+  .card h2 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--purple);
+    margin-bottom: 1.2rem;
+  }
+
+  label {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+    margin-top: 1rem;
+  }
+
+  label:first-of-type { margin-top: 0; }
+
+  input[type="text"], select {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    padding: 0.55rem 0.8rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  input[type="text"]:focus, select:focus {
+    border-color: rgba(167,139,250,0.5);
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
+  }
+
+  select option { background: var(--surface2); }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle-row span { color: var(--text-dim); font-size: 0.75rem; }
+
+  .switch {
+    position: relative;
+    width: 38px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .switch input { opacity: 0; width: 0; height: 0; }
+
+  .slider {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .slider::before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+
+  .switch input:checked + .slider { background: var(--purple); }
+  .switch input:checked + .slider::before { transform: translateX(16px); }
+
+  /* Commands list */
+  .commands-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+
+  .cmd-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.5rem;
+    align-items: center;
+    animation: fadeIn 0.2s ease both;
+  }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+  .btn {
+    background: rgba(167,139,250,0.15);
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: var(--radius-sm);
+    color: var(--purple);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: rgba(167,139,250,0.25); }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-danger {
+    background: rgba(244,114,182,0.1);
+    border-color: rgba(244,114,182,0.3);
+    color: var(--pink);
+    padding: 0.5rem 0.7rem;
+  }
+
+  .btn-danger:hover { background: rgba(244,114,182,0.2); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.65rem 1.4rem;
+    font-size: 0.9rem;
+  }
+
+  .btn-primary:hover { opacity: 0.9; }
+
+  /* Output */
+  .output-wrap {
+    grid-column: 1 / -1;
+    position: relative;
+  }
+
+  pre {
+    background: rgba(15,52,96,0.5);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    padding: 1.5rem;
+    white-space: pre;
+    max-height: 480px;
+    overflow-y: auto;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(167,139,250,0.15);
+    border: 1px solid rgba(167,139,250,0.3);
+    border-radius: var(--radius-sm);
+    color: var(--purple);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35rem 0.8rem;
+    transition: background 0.2s;
+  }
+
+  .copy-btn:hover { background: rgba(167,139,250,0.25); }
+
+  .actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    background: rgba(167,139,250,0.12);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 999px;
+    color: var(--purple);
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 0.2rem 0.7rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Bot Builder</h1>
+  <p class="subtitle">Configure your bot and get a ready-to-run <code style="font-family:JetBrains Mono;font-size:0.85em;color:var(--purple)">bot.py</code> — no Python knowledge needed to get started.</p>
+</div>
+
+<div class="layout">
+
+  <!-- Bot settings -->
+  <div class="card">
+    <h2>Bot settings</h2>
+
+    <label>Bot name (for display only)</label>
+    <input type="text" id="botName" value="MyBot" oninput="generate()">
+
+    <label>Command prefix</label>
+    <input type="text" id="prefix" value="!" oninput="generate()">
+
+    <label>Status message (optional)</label>
+    <input type="text" id="status" placeholder="Playing something cool" oninput="generate()">
+
+    <label style="margin-top:1.2rem;margin-bottom:0.6rem">Options</label>
+    <div class="toggle-row">
+      <div>Auto-restart on crash<br><span>Restarts the bot if it crashes</span></div>
+      <label class="switch"><input type="checkbox" id="autoRestart" checked onchange="generate()"><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div>Auto-restart on file save<br><span>Reloads when you edit bot.py</span></div>
+      <label class="switch"><input type="checkbox" id="autoReload" checked onchange="generate()"><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div>JSON structured logs<br><span>Machine-readable log output</span></div>
+      <label class="switch"><input type="checkbox" id="jsonLogs" onchange="generate()"><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div>Health endpoint<br><span>GET /health and GET /stats on port 8080</span></div>
+      <label class="switch"><input type="checkbox" id="health" onchange="generate()"><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div>Persistent storage (JsonStore)<br><span>Save data between restarts</span></div>
+      <label class="switch"><input type="checkbox" id="store" onchange="generate()"><span class="slider"></span></label>
+    </div>
+  </div>
+
+  <!-- Commands -->
+  <div class="card">
+    <h2>Commands</h2>
+    <div class="commands-list" id="cmdList"></div>
+    <button class="btn" onclick="addCommand()">+ Add command</button>
+  </div>
+
+  <!-- Plugins -->
+  <div class="card">
+    <h2>Contrib plugins <span class="tag">pip install nerimity-sdk-contrib</span></h2>
+    <div id="pluginList">
+      <div class="toggle-row"><div>WelcomePlugin<br><span>Greet new members</span></div><label class="switch"><input type="checkbox" data-plugin="WelcomePlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>LoggingPlugin<br><span>Log joins, leaves, edits, deletes</span></div><label class="switch"><input type="checkbox" data-plugin="LoggingPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>AutoModPlugin<br><span>Delete messages matching a word list</span></div><label class="switch"><input type="checkbox" data-plugin="AutoModPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>AntiSpamPlugin<br><span>Rate-limit messages, auto-kick spammers</span></div><label class="switch"><input type="checkbox" data-plugin="AntiSpamPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>LevelingPlugin<br><span>XP per message, /level, /leaderboard</span></div><label class="switch"><input type="checkbox" data-plugin="LevelingPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>WarnPlugin<br><span>/warn, /warnings, /clearwarns</span></div><label class="switch"><input type="checkbox" data-plugin="WarnPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>StarboardPlugin<br><span>Repost highly-reacted messages</span></div><label class="switch"><input type="checkbox" data-plugin="StarboardPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>BirthdayPlugin<br><span>/birthday MM-DD, daily announcements</span></div><label class="switch"><input type="checkbox" data-plugin="BirthdayPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>ReminderPlugin<br><span>/remind 10m take a break</span></div><label class="switch"><input type="checkbox" data-plugin="ReminderPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>AFKPlugin<br><span>/afk — notifies on mention</span></div><label class="switch"><input type="checkbox" data-plugin="AFKPlugin" onchange="generate()"><span class="slider"></span></label></div>
+    </div>
+  </div>
+
+  <!-- Events -->
+  <div class="card">
+    <h2>Event listeners</h2>
+    <div class="toggle-row"><div>on_ready<br><span>Fires when the bot connects</span></div><label class="switch"><input type="checkbox" id="evReady" checked onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>message:created<br><span>Fires on every new message</span></div><label class="switch"><input type="checkbox" id="evMessage" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>server:member_joined<br><span>Fires when someone joins</span></div><label class="switch"><input type="checkbox" id="evJoin" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>server:member_left<br><span>Fires when someone leaves</span></div><label class="switch"><input type="checkbox" id="evLeave" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>on_command_error<br><span>Catch and handle command errors</span></div><label class="switch"><input type="checkbox" id="evError" checked onchange="generate()"><span class="slider"></span></label></div>
+  </div>
+
+  <!-- Output -->
+  <div class="output-wrap card">
+    <h2>Generated bot.py</h2>
+    <div style="position:relative;margin-top:0.5rem">
+      <pre id="output"></pre>
+      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" onclick="download()">⬇ Download bot.py</button>
+      <a href="guide/installation/" class="btn" style="text-decoration:none">Setup guide →</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let commands = [{ name: 'ping', description: 'Check if the bot is alive' }];
+
+  function addCommand() {
+    commands.push({ name: '', description: '' });
+    renderCommands();
+    generate();
+  }
+
+  function removeCommand(i) {
+    commands.splice(i, 1);
+    renderCommands();
+    generate();
+  }
+
+  function renderCommands() {
+    const list = document.getElementById('cmdList');
+    list.innerHTML = commands.map((cmd, i) => `
+      <div class="cmd-row">
+        <input type="text" placeholder="name" value="${cmd.name}"
+          oninput="commands[${i}].name=this.value;generate()">
+        <input type="text" placeholder="description" value="${cmd.description}"
+          oninput="commands[${i}].description=this.value;generate()">
+        <button class="btn btn-danger" onclick="removeCommand(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function getPlugins() {
+    return [...document.querySelectorAll('[data-plugin]:checked')].map(el => el.dataset.plugin);
+  }
+
+  function generate() {
+    const name       = document.getElementById('botName').value || 'MyBot';
+    const prefix     = document.getElementById('prefix').value || '!';
+    const status     = document.getElementById('status').value;
+    const autoRestart= document.getElementById('autoRestart').checked;
+    const autoReload = document.getElementById('autoReload').checked;
+    const jsonLogs   = document.getElementById('jsonLogs').checked;
+    const health     = document.getElementById('health').checked;
+    const store      = document.getElementById('store').checked;
+    const plugins    = getPlugins();
+    const evReady    = document.getElementById('evReady').checked;
+    const evMessage  = document.getElementById('evMessage').checked;
+    const evJoin     = document.getElementById('evJoin').checked;
+    const evLeave    = document.getElementById('evLeave').checked;
+    const evError    = document.getElementById('evError').checked;
+
+    const needsContrib = plugins.length > 0;
+    const lines = [];
+
+    // Imports
+    lines.push('import os');
+    lines.push('from dotenv import load_dotenv');
+    const sdkImports = ['Bot'];
+    if (store) sdkImports.push('JsonStore');
+    lines.push(`from nerimity_sdk import ${sdkImports.join(', ')}`);
+    if (needsContrib) lines.push(`from nerimity_sdk_contrib import ${plugins.join(', ')}`);
+    lines.push('');
+    lines.push('load_dotenv()');
+    lines.push('');
+
+    // Bot init
+    const botArgs = [`token=os.environ["NERIMITY_TOKEN"]`];
+    if (prefix !== '!') botArgs.push(`prefix="${prefix}"`);
+    if (jsonLogs) botArgs.push('json_logs=True');
+    if (health) botArgs.push('health_port=8080');
+    if (store) botArgs.push('store=JsonStore("data.json")');
+    if (!autoRestart || !autoReload) {
+      // will be passed to bot.run() instead
+    }
+
+    if (botArgs.length > 1) {
+      lines.push('bot = Bot(');
+      botArgs.forEach((a, i) => lines.push(`    ${a}${i < botArgs.length - 1 ? ',' : ''}`));
+      lines.push(')');
+    } else {
+      lines.push(`bot = Bot(${botArgs[0]})`);
+    }
+    lines.push('');
+
+    // on_ready
+    if (evReady || needsContrib || status) {
+      lines.push('');
+      lines.push('@bot.on("ready")');
+      lines.push('async def on_ready(me):');
+      lines.push(`    print(f"✅ {name} is online as {me.username}!")`);
+      if (status) lines.push(`    # Set status: ${status}`);
+      plugins.forEach(p => {
+        const cfg = pluginConfig(p);
+        lines.push(`    await bot.plugins.load(${cfg})`);
+      });
+      lines.push('');
+    }
+
+    // Event listeners
+    if (evMessage) {
+      lines.push('');
+      lines.push('@bot.on("message:created")');
+      lines.push('async def on_message(event):');
+      lines.push('    pass  # handle new messages here');
+      lines.push('');
+    }
+
+    if (evJoin) {
+      lines.push('');
+      lines.push('@bot.on("server:member_joined")');
+      lines.push('async def on_join(event):');
+      lines.push('    pass  # handle member join here');
+      lines.push('');
+    }
+
+    if (evLeave) {
+      lines.push('');
+      lines.push('@bot.on("server:member_left")');
+      lines.push('async def on_leave(event):');
+      lines.push('    pass  # handle member leave here');
+      lines.push('');
+    }
+
+    // Commands
+    commands.filter(c => c.name.trim()).forEach(cmd => {
+      lines.push('');
+      lines.push(`@bot.command("${cmd.name.trim()}"${cmd.description ? `, description="${cmd.description}"` : ''})`);
+      lines.push(`async def ${cmd.name.trim().replace(/[^a-z0-9]/gi,'_')}(ctx):`);
+      lines.push(`    await ctx.reply("${cmd.name.trim()} command!")`);
+      lines.push('');
+    });
+
+    // Error handler
+    if (evError) {
+      lines.push('');
+      lines.push('@bot.on_command_error');
+      lines.push('async def on_error(ctx, error):');
+      lines.push('    await ctx.reply(f"❌ {error}")');
+      lines.push('');
+    }
+
+    // bot.run()
+    lines.push('');
+    const runArgs = [];
+    if (!autoRestart) runArgs.push('auto_restart=False');
+    if (!autoReload)  runArgs.push('watch=False');
+    lines.push(`bot.run(${runArgs.join(', ')})`);
+
+    document.getElementById('output').textContent = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  function pluginConfig(name) {
+    const configs = {
+      WelcomePlugin:  'WelcomePlugin(channel_id="YOUR_CHANNEL_ID")',
+      LoggingPlugin:  'LoggingPlugin(channel_id="YOUR_LOG_CHANNEL_ID")',
+      AutoModPlugin:  'AutoModPlugin(blocked=["badword"], log_channel_id="YOUR_LOG_CHANNEL_ID")',
+      AntiSpamPlugin: 'AntiSpamPlugin(max_messages=5, window=5.0, action="kick")',
+      LevelingPlugin: 'LevelingPlugin(announce_channel_id="YOUR_CHANNEL_ID")',
+      WarnPlugin:     'WarnPlugin(threshold=3, log_channel_id="YOUR_LOG_CHANNEL_ID")',
+      StarboardPlugin:'StarboardPlugin(channel_id="YOUR_STARBOARD_CHANNEL_ID", threshold=3)',
+      BirthdayPlugin: 'BirthdayPlugin(announce_channel_id="YOUR_CHANNEL_ID")',
+      ReminderPlugin: 'ReminderPlugin()',
+      AFKPlugin:      'AFKPlugin()',
+    };
+    return configs[name] || `${name}()`;
+  }
+
+  function copyCode() {
+    navigator.clipboard.writeText(document.getElementById('output').textContent);
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  }
+
+  function download() {
+    const blob = new Blob([document.getElementById('output').textContent], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'bot.py';
+    a.click();
+  }
+
+  // Init
+  renderCommands();
+  generate();
+</script>
+</body>
+</html>
