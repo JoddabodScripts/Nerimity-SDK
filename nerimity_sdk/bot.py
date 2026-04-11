@@ -75,6 +75,7 @@ class Bot:
         json_logs: bool = False,
         health_port: Optional[int] = None,
         disable_builtin_stats: bool = False,
+        rate_limiter: Optional["RateLimitBackend"] = None,
     ) -> None:
         configure_logger(
             level=logging.DEBUG if debug else logging.INFO,
@@ -94,7 +95,7 @@ class Bot:
         self._watch_paths = watch_paths
 
         self.emitter = EventEmitter()
-        self.rest = RESTClient(token)
+        self.rest = RESTClient(token, rate_limiter=rate_limiter)
         # Wire ratelimit callback (set after _ratelimit_handler is defined)
         _bot_ref = self
         async def _rl_cb(route: str, retry_after: float) -> None:

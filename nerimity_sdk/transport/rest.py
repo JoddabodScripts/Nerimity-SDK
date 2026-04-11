@@ -5,40 +5,19 @@ import time
 from typing import Any, Optional
 import aiohttp
 
+from .ratelimit import RateLimitBackend, LocalRateLimitBackend
+
 BASE_URL = "https://nerimity.com/api"
 
 
-class RateLimitBucket:
-    def __init__(self) -> None:
-        self.remaining: int = 1
-        self.reset_at: float = 0.0
-        self._lock = asyncio.Lock()
-
-    async def acquire(self) -> None:
-        async with self._lock:
-            now = time.monotonic()
-            if self.remaining <= 0 and self.reset_at > now:
-                wait = self.reset_at - now
-                await asyncio.sleep(wait)
-            self.remaining = max(0, self.remaining - 1)
-
-    def update(self, headers: dict) -> None:
-        if "X-RateLimit-Remaining" in headers:
-            self.remaining = int(headers["X-RateLimit-Remaining"])
-        if "X-RateLimit-Reset" in headers:
-            self.reset_at = float(headers["X-RateLimit-Reset"])
-
-
 class RESTClient:
-    def __init__(self, token: str) -> None:
+    def __init__(self, token: str, rate_limiter: Optional[RateLimitBackend] = None) -> None:
         self._token = token
         self._session: Optional[aiohttp.ClientSession] = None
-        self._buckets: dict[str, RateLimitBucket] = {}
-        self._global_lock = asyncio.Lock()
-        self._global_reset: float = 0.0
+        self._rl: RateLimitBackend = rate_limiter or LocalRateLimitBackend()
         self.rate_limit_hits: int = 0
-        self._ratelimit_callback = None  # set by Bot after construction
-        self.timeout: float = 30.0  # request timeout in seconds
+        self._ratelimit_callback = None
+        self.timeout: float = 30.0
 
     async def _get_session(self) -> aiohttp.ClientSession:
         if self._session is None or self._session.closed:
@@ -46,24 +25,18 @@ class RESTClient:
         return self._session
 
     def _bucket_key(self, method: str, path: str) -> str:
-        # Normalize snowflake IDs so per-route buckets work correctly
         import re
         normalized = re.sub(r"\d{10,}", ":id", path)
         return f"{method}:{normalized}"
 
     async def request(self, method: str, path: str, **kwargs: Any) -> Any:
         key = self._bucket_key(method, path)
-        bucket = self._buckets.setdefault(key, RateLimitBucket())
         url = f"{BASE_URL}{path}"
 
         for attempt in range(5):
-            # Global rate limit
-            async with self._global_lock:
-                now = time.monotonic()
-                if self._global_reset > now:
-                    await asyncio.sleep(self._global_reset - now)
+            await self._rl.acquire_global()
+            await self._rl.acquire(key)
 
-            await bucket.acquire()
             session = await self._get_session()
             req_headers = {
                 "Authorization": self._token,
@@ -72,7 +45,13 @@ class RESTClient:
             async with session.request(method, url, headers=req_headers,
                                        timeout=aiohttp.ClientTimeout(total=self.timeout),
                                        **kwargs) as resp:
-                bucket.update(dict(resp.headers))
+                headers = dict(resp.headers)
+                if "X-RateLimit-Remaining" in headers and "X-RateLimit-Reset" in headers:
+                    await self._rl.update(
+                        key,
+                        int(headers["X-RateLimit-Remaining"]),
+                        float(headers["X-RateLimit-Reset"]),
+                    )
 
                 if resp.status == 429:
                     data = await resp.json()
@@ -84,16 +63,13 @@ class RESTClient:
                         except Exception:
                             pass
                     if data.get("global"):
-                        self._global_reset = time.monotonic() + retry_after
+                        await self._rl.set_global_reset(time.time() + retry_after)
                     else:
-                        bucket.remaining = 0
-                        bucket.reset_at = time.monotonic() + retry_after
+                        await self._rl.update(key, 0, time.time() + retry_after)
                     await asyncio.sleep(retry_after)
                     continue
 
                 if resp.status == 403:
-                    # Silently return None only for channel message endpoints
-                    # (bot lacks permission to speak). Raise for everything else.
                     if "/channels/" in path and "/messages" in path:
                         return None
                     text = await resp.text()
@@ -180,6 +156,7 @@ class RESTClient:
     async def close(self) -> None:
         if self._session and not self._session.closed:
             await self._session.close()
+        await self._rl.close()
 
     # --- Convenience methods ---
 

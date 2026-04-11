@@ -8,6 +8,19 @@ All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semve
 
 ---
 
+## [1.1.0] — 2026-04-11
+
+### Added
+- `RedisRateLimiter` — Redis-backed distributed rate limiter for multi-shard / multi-process bots. All processes sharing a Redis instance coordinate rate limit buckets automatically
+- `RateLimitBackend` abstract base class — implement your own rate limit backend by subclassing it
+- `LocalRateLimitBackend` — the default in-process backend, same behaviour as before
+- `Bot(rate_limiter=...)` — pass any `RateLimitBackend` instance to swap the rate limiter
+
+### Changed
+- `RESTClient` now uses the `RateLimitBackend` interface internally instead of a hardcoded dict of buckets. No behaviour change for existing bots.
+
+---
+
 ## [0.9.0] — 2026-04-10
 
 ### Added
