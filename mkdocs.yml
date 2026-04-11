@@ -1,6 +1,6 @@
 site_name: nerimity-sdk
 site_description: A fully-featured Python SDK for building Nerimity bots
-site_url: https://joddabodscripts.github.io/Nerimity-SDK/
+site_url: https://nerimitysdk.readthedocs.io/en/master/
 repo_url: https://github.com/JoddabodScripts/Nerimity-SDK
 repo_name: Nerimity-SDK
 edit_uri: edit/master/docs/

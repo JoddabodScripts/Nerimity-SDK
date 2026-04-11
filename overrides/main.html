@@ -4,7 +4,10 @@
 {{ super() }}
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(() => {});
+  const base = document.querySelector('script#__config') 
+    ? JSON.parse(document.getElementById('__config').textContent).base 
+    : '/';
+  navigator.serviceWorker.register(base + 'sw.js', { scope: base }).catch(() => {});
 }
 </script>
 {% endblock %}
