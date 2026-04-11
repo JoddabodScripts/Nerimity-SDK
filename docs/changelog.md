@@ -2,11 +2,9 @@
 
 All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semver.org/).
 
----
-
 ## [Unreleased]
 
----
+Nothing yet.
 
 ## [1.1.0] — 2026-04-11
 
@@ -18,8 +16,6 @@ All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semve
 
 ### Changed
 - `RESTClient` now uses the `RateLimitBackend` interface internally instead of a hardcoded dict of buckets. No behaviour change for existing bots.
-
----
 
 ## [0.9.0] — 2026-04-10
 
@@ -38,8 +34,6 @@ All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semve
 ### Changed
 - `bot.run()` now auto-restarts on both crash and file save by default
 - `Embed` now supports raw dict input in `ctx.reply_embed()`
-
----
 
 ## [0.8.0] — 2026-03-01
 
@@ -60,8 +54,6 @@ All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semve
 ### Fixed
 - Stale cache entries now marked with `user.stale = True` after reconnect instead of raising
 
----
-
 ## [0.7.0] — 2026-01-15
 
 ### Added
@@ -79,8 +71,6 @@ All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semve
 ### Changed
 - Type annotation converters — `async def add(ctx, a: int, b: int)` now works without `args=`
 
----
-
 ## [0.6.0] — 2025-11-20
 
 ### Added
@@ -88,9 +78,11 @@ All notable changes to nerimity-sdk. Follows [Semantic Versioning](https://semve
 - `nerimity create my-bot` — project scaffolding CLI
 - `nerimity version` — show SDK version
 
----
-
 ## Migration guides
+
+### 0.9 → 1.1
+
+No breaking changes. New features are additive.
 
 ### 0.8 → 0.9
 
