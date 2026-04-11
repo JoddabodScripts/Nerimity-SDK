@@ -77,6 +77,10 @@ nav:
     - Quick Start: guide/quickstart.md
     - Configuration: guide/configuration.md
     - Recipes: guide/recipes.md
+    - Contrib Plugins: guide/contrib.md
+    - Sharding: guide/sharding.md
+    - Rate Limiting: guide/rate-limiting.md
+    - Security: guide/security.md
     - Hosting (24/7): guide/hosting.md
     - Troubleshooting: guide/troubleshooting.md
   - API Reference:
@@ -99,3 +103,5 @@ nav:
   - Example Bot: example.md
   - Plugin Marketplace: plugins.md
   - Changelog: changelog.md
+  - Glossary: glossary.md
+  - Contributing: contributing.md
