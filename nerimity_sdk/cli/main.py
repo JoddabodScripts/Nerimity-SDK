@@ -127,6 +127,15 @@ def cli() -> None:
     dev_p = sub.add_parser("dev", help="Run bot in development mode (debug + watch + pretty logs)")
     dev_p.add_argument("file", nargs="?", default="bot.py", help="Bot file to run (default: bot.py)")
 
+    test_p = sub.add_parser("test", help="Run bot tests (pytest wrapper)")
+    test_p.add_argument("paths", nargs="*", default=["tests/"], help="Test paths (default: tests/)")
+    test_p.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+
+    deploy_p = sub.add_parser("deploy", help="Deploy bot to a hosting provider")
+    deploy_p.add_argument("target", nargs="?", default="railway",
+                          choices=["railway", "fly", "render"],
+                          help="Hosting provider (default: railway)")
+
     args = parser.parse_args()
 
     if args.command == "create":
@@ -140,5 +149,64 @@ def cli() -> None:
     elif args.command == "dev":
         from nerimity_sdk.cli.dev import run
         run(args.file)
+    elif args.command == "test":
+        _run_tests(args.paths, args.verbose)
+    elif args.command == "deploy":
+        _run_deploy(args.target)
     else:
         parser.print_help()
+
+
+def _run_tests(paths: list[str], verbose: bool) -> None:
+    import subprocess, sys
+    cmd = [sys.executable, "-m", "pytest"] + paths
+    if verbose:
+        cmd.append("-v")
+    result = subprocess.run(cmd)
+    sys.exit(result.returncode)
+
+
+def _run_deploy(target: str) -> None:
+    import subprocess, sys, os
+
+    if target == "railway":
+        if not os.path.exists("railway.toml"):
+            _write_railway_config()
+            print("✓ Created railway.toml")
+        print("Deploying to Railway...")
+        result = subprocess.run(["railway", "up"])
+        if result.returncode != 0:
+            print("Install Railway CLI: https://docs.railway.app/develop/cli")
+            sys.exit(result.returncode)
+
+    elif target == "fly":
+        if not os.path.exists("fly.toml"):
+            _write_fly_config()
+            print("✓ Created fly.toml")
+        print("Deploying to Fly.io...")
+        result = subprocess.run(["flyctl", "deploy"])
+        if result.returncode != 0:
+            print("Install flyctl: https://fly.io/docs/hands-on/install-flyctl/")
+            sys.exit(result.returncode)
+
+    elif target == "render":
+        if not os.path.exists("render.yaml"):
+            _write_render_config()
+            print("✓ Created render.yaml")
+        print("render.yaml created. Push to GitHub and connect at https://render.com")
+
+
+def _write_railway_config() -> None:
+    with open("railway.toml", "w") as f:
+        f.write('[build]\nbuilder = "nixpacks"\n\n[deploy]\nstartCommand = "python bot.py"\nrestartPolicyType = "always"\n')
+
+
+def _write_fly_config() -> None:
+    app_name = os.path.basename(os.getcwd()).lower().replace("_", "-")
+    with open("fly.toml", "w") as f:
+        f.write(f'app = "{app_name}"\nprimary_region = "iad"\n\n[build]\n\n[[services]]\ninternal_port = 8080\nprotocol = "tcp"\n')
+
+
+def _write_render_config() -> None:
+    with open("render.yaml", "w") as f:
+        f.write('services:\n  - type: worker\n    name: nerimity-bot\n    env: python\n    buildCommand: pip install -r requirements.txt\n    startCommand: python bot.py\n')

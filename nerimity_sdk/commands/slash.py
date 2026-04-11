@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from nerimity_sdk.cache.store import Cache
 
 Handler = Callable[["SlashContext"], Coroutine[Any, Any, None]]
+Middleware = Callable[["SlashContext", Callable], Coroutine[Any, Any, None]]
 
 
 @dataclass
@@ -55,20 +56,30 @@ class SlashCommandDef:
     description: str = ""
     args_hint: str = ""
     converters: list = field(default_factory=list)
+    middleware: list = field(default_factory=list)
+    error_handler: Optional[Callable] = None
 
 
 class SlashRouter:
     def __init__(self) -> None:
         self._commands: dict[str, SlashCommandDef] = {}
         self._synced: bool = False
+        self._global_middleware: list[Middleware] = []
+
+    def use(self, middleware: Middleware) -> None:
+        """Register a global middleware applied to every slash command."""
+        self._global_middleware.append(middleware)
 
     def slash(self, name: str, *, description: str = "", args_hint: str = "",
-              args: list | None = None):
+              args: list | None = None, middleware: list | None = None,
+              error_handler: Optional[Callable] = None):
         def decorator(fn: Handler) -> Handler:
             self._commands[name] = SlashCommandDef(
                 name=name, handler=fn,
                 description=description, args_hint=args_hint,
                 converters=args or [],
+                middleware=middleware or [],
+                error_handler=error_handler,
             )
             self._synced = False
             return fn
@@ -128,7 +139,26 @@ class SlashRouter:
                 await sctx.reply(str(e))
                 return True
 
-        await cmd.handler(sctx)
+        # Build middleware chain
+        all_mw = self._global_middleware + cmd.middleware
+
+        async def run_handler(c: "SlashContext") -> None:
+            await cmd.handler(c)
+
+        chain = run_handler
+        for mw in reversed(all_mw):
+            prev = chain
+            async def make_next(c: "SlashContext", _mw=mw, _prev=prev) -> None:
+                await _mw(c, _prev)
+            chain = make_next
+
+        try:
+            await chain(sctx)
+        except Exception as exc:
+            if cmd.error_handler:
+                await cmd.error_handler(sctx, exc)
+            else:
+                raise
         return True
 
     async def sync(self, rest: "RESTClient") -> None:

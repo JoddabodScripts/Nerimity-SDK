@@ -29,6 +29,7 @@ class CommandDef:
     public: bool = True  # if True, registered with Nerimity API as a slash command
     requires: list = field(default_factory=list)  # shortcut permission flags
     cooldown_scope: str = "user"  # "user", "server", or "channel"
+    error_handler: Optional[Callable] = None  # per-command error handler
 
 
 def _parse_args(text: str) -> tuple[list[str], dict[str, Any]]:
@@ -103,6 +104,22 @@ class CommandRouter:
             self._commands[name] = cmd
             for alias in cmd.aliases:
                 self._aliases[alias] = name
+            return fn
+        return decorator
+
+    def on_error(self, name: str):
+        """Decorator: register a per-command error handler.
+
+        Usage::
+
+            @bot.router.on_error("ban")
+            async def ban_error(ctx, error):
+                await ctx.reply(f"Ban failed: {error}")
+        """
+        def decorator(fn):
+            cmd = self._commands.get(name)
+            if cmd:
+                cmd.error_handler = fn
             return fn
         return decorator
 
@@ -239,7 +256,13 @@ class CommandRouter:
                 return result is not False
             chain = make_next
 
-        await chain(ctx)
+        try:
+            await chain(ctx)
+        except Exception as exc:
+            if cmd.error_handler:
+                await cmd.error_handler(ctx, exc)
+            else:
+                raise
         return True
 
     def help_text(self, category: Optional[str] = None) -> str:

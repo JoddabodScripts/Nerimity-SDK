@@ -5,318 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bot Builder — nerimity-sdk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"><style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --bg:        #1a1a2e;
-    --surface:   #16213e;
-    --surface2:  #0f3460;
-    --border:    rgba(255,255,255,0.07);
-    --purple:    #a78bfa;
-    --pink:      #f472b6;
-    --text:      #e2e8f0;
-    --text-dim:  #94a3b8;
-    --radius:    14px;
-    --radius-sm: 8px;
+    --bg: #1a1a2e; --surface: #16213e; --surface2: #0f3460;
+    --border: rgba(255,255,255,0.07); --purple: #a78bfa; --pink: #f472b6;
+    --green: #34d399; --text: #e2e8f0; --text-dim: #94a3b8;
+    --radius: 14px; --radius-sm: 8px;
   }
-
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 2rem 1rem 4rem;
-  }
-
-  h1 {
-    font-size: 2.2rem;
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    background: linear-gradient(135deg, var(--purple), var(--pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.3rem;
-  }
-
-  .subtitle {
-    color: var(--text-dim);
-    font-size: 0.95rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-
-  @media (max-width: 768px) {
-    .layout { grid-template-columns: 1fr; }
-  }
-
-  .header {
-    max-width: 1100px;
-    margin: 0 auto 2rem;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-  }
-
-  .card h2 {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--purple);
-    margin-bottom: 1.2rem;
-  }
-
-  label {
-    display: block;
-    font-size: 0.82rem;
-    color: var(--text-dim);
-    margin-bottom: 0.3rem;
-    margin-top: 1rem;
-  }
-
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
+  h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.04em; background: linear-gradient(135deg, var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.3rem; }
+  .subtitle { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 2.5rem; }
+  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
+  @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
+  .header { max-width: 1100px; margin: 0 auto 2rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+  .card h2 { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--purple); margin-bottom: 1.2rem; }
+  label { display: block; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 0.3rem; margin-top: 1rem; }
   label:first-of-type { margin-top: 0; }
-
-  input[type="text"], select {
-    width: 100%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    font-size: 0.88rem;
-    padding: 0.55rem 0.8rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-
-  input[type="text"]:focus, select:focus {
-    border-color: rgba(167,139,250,0.5);
-    box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
-  }
-
+  input[type="text"], select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.88rem; padding: 0.55rem 0.8rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+  input[type="text"]:focus, select:focus { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
   select option { background: var(--surface2); }
-
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.6rem 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.85rem;
-  }
-
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
   .toggle-row:last-child { border-bottom: none; }
-
   .toggle-row span { color: var(--text-dim); font-size: 0.75rem; }
-
-  .switch {
-    position: relative;
-    width: 38px;
-    height: 22px;
-    flex-shrink: 0;
-  }
-
+  .switch { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
   .switch input { opacity: 0; width: 0; height: 0; }
-
-  .slider {
-    position: absolute;
-    inset: 0;
-    background: rgba(255,255,255,0.1);
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .slider::before {
-    content: '';
-    position: absolute;
-    width: 16px; height: 16px;
-    left: 3px; top: 3px;
-    background: white;
-    border-radius: 50%;
-    transition: transform 0.2s;
-  }
-
+  .slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 999px; cursor: pointer; transition: background 0.2s; }
+  .slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; }
   .switch input:checked + .slider { background: var(--purple); }
   .switch input:checked + .slider::before { transform: translateX(16px); }
-
-  /* Commands list */
   .commands-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem; }
-
-  .cmd-block {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0.9rem;
-    animation: fadeIn 0.2s ease both;
-  }
-
-  .cmd-block-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.7rem;
-  }
-
-  .cmd-block-header span {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--purple);
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .cmd-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .cmd-grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-
+  .cmd-block { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem; animation: fadeIn 0.2s ease both; }
+  .cmd-block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.7rem; }
+  .cmd-block-header span { font-size: 0.78rem; font-weight: 600; color: var(--purple); font-family: 'JetBrains Mono', monospace; }
+  .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .cmd-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; }
   .cmd-full { grid-column: 1 / -1; }
-
-  textarea {
-    width: 100%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.78rem;
-    padding: 0.55rem 0.8rem;
-    outline: none;
-    resize: vertical;
-    min-height: 60px;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    line-height: 1.5;
-  }
-
-  textarea:focus {
-    border-color: rgba(167,139,250,0.5);
-    box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
-  }
-
-  .field-label {
-    font-size: 0.72rem;
-    color: var(--text-dim);
-    margin-bottom: 0.25rem;
-    display: block;
-  }
-
+  textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 0.55rem 0.8rem; outline: none; resize: vertical; min-height: 60px; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.5; }
+  textarea:focus { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
+  .field-label { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.25rem; display: block; }
   @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-
-  .btn {
-    background: rgba(167,139,250,0.15);
-    border: 1px solid rgba(167,139,250,0.3);
-    border-radius: var(--radius-sm);
-    color: var(--purple);
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    transition: background 0.2s, transform 0.1s;
-    white-space: nowrap;
-  }
-
+  .btn { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); border-radius: var(--radius-sm); color: var(--purple); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500; padding: 0.5rem 1rem; transition: background 0.2s, transform 0.1s; white-space: nowrap; }
   .btn:hover { background: rgba(167,139,250,0.25); }
   .btn:active { transform: scale(0.97); }
-
-  .btn-danger {
-    background: rgba(244,114,182,0.1);
-    border-color: rgba(244,114,182,0.3);
-    color: var(--pink);
-    padding: 0.5rem 0.7rem;
-  }
-
+  .btn-danger { background: rgba(244,114,182,0.1); border-color: rgba(244,114,182,0.3); color: var(--pink); padding: 0.5rem 0.7rem; }
   .btn-danger:hover { background: rgba(244,114,182,0.2); }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--purple), var(--pink));
-    border: none;
-    color: white;
-    font-weight: 600;
-    padding: 0.65rem 1.4rem;
-    font-size: 0.9rem;
-  }
-
+  .btn-primary { background: linear-gradient(135deg, var(--purple), var(--pink)); border: none; color: white; font-weight: 600; padding: 0.65rem 1.4rem; font-size: 0.9rem; }
   .btn-primary:hover { opacity: 0.9; }
-
-  /* Output */
-  .output-wrap {
-    grid-column: 1 / -1;
-    position: relative;
-  }
-
-  pre {
-    background: rgba(15,52,96,0.5);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    line-height: 1.7;
-    overflow-x: auto;
-    padding: 1.5rem;
-    white-space: pre;
-    max-height: 480px;
-    overflow-y: auto;
-  }
-
-  .copy-btn {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: rgba(167,139,250,0.15);
-    border: 1px solid rgba(167,139,250,0.3);
-    border-radius: var(--radius-sm);
-    color: var(--purple);
-    cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 500;
-    padding: 0.35rem 0.8rem;
-    transition: background 0.2s;
-  }
-
+  .output-wrap { grid-column: 1 / -1; position: relative; }
+  pre { background: rgba(15,52,96,0.5); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.7; overflow-x: auto; padding: 1.5rem; white-space: pre; max-height: 520px; overflow-y: auto; }
+  .copy-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); border-radius: var(--radius-sm); color: var(--purple); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; padding: 0.35rem 0.8rem; transition: background 0.2s; }
   .copy-btn:hover { background: rgba(167,139,250,0.25); }
-
-  .actions {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .tag {
-    background: rgba(167,139,250,0.12);
-    border: 1px solid rgba(167,139,250,0.2);
-    border-radius: 999px;
-    color: var(--purple);
-    font-size: 0.72rem;
-    font-weight: 500;
-    padding: 0.2rem 0.7rem;
-  }
+  .actions { display: flex; gap: 0.75rem; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
+  .tag { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.2); border-radius: 999px; color: var(--purple); font-size: 0.72rem; font-weight: 500; padding: 0.2rem 0.7rem; }
+  .section-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+  .cron-block { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem; margin-bottom: 0.8rem; animation: fadeIn 0.2s ease both; }
+  .deploy-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
+  .deploy-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+  .deploy-card:hover { border-color: rgba(167,139,250,0.4); background: rgba(167,139,250,0.05); }
+  .deploy-card.selected { border-color: var(--purple); background: rgba(167,139,250,0.1); }
+  .deploy-card .icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  .deploy-card .name { font-size: 0.82rem; font-weight: 600; }
+  .deploy-card .desc { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.2rem; }
+  .info-box { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--green); margin-top: 0.75rem; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -339,16 +92,12 @@
   <!-- Bot settings -->
   <div class="card">
     <h2>Bot settings</h2>
-
     <label>Bot name (for display only)</label>
     <input type="text" id="botName" value="MyBot" oninput="generate()">
-
     <label>Command prefix</label>
     <input type="text" id="prefix" value="!" oninput="generate()">
-
     <label>Status message (optional)</label>
     <input type="text" id="status" placeholder="Playing something cool" oninput="generate()">
-
     <label style="margin-top:1.2rem;margin-bottom:0.6rem">Options</label>
     <div class="toggle-row">
       <div>Auto-restart on crash<br><span>Restarts if something breaks</span></div>
@@ -367,8 +116,12 @@
       <label class="switch"><input type="checkbox" id="health" onchange="generate()"><span class="slider"></span></label>
     </div>
     <div class="toggle-row">
-      <div>Persistent storage<br><span>Saves data between restarts</span></div>
+      <div>Persistent storage<br><span>Saves data between restarts (JsonStore)</span></div>
       <label class="switch"><input type="checkbox" id="store" onchange="generate()"><span class="slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <div>Global error handler<br><span>Catch errors so users see a message</span></div>
+      <label class="switch"><input type="checkbox" id="evError" checked onchange="generate()"><span class="slider"></span></label>
     </div>
   </div>
 
@@ -378,6 +131,26 @@
     <div class="commands-list" id="cmdList"></div>
     <button class="btn" onclick="addCommand()">+ Add command</button>
   </div>
+
+  <!-- Events -->
+  <div class="card">
+    <h2>Event listeners</h2>
+    <div class="toggle-row"><div>on_ready<br><span>Runs when the bot connects</span></div><label class="switch"><input type="checkbox" id="evReady" checked onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>message:created<br><span>Runs on every new message</span></div><label class="switch"><input type="checkbox" id="evMessage" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>server:member_joined<br><span>Runs when someone joins</span></div><label class="switch"><input type="checkbox" id="evJoin" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>server:member_left<br><span>Runs when someone leaves</span></div><label class="switch"><input type="checkbox" id="evLeave" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>message:reaction_added<br><span>Runs when someone reacts</span></div><label class="switch"><input type="checkbox" id="evReaction" onchange="generate()"><span class="slider"></span></label></div>
+    <div class="toggle-row"><div>channel:typing<br><span>Runs when someone starts typing</span></div><label class="switch"><input type="checkbox" id="evTyping" onchange="generate()"><span class="slider"></span></label></div>
+  </div>
+
+  <!-- Scheduled tasks -->
+  <div class="card">
+    <h2>Scheduled tasks <span class="tag">pip install croniter</span></h2>
+    <div id="cronList"></div>
+    <button class="btn" onclick="addCron()">+ Add scheduled task</button>
+  </div>
+
+  <!-- Contrib plugins -->
   <div class="card">
     <h2>Contrib plugins <span class="tag">pip install nerimity-sdk-contrib</span></h2>
     <div id="pluginList">
@@ -387,21 +160,58 @@
       <div class="toggle-row"><div>AntiSpamPlugin<br><span>Kick/ban users who spam</span></div><label class="switch"><input type="checkbox" data-plugin="AntiSpamPlugin" onchange="generate()"><span class="slider"></span></label></div>
       <div class="toggle-row"><div>LevelingPlugin<br><span>XP system, /level, /leaderboard</span></div><label class="switch"><input type="checkbox" data-plugin="LevelingPlugin" onchange="generate()"><span class="slider"></span></label></div>
       <div class="toggle-row"><div>WarnPlugin<br><span>/warn, /warnings, /clearwarns</span></div><label class="switch"><input type="checkbox" data-plugin="WarnPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>MutePlugin<br><span>/mute and /unmute users</span></div><label class="switch"><input type="checkbox" data-plugin="MutePlugin" onchange="generate()"><span class="slider"></span></label></div>
       <div class="toggle-row"><div>StarboardPlugin<br><span>Repost popular messages</span></div><label class="switch"><input type="checkbox" data-plugin="StarboardPlugin" onchange="generate()"><span class="slider"></span></label></div>
       <div class="toggle-row"><div>BirthdayPlugin<br><span>/birthday, daily announcements</span></div><label class="switch"><input type="checkbox" data-plugin="BirthdayPlugin" onchange="generate()"><span class="slider"></span></label></div>
       <div class="toggle-row"><div>ReminderPlugin<br><span>/remind 10m do something</span></div><label class="switch"><input type="checkbox" data-plugin="ReminderPlugin" onchange="generate()"><span class="slider"></span></label></div>
       <div class="toggle-row"><div>AFKPlugin<br><span>/afk, pings back when mentioned</span></div><label class="switch"><input type="checkbox" data-plugin="AFKPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>CustomCommandPlugin<br><span>Admins add text commands at runtime</span></div><label class="switch"><input type="checkbox" data-plugin="CustomCommandPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>AutoReplyPlugin<br><span>Keyword-triggered auto-replies</span></div><label class="switch"><input type="checkbox" data-plugin="AutoReplyPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>ServerStatsPlugin<br><span>Post periodic stats to a channel</span></div><label class="switch"><input type="checkbox" data-plugin="ServerStatsPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>TempChannelPlugin<br><span>Auto-deleting temporary channels</span></div><label class="switch"><input type="checkbox" data-plugin="TempChannelPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>PollPlugin<br><span>Timed reaction polls</span></div><label class="switch"><input type="checkbox" data-plugin="PollPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>GiveawayPlugin<br><span>React-to-enter giveaways</span></div><label class="switch"><input type="checkbox" data-plugin="GiveawayPlugin" onchange="generate()"><span class="slider"></span></label></div>
+      <div class="toggle-row"><div>TicketPlugin<br><span>DM-based support tickets</span></div><label class="switch"><input type="checkbox" data-plugin="TicketPlugin" onchange="generate()"><span class="slider"></span></label></div>
     </div>
   </div>
 
-  <!-- Events -->
+  <!-- Deploy -->
   <div class="card">
-    <h2>Event listeners</h2>
-    <div class="toggle-row"><div>on_ready<br><span>Runs when the bot connects</span></div><label class="switch"><input type="checkbox" id="evReady" checked onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>message:created<br><span>Runs on every new message</span></div><label class="switch"><input type="checkbox" id="evMessage" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>server:member_joined<br><span>Runs when someone joins</span></div><label class="switch"><input type="checkbox" id="evJoin" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>server:member_left<br><span>Runs when someone leaves</span></div><label class="switch"><input type="checkbox" id="evLeave" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>on_command_error<br><span>Catch errors so users see a message</span></div><label class="switch"><input type="checkbox" id="evError" checked onchange="generate()"><span class="slider"></span></label></div>
+    <h2>Deploy target</h2>
+    <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:0.75rem">Choose where you want to host your bot. We'll add the right config file.</p>
+    <div class="deploy-grid">
+      <div class="deploy-card selected" onclick="selectDeploy('railway',this)">
+        <div class="icon">🚂</div>
+        <div class="name">Railway</div>
+        <div class="desc">Free tier, easy setup</div>
+      </div>
+      <div class="deploy-card" onclick="selectDeploy('fly',this)">
+        <div class="icon">🪰</div>
+        <div class="name">Fly.io</div>
+        <div class="desc">Global edge hosting</div>
+      </div>
+      <div class="deploy-card" onclick="selectDeploy('render',this)">
+        <div class="icon">🎨</div>
+        <div class="name">Render</div>
+        <div class="desc">Git-connected deploys</div>
+      </div>
+      <div class="deploy-card" onclick="selectDeploy('vps',this)">
+        <div class="icon">🖥️</div>
+        <div class="name">VPS / Linux</div>
+        <div class="desc">systemd service file</div>
+      </div>
+      <div class="deploy-card" onclick="selectDeploy('docker',this)">
+        <div class="icon">🐳</div>
+        <div class="name">Docker</div>
+        <div class="desc">Dockerfile + compose</div>
+      </div>
+      <div class="deploy-card" onclick="selectDeploy('none',this)">
+        <div class="icon">⏭️</div>
+        <div class="name">Skip</div>
+        <div class="desc">No deploy config</div>
+      </div>
+    </div>
+    <div id="deployInfo" class="info-box" style="margin-top:0.75rem"></div>
   </div>
 
   <!-- Output -->
@@ -413,6 +223,7 @@
     </div>
     <div class="actions">
       <button class="btn btn-primary" onclick="download()">⬇ Download bot.py</button>
+      <button class="btn" onclick="downloadConfig()" id="configBtn" style="display:none">⬇ Download config file</button>
       <a href="guide/installation/" class="btn" style="text-decoration:none">Setup guide →</a>
     </div>
   </div>
@@ -420,260 +231,366 @@
 </div>
 
 <script>
-  let commands = [{
-    name: 'ping',
-    description: 'Check if the bot is alive',
-    reply: 'Pong! 🏓',
-    args: false,
-    argsHint: '',
-    cooldown: '',
-    permission: '',
-    guildOnly: false,
-    body: ''
-  }];
+let commands = [{name:'ping',description:'Check if the bot is alive',reply:'Pong! 🏓',args:false,argsHint:'',cooldown:'',permission:'',guildOnly:false,body:'',errorHandler:''}];
+let crons = [];
+let deployTarget = 'railway';
 
-  const PERMISSIONS = ['','BAN_MEMBERS','KICK_MEMBERS','MANAGE_CHANNELS','MANAGE_ROLES','MANAGE_SERVER','ADMINISTRATOR'];
+const PERMISSIONS = ['','BAN_MEMBERS','KICK_MEMBERS','MANAGE_CHANNELS','MANAGE_ROLES','MANAGE_SERVER','ADMINISTRATOR'];
 
-  function addCommand() {
-    commands.push({ name: '', description: '', reply: '', args: false, argsHint: '', cooldown: '', permission: '', guildOnly: false, body: '' });
-    renderCommands();
-    generate();
-  }
+const CRON_PRESETS = [
+  {label:'Every hour',value:'0 * * * *'},
+  {label:'Every day at 9am',value:'0 9 * * *'},
+  {label:'Every Monday 9am',value:'0 9 * * 1'},
+  {label:'Every 30 minutes',value:'*/30 * * * *'},
+  {label:'Custom…',value:'custom'},
+];
 
-  function removeCommand(i) {
-    commands.splice(i, 1);
-    renderCommands();
-    generate();
-  }
+const DEPLOY_INFO = {
+  railway: '🚂 Run <code>nerimity deploy railway</code> after downloading, or push to GitHub and connect at <a href="https://railway.app" target="_blank" style="color:var(--green)">railway.app</a>.',
+  fly: '🪰 Run <code>nerimity deploy fly</code> after downloading. Requires <a href="https://fly.io/docs/hands-on/install-flyctl/" target="_blank" style="color:var(--green)">flyctl</a>.',
+  render: '🎨 Push to GitHub, then connect your repo at <a href="https://render.com" target="_blank" style="color:var(--green)">render.com</a>. A render.yaml will be included.',
+  vps: '🖥️ A systemd service file will be included. Copy it to <code>/etc/systemd/system/</code> and run <code>systemctl enable --now mybot</code>.',
+  docker: '🐳 A Dockerfile and docker-compose.yml will be included. Run <code>docker compose up -d</code>.',
+  none: 'No deploy config will be added.',
+};
 
-  function renderCommands() {
-    const list = document.getElementById('cmdList');
-    list.innerHTML = commands.map((cmd, i) => `
-      <div class="cmd-block">
-        <div class="cmd-block-header">
-          <span>/${cmd.name || 'unnamed'}</span>
-          <button class="btn btn-danger" onclick="removeCommand(${i})">✕</button>
-        </div>
-        <div class="cmd-grid">
-          <div>
-            <span class="field-label">Command name</span>
-            <input type="text" placeholder="ping" value="${esc(cmd.name)}"
-              oninput="commands[${i}].name=this.value;renderCommands();generate()">
-          </div>
-          <div>
-            <span class="field-label">Description (shows in /menu)</span>
-            <input type="text" placeholder="What this command does" value="${esc(cmd.description)}"
-              oninput="commands[${i}].description=this.value;generate()">
-          </div>
-        </div>
-        <div class="cmd-grid-3">
-          <div>
-            <span class="field-label">Cooldown (seconds)</span>
-            <input type="text" placeholder="none" value="${esc(cmd.cooldown)}"
-              oninput="commands[${i}].cooldown=this.value;generate()">
-          </div>
-          <div>
-            <span class="field-label">Required permission</span>
-            <select onchange="commands[${i}].permission=this.value;generate()">
-              ${PERMISSIONS.map(p => `<option value="${p}" ${cmd.permission===p?'selected':''}>${p||'none'}</option>`).join('')}
-            </select>
-          </div>
-          <div style="display:flex;align-items:center;gap:0.5rem;padding-top:1.2rem">
-            <label class="switch" style="margin:0"><input type="checkbox" ${cmd.guildOnly?'checked':''} onchange="commands[${i}].guildOnly=this.checked;generate()"><span class="slider"></span></label>
-            <span class="field-label" style="margin:0">Server only</span>
-          </div>
-        </div>
-        <div class="cmd-grid">
-          <div>
-            <span class="field-label">Takes arguments?</span>
-            <select onchange="commands[${i}].args=this.value==='yes';renderCommands();generate()">
-              <option value="no" ${!cmd.args?'selected':''}>No</option>
-              <option value="yes" ${cmd.args?'selected':''}>Yes</option>
-            </select>
-          </div>
-          ${cmd.args ? `<div>
-            <span class="field-label">Argument hint (e.g. &lt;user&gt; &lt;reason&gt;)</span>
-            <input type="text" placeholder="<user> <reason>" value="${esc(cmd.argsHint)}"
-              oninput="commands[${i}].argsHint=this.value;generate()">
-          </div>` : `<div></div>`}
+const DEPLOY_CONFIGS = {
+  railway: {name:'railway.toml', content:'[build]\nbuilder = "nixpacks"\n\n[deploy]\nstartCommand = "python bot.py"\nrestartPolicyType = "always"\n'},
+  fly: {name:'fly.toml', content:'app = "my-nerimity-bot"\nprimary_region = "iad"\n\n[build]\n\n[[services]]\ninternal_port = 8080\nprotocol = "tcp"\n'},
+  render: {name:'render.yaml', content:'services:\n  - type: worker\n    name: nerimity-bot\n    env: python\n    buildCommand: pip install -r requirements.txt\n    startCommand: python bot.py\n'},
+  vps: {name:'mybot.service', content:'[Unit]\nDescription=Nerimity Bot\nAfter=network.target\n\n[Service]\nType=simple\nWorkingDirectory=/opt/mybot\nExecStart=/usr/bin/python3 bot.py\nRestart=always\nEnvironmentFile=/opt/mybot/.env\n\n[Install]\nWantedBy=multi-user.target\n'},
+  docker: {name:'Dockerfile', content:'FROM python:3.11-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install -r requirements.txt\nCOPY . .\nCMD ["python", "bot.py"]\n'},
+  none: null,
+};
+
+function selectDeploy(target, el) {
+  deployTarget = target;
+  document.querySelectorAll('.deploy-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('deployInfo').innerHTML = DEPLOY_INFO[target] || '';
+  const cfg = DEPLOY_CONFIGS[target];
+  const btn = document.getElementById('configBtn');
+  if (cfg) { btn.style.display = ''; btn.textContent = `⬇ Download ${cfg.name}`; }
+  else { btn.style.display = 'none'; }
+  generate();
+}
+
+function addCommand() {
+  commands.push({name:'',description:'',reply:'',args:false,argsHint:'',cooldown:'',permission:'',guildOnly:false,body:'',errorHandler:''});
+  renderCommands(); generate();
+}
+
+function removeCommand(i) { commands.splice(i,1); renderCommands(); generate(); }
+
+function addCron() {
+  crons.push({preset:'0 9 * * *',custom:'',channel:'',message:'Daily reminder!'});
+  renderCrons(); generate();
+}
+
+function removeCron(i) { crons.splice(i,1); renderCrons(); generate(); }
+
+function renderCommands() {
+  document.getElementById('cmdList').innerHTML = commands.map((cmd,i) => `
+    <div class="cmd-block">
+      <div class="cmd-block-header">
+        <span>/${cmd.name||'unnamed'}</span>
+        <button class="btn btn-danger" onclick="removeCommand(${i})">✕</button>
+      </div>
+      <div class="cmd-grid">
+        <div>
+          <span class="field-label">Command name</span>
+          <input type="text" placeholder="ping" value="${esc(cmd.name)}" oninput="commands[${i}].name=this.value;renderCommands();generate()">
         </div>
         <div>
-          <span class="field-label">Reply text (leave blank to write your own body)</span>
-          <input type="text" placeholder='e.g. Pong! 🏓' value="${esc(cmd.reply)}"
-            oninput="commands[${i}].reply=this.value;commands[${i}].body='';generate()">
-        </div>
-        <div style="margin-top:0.5rem">
-          <span class="field-label">Custom body (overrides reply text — write real Python)</span>
-          <textarea placeholder="    await ctx.reply(ctx.rest_text or 'nothing provided')"
-            oninput="commands[${i}].body=this.value;commands[${i}].reply='';generate()">${esc(cmd.body)}</textarea>
+          <span class="field-label">Description (shows in /menu)</span>
+          <input type="text" placeholder="What this command does" value="${esc(cmd.description)}" oninput="commands[${i}].description=this.value;generate()">
         </div>
       </div>
-    `).join('');
+      <div class="cmd-grid-3">
+        <div>
+          <span class="field-label">Cooldown (seconds)</span>
+          <input type="text" placeholder="none" value="${esc(cmd.cooldown)}" oninput="commands[${i}].cooldown=this.value;generate()">
+        </div>
+        <div>
+          <span class="field-label">Required permission</span>
+          <select onchange="commands[${i}].permission=this.value;generate()">
+            ${PERMISSIONS.map(p=>`<option value="${p}" ${cmd.permission===p?'selected':''}>${p||'none'}</option>`).join('')}
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.5rem;padding-top:1.2rem">
+          <label class="switch" style="margin:0"><input type="checkbox" ${cmd.guildOnly?'checked':''} onchange="commands[${i}].guildOnly=this.checked;generate()"><span class="slider"></span></label>
+          <span class="field-label" style="margin:0">Server only</span>
+        </div>
+      </div>
+      <div class="cmd-grid">
+        <div>
+          <span class="field-label">Takes arguments?</span>
+          <select onchange="commands[${i}].args=this.value==='yes';renderCommands();generate()">
+            <option value="no" ${!cmd.args?'selected':''}>No</option>
+            <option value="yes" ${cmd.args?'selected':''}>Yes</option>
+          </select>
+        </div>
+        ${cmd.args?`<div>
+          <span class="field-label">Argument hint (e.g. &lt;user&gt; &lt;reason&gt;)</span>
+          <input type="text" placeholder="<user> <reason>" value="${esc(cmd.argsHint)}" oninput="commands[${i}].argsHint=this.value;generate()">
+        </div>`:`<div></div>`}
+      </div>
+      <div>
+        <span class="field-label">Reply text (leave blank to write your own body)</span>
+        <input type="text" placeholder='e.g. Pong! 🏓' value="${esc(cmd.reply)}" oninput="commands[${i}].reply=this.value;commands[${i}].body='';generate()">
+      </div>
+      <div style="margin-top:0.5rem">
+        <span class="field-label">Custom body (overrides reply text — write real Python)</span>
+        <textarea placeholder="    await ctx.reply(ctx.rest_text or 'nothing provided')" oninput="commands[${i}].body=this.value;commands[${i}].reply='';generate()">${esc(cmd.body)}</textarea>
+      </div>
+      <div style="margin-top:0.5rem">
+        <span class="field-label">Per-command error reply (optional — overrides global error handler for this command)</span>
+        <input type="text" placeholder='e.g. ❌ Could not run this command.' value="${esc(cmd.errorHandler)}" oninput="commands[${i}].errorHandler=this.value;generate()">
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCrons() {
+  document.getElementById('cronList').innerHTML = crons.map((c,i) => `
+    <div class="cron-block">
+      <div class="cmd-block-header">
+        <span>⏰ ${c.preset==='custom'?c.custom||'custom':c.preset}</span>
+        <button class="btn btn-danger" onclick="removeCron(${i})">✕</button>
+      </div>
+      <div class="cmd-grid">
+        <div>
+          <span class="field-label">Schedule</span>
+          <select onchange="crons[${i}].preset=this.value;renderCrons();generate()">
+            ${CRON_PRESETS.map(p=>`<option value="${p.value}" ${c.preset===p.value?'selected':''}>${p.label}</option>`).join('')}
+          </select>
+        </div>
+        ${c.preset==='custom'?`<div>
+          <span class="field-label">Cron expression</span>
+          <input type="text" placeholder="*/5 * * * *" value="${esc(c.custom)}" oninput="crons[${i}].custom=this.value;generate()">
+        </div>`:`<div></div>`}
+      </div>
+      <div class="cmd-grid">
+        <div>
+          <span class="field-label">Channel ID to post in</span>
+          <input type="text" placeholder="YOUR_CHANNEL_ID" value="${esc(c.channel)}" oninput="crons[${i}].channel=this.value;generate()">
+        </div>
+        <div>
+          <span class="field-label">Message to send</span>
+          <input type="text" placeholder="Good morning!" value="${esc(c.message)}" oninput="crons[${i}].message=this.value;generate()">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function getPlugins() {
+  return [...document.querySelectorAll('[data-plugin]:checked')].map(el=>el.dataset.plugin);
+}
+
+function generate() {
+  const name        = document.getElementById('botName').value||'MyBot';
+  const prefix      = document.getElementById('prefix').value||'!';
+  const status      = document.getElementById('status').value;
+  const autoRestart = document.getElementById('autoRestart').checked;
+  const autoReload  = document.getElementById('autoReload').checked;
+  const jsonLogs    = document.getElementById('jsonLogs').checked;
+  const health      = document.getElementById('health').checked;
+  const store       = document.getElementById('store').checked;
+  const plugins     = getPlugins();
+  const evReady     = document.getElementById('evReady').checked;
+  const evMessage   = document.getElementById('evMessage').checked;
+  const evJoin      = document.getElementById('evJoin').checked;
+  const evLeave     = document.getElementById('evLeave').checked;
+  const evReaction  = document.getElementById('evReaction').checked;
+  const evTyping    = document.getElementById('evTyping').checked;
+  const evError     = document.getElementById('evError').checked;
+
+  const needsContrib = plugins.length > 0;
+  const needsPerms   = commands.some(c=>c.permission);
+  const needsCron    = crons.length > 0;
+  const lines = [];
+
+  lines.push('import os');
+  lines.push('from dotenv import load_dotenv');
+  const sdkImports = ['Bot'];
+  if (store) sdkImports.push('JsonStore');
+  if (needsPerms) sdkImports.push('Permissions');
+  lines.push(`from nerimity_sdk import ${sdkImports.join(', ')}`);
+  if (needsContrib) lines.push(`from nerimity_sdk_contrib import ${plugins.join(', ')}`);
+  lines.push('');
+  lines.push('load_dotenv()');
+  lines.push('');
+
+  const botArgs = [`token=os.environ["NERIMITY_TOKEN"]`];
+  if (prefix !== '!') botArgs.push(`prefix="${prefix}"`);
+  if (jsonLogs) botArgs.push('json_logs=True');
+  if (health)   botArgs.push('health_port=8080');
+  if (store)    botArgs.push('store=JsonStore("data.json")');
+
+  if (botArgs.length > 1) {
+    lines.push('bot = Bot(');
+    botArgs.forEach((a,i) => lines.push(`    ${a}${i<botArgs.length-1?',':''}`));
+    lines.push(')');
+  } else {
+    lines.push(`bot = Bot(${botArgs[0]})`);
   }
 
-  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  function getPlugins() {
-    return [...document.querySelectorAll('[data-plugin]:checked')].map(el => el.dataset.plugin);
+  if (evReady || needsContrib) {
+    lines.push(''); lines.push('');
+    lines.push('@bot.on("ready")');
+    lines.push('async def on_ready(me):');
+    lines.push(`    print(f"✅ ${name} online as {me.username}!")`);
+    if (status) lines.push(`    # status: ${status}`);
+    plugins.forEach(p => lines.push(`    await bot.plugins.load(${pluginConfig(p)})`));
   }
 
-  function generate() {
-    const name        = document.getElementById('botName').value || 'MyBot';
-    const prefix      = document.getElementById('prefix').value || '!';
-    const status      = document.getElementById('status').value;
-    const autoRestart = document.getElementById('autoRestart').checked;
-    const autoReload  = document.getElementById('autoReload').checked;
-    const jsonLogs    = document.getElementById('jsonLogs').checked;
-    const health      = document.getElementById('health').checked;
-    const store       = document.getElementById('store').checked;
-    const plugins     = getPlugins();
-    const evReady     = document.getElementById('evReady').checked;
-    const evMessage   = document.getElementById('evMessage').checked;
-    const evJoin      = document.getElementById('evJoin').checked;
-    const evLeave     = document.getElementById('evLeave').checked;
-    const evError     = document.getElementById('evError').checked;
+  if (evMessage) {
+    lines.push(''); lines.push('');
+    lines.push('@bot.on("message:created")');
+    lines.push('async def on_message(event):');
+    lines.push('    pass');
+  }
 
-    const needsContrib = plugins.length > 0;
-    const needsPerms   = commands.some(c => c.permission);
-    const lines = [];
+  if (evJoin) {
+    lines.push(''); lines.push('');
+    lines.push('@bot.on("server:member_joined")');
+    lines.push('async def on_join(event):');
+    lines.push('    pass');
+  }
 
-    lines.push('import os');
-    lines.push('from dotenv import load_dotenv');
-    const sdkImports = ['Bot'];
-    if (store) sdkImports.push('JsonStore');
-    if (needsPerms) sdkImports.push('Permissions');
-    lines.push(`from nerimity_sdk import ${sdkImports.join(', ')}`);
-    if (needsContrib) lines.push(`from nerimity_sdk_contrib import ${plugins.join(', ')}`);
-    lines.push('');
-    lines.push('load_dotenv()');
-    lines.push('');
+  if (evLeave) {
+    lines.push(''); lines.push('');
+    lines.push('@bot.on("server:member_left")');
+    lines.push('async def on_leave(event):');
+    lines.push('    pass');
+  }
 
-    const botArgs = [`token=os.environ["NERIMITY_TOKEN"]`];
-    if (prefix !== '!') botArgs.push(`prefix="${prefix}"`);
-    if (jsonLogs) botArgs.push('json_logs=True');
-    if (health)   botArgs.push('health_port=8080');
-    if (store)    botArgs.push('store=JsonStore("data.json")');
+  if (evReaction) {
+    lines.push(''); lines.push('');
+    lines.push('@bot.on("message:reaction_added")');
+    lines.push('async def on_reaction(event):');
+    lines.push('    pass');
+  }
 
-    if (botArgs.length > 1) {
-      lines.push('bot = Bot(');
-      botArgs.forEach((a, i) => lines.push(`    ${a}${i < botArgs.length-1 ? ',' : ''}`));
-      lines.push(')');
+  if (evTyping) {
+    lines.push(''); lines.push('');
+    lines.push('@bot.on("channel:typing")');
+    lines.push('async def on_typing(event):');
+    lines.push('    pass');
+  }
+
+  // Scheduled tasks
+  crons.forEach((c, idx) => {
+    const expr = c.preset === 'custom' ? (c.custom || '0 * * * *') : c.preset;
+    const ch = c.channel || 'YOUR_CHANNEL_ID';
+    const msg = (c.message || 'Scheduled message!').replace(/"/g, '\\"');
+    lines.push(''); lines.push('');
+    lines.push(`@bot.cron("${expr}")`);
+    lines.push(`async def scheduled_task_${idx+1}():`);
+    lines.push(`    await bot.rest.create_message("${ch}", "${msg}")`);
+  });
+
+  // Commands
+  commands.filter(c=>c.name.trim()).forEach(cmd => {
+    const fn = cmd.name.trim().replace(/[^a-z0-9]/gi,'_');
+    const decoratorArgs = [`"${cmd.name.trim()}"`];
+    if (cmd.description) decoratorArgs.push(`description="${cmd.description}"`);
+    if (cmd.guildOnly)   decoratorArgs.push('guild_only=True');
+    if (cmd.permission)  decoratorArgs.push(`requires=Permissions.${cmd.permission}`);
+    if (cmd.cooldown)    decoratorArgs.push(`cooldown=${cmd.cooldown}`);
+
+    lines.push(''); lines.push('');
+    lines.push(`@bot.command(${decoratorArgs.join(', ')})`);
+    if (cmd.args && cmd.argsHint) {
+      lines.push(`async def ${fn}(ctx):  # args: ${cmd.argsHint}`);
     } else {
-      lines.push(`bot = Bot(${botArgs[0]})`);
+      lines.push(`async def ${fn}(ctx):`);
     }
 
-    if (evReady || needsContrib) {
-      lines.push('');
-      lines.push('');
-      lines.push('@bot.on("ready")');
-      lines.push('async def on_ready(me):');
-      lines.push(`    print(f"✅ ${name} online as {me.username}!")`);
-      if (status) lines.push(`    # status: ${status}`);
-      plugins.forEach(p => lines.push(`    await bot.plugins.load(${pluginConfig(p)})`));
-    }
-
-    if (evMessage) {
-      lines.push('');
-      lines.push('');
-      lines.push('@bot.on("message:created")');
-      lines.push('async def on_message(event):');
+    if (cmd.body.trim()) {
+      cmd.body.split('\n').forEach(l => lines.push(l.startsWith('    ')?l:`    ${l}`));
+    } else if (cmd.reply.trim()) {
+      lines.push(`    await ctx.reply("${cmd.reply.replace(/"/g,'\\"')}")`);
+    } else {
       lines.push('    pass');
     }
 
-    if (evJoin) {
-      lines.push('');
-      lines.push('');
-      lines.push('@bot.on("server:member_joined")');
-      lines.push('async def on_join(event):');
-      lines.push('    pass');
+    // Per-command error handler
+    if (cmd.errorHandler.trim()) {
+      lines.push(''); lines.push('');
+      lines.push(`@bot.router.on_error("${cmd.name.trim()}")`);
+      lines.push(`async def ${fn}_error(ctx, error):`);
+      lines.push(`    await ctx.reply("${cmd.errorHandler.replace(/"/g,'\\"')}")`);
     }
+  });
 
-    if (evLeave) {
-      lines.push('');
-      lines.push('');
-      lines.push('@bot.on("server:member_left")');
-      lines.push('async def on_leave(event):');
-      lines.push('    pass');
-    }
-
-    commands.filter(c => c.name.trim()).forEach(cmd => {
-      const fn = cmd.name.trim().replace(/[^a-z0-9]/gi, '_');
-      const decoratorArgs = [`"${cmd.name.trim()}"`];
-      if (cmd.description) decoratorArgs.push(`description="${cmd.description}"`);
-      if (cmd.guildOnly)   decoratorArgs.push('guild_only=True');
-      if (cmd.permission)  decoratorArgs.push(`requires=Permissions.${cmd.permission}`);
-      if (cmd.cooldown)    decoratorArgs.push(`cooldown=${cmd.cooldown}`);
-
-      lines.push('');
-      lines.push('');
-      lines.push(`@bot.command(${decoratorArgs.join(', ')})`);
-
-      if (cmd.args && cmd.argsHint) {
-        lines.push(`async def ${fn}(ctx):  # args: ${cmd.argsHint}`);
-      } else {
-        lines.push(`async def ${fn}(ctx):`);
-      }
-
-      if (cmd.body.trim()) {
-        cmd.body.split('\n').forEach(l => lines.push(l.startsWith('    ') ? l : `    ${l}`));
-      } else if (cmd.reply.trim()) {
-        lines.push(`    await ctx.reply("${cmd.reply.replace(/"/g, '\\"')}")`);
-      } else {
-        lines.push('    pass');
-      }
-    });
-
-    if (evError) {
-      lines.push('');
-      lines.push('');
-      lines.push('@bot.on_command_error');
-      lines.push('async def on_error(ctx, error):');
-      lines.push('    await ctx.reply(f"❌ {error}")');
-    }
-
-    lines.push('');
-    lines.push('');
-    const runArgs = [];
-    if (!autoRestart) runArgs.push('auto_restart=False');
-    if (!autoReload)  runArgs.push('watch=False');
-    lines.push(`bot.run(${runArgs.join(', ')})`);
-
-    document.getElementById('output').textContent = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  if (evError) {
+    lines.push(''); lines.push('');
+    lines.push('@bot.on_command_error');
+    lines.push('async def on_error(ctx, error):');
+    lines.push('    await ctx.reply(f"❌ {error}")');
   }
 
-  function pluginConfig(name) {
-    const configs = {
-      WelcomePlugin:  'WelcomePlugin(channel_id="YOUR_CHANNEL_ID")',
-      LoggingPlugin:  'LoggingPlugin(channel_id="YOUR_LOG_CHANNEL_ID")',
-      AutoModPlugin:  'AutoModPlugin(blocked=["badword"], log_channel_id="YOUR_LOG_CHANNEL_ID")',
-      AntiSpamPlugin: 'AntiSpamPlugin(max_messages=5, window=5.0, action="kick")',
-      LevelingPlugin: 'LevelingPlugin(announce_channel_id="YOUR_CHANNEL_ID")',
-      WarnPlugin:     'WarnPlugin(threshold=3, log_channel_id="YOUR_LOG_CHANNEL_ID")',
-      StarboardPlugin:'StarboardPlugin(channel_id="YOUR_STARBOARD_CHANNEL_ID", threshold=3)',
-      BirthdayPlugin: 'BirthdayPlugin(announce_channel_id="YOUR_CHANNEL_ID")',
-      ReminderPlugin: 'ReminderPlugin()',
-      AFKPlugin:      'AFKPlugin()',
-    };
-    return configs[name] || `${name}()`;
-  }
+  lines.push(''); lines.push('');
+  const runArgs = [];
+  if (!autoRestart) runArgs.push('auto_restart=False');
+  if (!autoReload)  runArgs.push('watch=False');
+  lines.push(`bot.run(${runArgs.join(', ')})`);
 
-  function copyCode() {
-    navigator.clipboard.writeText(document.getElementById('output').textContent);
-    const btn = document.querySelector('.copy-btn');
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy', 1500);
-  }
+  document.getElementById('output').textContent = lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+}
 
-  function download() {
-    const blob = new Blob([document.getElementById('output').textContent], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'bot.py';
-    a.click();
-  }
+function pluginConfig(name) {
+  const configs = {
+    WelcomePlugin:       'WelcomePlugin(channel_id="YOUR_CHANNEL_ID")',
+    LoggingPlugin:       'LoggingPlugin(channel_id="YOUR_LOG_CHANNEL_ID")',
+    AutoModPlugin:       'AutoModPlugin(blocked=["badword"], log_channel_id="YOUR_LOG_CHANNEL_ID")',
+    AntiSpamPlugin:      'AntiSpamPlugin(max_messages=5, window=5.0, action="kick")',
+    LevelingPlugin:      'LevelingPlugin(announce_channel_id="YOUR_CHANNEL_ID")',
+    WarnPlugin:          'WarnPlugin(threshold=3, log_channel_id="YOUR_LOG_CHANNEL_ID")',
+    MutePlugin:          'MutePlugin(log_channel_id="YOUR_LOG_CHANNEL_ID")',
+    StarboardPlugin:     'StarboardPlugin(channel_id="YOUR_STARBOARD_CHANNEL_ID", threshold=3)',
+    BirthdayPlugin:      'BirthdayPlugin(announce_channel_id="YOUR_CHANNEL_ID")',
+    ReminderPlugin:      'ReminderPlugin()',
+    AFKPlugin:           'AFKPlugin()',
+    CustomCommandPlugin: 'CustomCommandPlugin()',
+    AutoReplyPlugin:     'AutoReplyPlugin(rules=[("thanks", "You\'re welcome! 😊")])',
+    ServerStatsPlugin:   'ServerStatsPlugin(channel_id="YOUR_STATS_CHANNEL_ID")',
+    TempChannelPlugin:   'TempChannelPlugin(timeout=300)',
+    PollPlugin:          'PollPlugin()',
+    GiveawayPlugin:      'GiveawayPlugin()',
+    TicketPlugin:        'TicketPlugin(support_channel_id="YOUR_CHANNEL_ID")',
+  };
+  return configs[name] || `${name}()`;
+}
 
-  renderCommands();
-  generate();
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('output').textContent);
+  const btn = document.querySelector('.copy-btn');
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 1500);
+}
+
+function download() {
+  const blob = new Blob([document.getElementById('output').textContent], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bot.py'; a.click();
+}
+
+function downloadConfig() {
+  const cfg = DEPLOY_CONFIGS[deployTarget];
+  if (!cfg) return;
+  const blob = new Blob([cfg.content], {type:'text/plain'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = cfg.name; a.click();
+}
+
+// Init
+selectDeploy('railway', document.querySelector('.deploy-card.selected'));
+renderCommands();
+renderCrons();
+generate();
 </script>
 </body>
 </html>

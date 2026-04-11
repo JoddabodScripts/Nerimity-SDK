@@ -22,6 +22,7 @@ from nerimity_sdk.storage import JsonStore, SqliteStore, RedisStore, MemoryStore
 from nerimity_sdk.scheduler import Scheduler, CronJob
 from nerimity_sdk.utils.mentions import mention, parse_mention_ids, resolve_mentions
 from nerimity_sdk.utils.paginator import Paginator
+from nerimity_sdk.utils.embed import Embed
 from nerimity_sdk.webhooks import Webhook
 from nerimity_sdk.oauth2 import OAuth2Client
 

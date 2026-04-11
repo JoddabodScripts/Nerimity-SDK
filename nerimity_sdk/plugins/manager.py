@@ -14,6 +14,7 @@ class Plugin:
 
     name: str = ""
     description: str = ""
+    depends_on: list[str] = []  # list of plugin names this plugin requires
 
     def __init__(self) -> None:
         self._bot: Optional["Bot"] = None
@@ -42,6 +43,12 @@ class PluginManager:
         name = plugin.name or type(plugin).__name__
         if name in self._plugins:
             raise ValueError(f"Plugin {name!r} is already loaded")
+        # Check dependencies
+        for dep in getattr(plugin, "depends_on", []):
+            if dep not in self._plugins:
+                raise RuntimeError(
+                    f"Plugin {name!r} requires {dep!r} to be loaded first"
+                )
         plugin._bot = self._bot
         # Register the plugin's commands and listeners
         self._bot.router._commands.update(

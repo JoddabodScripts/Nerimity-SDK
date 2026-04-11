@@ -154,6 +154,35 @@ class Context:
     async def send_typing(self) -> None:
         await self.rest.send_typing(self.channel_id)
 
+    def typing(self) -> "_TypingContext":
+        """Async context manager that sends a typing indicator while work is done.
+
+        Usage::
+
+            async with ctx.typing():
+                result = await slow_operation()
+            await ctx.reply(result)
+        """
+        return _TypingContext(self)
+
+
+class _TypingContext:
+    def __init__(self, ctx: "Context") -> None:
+        self._ctx = ctx
+        self._task: "asyncio.Task | None" = None
+
+    async def __aenter__(self) -> "_TypingContext":
+        async def _keep_typing():
+            while True:
+                await self._ctx.rest.send_typing(self._ctx.channel_id)
+                await asyncio.sleep(4)
+        self._task = asyncio.create_task(_keep_typing())
+        return self
+
+    async def __aexit__(self, *_) -> None:
+        if self._task:
+            self._task.cancel()
+
     # ── Conversation helpers ──────────────────────────────────────────────────
 
     async def ask(self, prompt: str, timeout: float = 30.0,

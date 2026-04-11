@@ -43,6 +43,11 @@ from nerimity_sdk_contrib.suggestions import SuggestionPlugin
 from nerimity_sdk_contrib.warn import WarnPlugin
 from nerimity_sdk_contrib.message_filter import MessageFilterPlugin
 from nerimity_sdk_contrib.message_snapshot import MessageSnapshotPlugin
+from nerimity_sdk_contrib.mute import MutePlugin
+from nerimity_sdk_contrib.custom_commands import CustomCommandPlugin
+from nerimity_sdk_contrib.auto_reply import AutoReplyPlugin
+from nerimity_sdk_contrib.server_stats import ServerStatsPlugin
+from nerimity_sdk_contrib.temp_channel import TempChannelPlugin
 
 __version__ = "1.0.9"
 
@@ -70,4 +75,9 @@ __all__ = [
     "WarnPlugin",
     "MessageFilterPlugin",
     "MessageSnapshotPlugin",
+    "MutePlugin",
+    "CustomCommandPlugin",
+    "AutoReplyPlugin",
+    "ServerStatsPlugin",
+    "TempChannelPlugin",
 ]
