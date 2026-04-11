@@ -154,14 +154,72 @@
   .switch input:checked + .slider::before { transform: translateX(16px); }
 
   /* Commands list */
-  .commands-list { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+  .commands-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem; }
 
-  .cmd-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 0.5rem;
-    align-items: center;
+  .cmd-block {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.9rem;
     animation: fadeIn 0.2s ease both;
+  }
+
+  .cmd-block-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.7rem;
+  }
+
+  .cmd-block-header span {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--purple);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .cmd-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .cmd-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .cmd-full { grid-column: 1 / -1; }
+
+  textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.55rem 0.8rem;
+    outline: none;
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.5;
+  }
+
+  textarea:focus {
+    border-color: rgba(167,139,250,0.5);
+    box-shadow: 0 0 0 3px rgba(167,139,250,0.15);
+  }
+
+  .field-label {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 0.25rem;
+    display: block;
   }
 
   @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
@@ -320,8 +378,6 @@
     <div class="commands-list" id="cmdList"></div>
     <button class="btn" onclick="addCommand()">+ Add command</button>
   </div>
-
-  <!-- Plugins -->
   <div class="card">
     <h2>Contrib plugins <span class="tag">pip install nerimity-sdk-contrib</span></h2>
     <div id="pluginList">
@@ -364,10 +420,22 @@
 </div>
 
 <script>
-  let commands = [{ name: 'ping', description: 'Check if the bot is alive' }];
+  let commands = [{
+    name: 'ping',
+    description: 'Check if the bot is alive',
+    reply: 'Pong! 🏓',
+    args: false,
+    argsHint: '',
+    cooldown: '',
+    permission: '',
+    guildOnly: false,
+    body: ''
+  }];
+
+  const PERMISSIONS = ['','BAN_MEMBERS','KICK_MEMBERS','MANAGE_CHANNELS','MANAGE_ROLES','MANAGE_SERVER','ADMINISTRATOR'];
 
   function addCommand() {
-    commands.push({ name: '', description: '' });
+    commands.push({ name: '', description: '', reply: '', args: false, argsHint: '', cooldown: '', permission: '', guildOnly: false, body: '' });
     renderCommands();
     generate();
   }
@@ -381,127 +449,189 @@
   function renderCommands() {
     const list = document.getElementById('cmdList');
     list.innerHTML = commands.map((cmd, i) => `
-      <div class="cmd-row">
-        <input type="text" placeholder="name" value="${cmd.name}"
-          oninput="commands[${i}].name=this.value;generate()">
-        <input type="text" placeholder="description" value="${cmd.description}"
-          oninput="commands[${i}].description=this.value;generate()">
-        <button class="btn btn-danger" onclick="removeCommand(${i})">✕</button>
+      <div class="cmd-block">
+        <div class="cmd-block-header">
+          <span>/${cmd.name || 'unnamed'}</span>
+          <button class="btn btn-danger" onclick="removeCommand(${i})">✕</button>
+        </div>
+        <div class="cmd-grid">
+          <div>
+            <span class="field-label">Command name</span>
+            <input type="text" placeholder="ping" value="${esc(cmd.name)}"
+              oninput="commands[${i}].name=this.value;renderCommands();generate()">
+          </div>
+          <div>
+            <span class="field-label">Description (shows in /menu)</span>
+            <input type="text" placeholder="What this command does" value="${esc(cmd.description)}"
+              oninput="commands[${i}].description=this.value;generate()">
+          </div>
+        </div>
+        <div class="cmd-grid-3">
+          <div>
+            <span class="field-label">Cooldown (seconds)</span>
+            <input type="text" placeholder="none" value="${esc(cmd.cooldown)}"
+              oninput="commands[${i}].cooldown=this.value;generate()">
+          </div>
+          <div>
+            <span class="field-label">Required permission</span>
+            <select onchange="commands[${i}].permission=this.value;generate()">
+              ${PERMISSIONS.map(p => `<option value="${p}" ${cmd.permission===p?'selected':''}>${p||'none'}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.5rem;padding-top:1.2rem">
+            <label class="switch" style="margin:0"><input type="checkbox" ${cmd.guildOnly?'checked':''} onchange="commands[${i}].guildOnly=this.checked;generate()"><span class="slider"></span></label>
+            <span class="field-label" style="margin:0">Server only</span>
+          </div>
+        </div>
+        <div class="cmd-grid">
+          <div>
+            <span class="field-label">Takes arguments?</span>
+            <select onchange="commands[${i}].args=this.value==='yes';renderCommands();generate()">
+              <option value="no" ${!cmd.args?'selected':''}>No</option>
+              <option value="yes" ${cmd.args?'selected':''}>Yes</option>
+            </select>
+          </div>
+          ${cmd.args ? `<div>
+            <span class="field-label">Argument hint (e.g. &lt;user&gt; &lt;reason&gt;)</span>
+            <input type="text" placeholder="<user> <reason>" value="${esc(cmd.argsHint)}"
+              oninput="commands[${i}].argsHint=this.value;generate()">
+          </div>` : `<div></div>`}
+        </div>
+        <div>
+          <span class="field-label">Reply text (leave blank to write your own body)</span>
+          <input type="text" placeholder='e.g. Pong! 🏓' value="${esc(cmd.reply)}"
+            oninput="commands[${i}].reply=this.value;commands[${i}].body='';generate()">
+        </div>
+        <div style="margin-top:0.5rem">
+          <span class="field-label">Custom body (overrides reply text — write real Python)</span>
+          <textarea placeholder="    await ctx.reply(ctx.rest_text or 'nothing provided')"
+            oninput="commands[${i}].body=this.value;commands[${i}].reply='';generate()">${esc(cmd.body)}</textarea>
+        </div>
       </div>
     `).join('');
   }
+
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   function getPlugins() {
     return [...document.querySelectorAll('[data-plugin]:checked')].map(el => el.dataset.plugin);
   }
 
   function generate() {
-    const name       = document.getElementById('botName').value || 'MyBot';
-    const prefix     = document.getElementById('prefix').value || '!';
-    const status     = document.getElementById('status').value;
-    const autoRestart= document.getElementById('autoRestart').checked;
-    const autoReload = document.getElementById('autoReload').checked;
-    const jsonLogs   = document.getElementById('jsonLogs').checked;
-    const health     = document.getElementById('health').checked;
-    const store      = document.getElementById('store').checked;
-    const plugins    = getPlugins();
-    const evReady    = document.getElementById('evReady').checked;
-    const evMessage  = document.getElementById('evMessage').checked;
-    const evJoin     = document.getElementById('evJoin').checked;
-    const evLeave    = document.getElementById('evLeave').checked;
-    const evError    = document.getElementById('evError').checked;
+    const name        = document.getElementById('botName').value || 'MyBot';
+    const prefix      = document.getElementById('prefix').value || '!';
+    const status      = document.getElementById('status').value;
+    const autoRestart = document.getElementById('autoRestart').checked;
+    const autoReload  = document.getElementById('autoReload').checked;
+    const jsonLogs    = document.getElementById('jsonLogs').checked;
+    const health      = document.getElementById('health').checked;
+    const store       = document.getElementById('store').checked;
+    const plugins     = getPlugins();
+    const evReady     = document.getElementById('evReady').checked;
+    const evMessage   = document.getElementById('evMessage').checked;
+    const evJoin      = document.getElementById('evJoin').checked;
+    const evLeave     = document.getElementById('evLeave').checked;
+    const evError     = document.getElementById('evError').checked;
 
     const needsContrib = plugins.length > 0;
+    const needsPerms   = commands.some(c => c.permission);
     const lines = [];
 
-    // Imports
     lines.push('import os');
     lines.push('from dotenv import load_dotenv');
     const sdkImports = ['Bot'];
     if (store) sdkImports.push('JsonStore');
+    if (needsPerms) sdkImports.push('Permissions');
     lines.push(`from nerimity_sdk import ${sdkImports.join(', ')}`);
     if (needsContrib) lines.push(`from nerimity_sdk_contrib import ${plugins.join(', ')}`);
     lines.push('');
     lines.push('load_dotenv()');
     lines.push('');
 
-    // Bot init
     const botArgs = [`token=os.environ["NERIMITY_TOKEN"]`];
     if (prefix !== '!') botArgs.push(`prefix="${prefix}"`);
     if (jsonLogs) botArgs.push('json_logs=True');
-    if (health) botArgs.push('health_port=8080');
-    if (store) botArgs.push('store=JsonStore("data.json")');
-    if (!autoRestart || !autoReload) {
-      // will be passed to bot.run() instead
-    }
+    if (health)   botArgs.push('health_port=8080');
+    if (store)    botArgs.push('store=JsonStore("data.json")');
 
     if (botArgs.length > 1) {
       lines.push('bot = Bot(');
-      botArgs.forEach((a, i) => lines.push(`    ${a}${i < botArgs.length - 1 ? ',' : ''}`));
+      botArgs.forEach((a, i) => lines.push(`    ${a}${i < botArgs.length-1 ? ',' : ''}`));
       lines.push(')');
     } else {
       lines.push(`bot = Bot(${botArgs[0]})`);
     }
-    lines.push('');
 
-    // on_ready
-    if (evReady || needsContrib || status) {
+    if (evReady || needsContrib) {
+      lines.push('');
       lines.push('');
       lines.push('@bot.on("ready")');
       lines.push('async def on_ready(me):');
-      lines.push(`    print(f"✅ {name} is online as {me.username}!")`);
-      if (status) lines.push(`    # Set status: ${status}`);
-      plugins.forEach(p => {
-        const cfg = pluginConfig(p);
-        lines.push(`    await bot.plugins.load(${cfg})`);
-      });
-      lines.push('');
+      lines.push(`    print(f"✅ ${name} online as {me.username}!")`);
+      if (status) lines.push(`    # status: ${status}`);
+      plugins.forEach(p => lines.push(`    await bot.plugins.load(${pluginConfig(p)})`));
     }
 
-    // Event listeners
     if (evMessage) {
+      lines.push('');
       lines.push('');
       lines.push('@bot.on("message:created")');
       lines.push('async def on_message(event):');
-      lines.push('    pass  # handle new messages here');
-      lines.push('');
+      lines.push('    pass');
     }
 
     if (evJoin) {
       lines.push('');
+      lines.push('');
       lines.push('@bot.on("server:member_joined")');
       lines.push('async def on_join(event):');
-      lines.push('    pass  # handle member join here');
-      lines.push('');
+      lines.push('    pass');
     }
 
     if (evLeave) {
       lines.push('');
+      lines.push('');
       lines.push('@bot.on("server:member_left")');
       lines.push('async def on_leave(event):');
-      lines.push('    pass  # handle member leave here');
-      lines.push('');
+      lines.push('    pass');
     }
 
-    // Commands
     commands.filter(c => c.name.trim()).forEach(cmd => {
+      const fn = cmd.name.trim().replace(/[^a-z0-9]/gi, '_');
+      const decoratorArgs = [`"${cmd.name.trim()}"`];
+      if (cmd.description) decoratorArgs.push(`description="${cmd.description}"`);
+      if (cmd.guildOnly)   decoratorArgs.push('guild_only=True');
+      if (cmd.permission)  decoratorArgs.push(`requires=Permissions.${cmd.permission}`);
+      if (cmd.cooldown)    decoratorArgs.push(`cooldown=${cmd.cooldown}`);
+
       lines.push('');
-      lines.push(`@bot.command("${cmd.name.trim()}"${cmd.description ? `, description="${cmd.description}"` : ''})`);
-      lines.push(`async def ${cmd.name.trim().replace(/[^a-z0-9]/gi,'_')}(ctx):`);
-      lines.push(`    await ctx.reply("${cmd.name.trim()} command!")`);
       lines.push('');
+      lines.push(`@bot.command(${decoratorArgs.join(', ')})`);
+
+      if (cmd.args && cmd.argsHint) {
+        lines.push(`async def ${fn}(ctx):  # args: ${cmd.argsHint}`);
+      } else {
+        lines.push(`async def ${fn}(ctx):`);
+      }
+
+      if (cmd.body.trim()) {
+        cmd.body.split('\n').forEach(l => lines.push(l.startsWith('    ') ? l : `    ${l}`));
+      } else if (cmd.reply.trim()) {
+        lines.push(`    await ctx.reply("${cmd.reply.replace(/"/g, '\\"')}")`);
+      } else {
+        lines.push('    pass');
+      }
     });
 
-    // Error handler
     if (evError) {
+      lines.push('');
       lines.push('');
       lines.push('@bot.on_command_error');
       lines.push('async def on_error(ctx, error):');
       lines.push('    await ctx.reply(f"❌ {error}")');
-      lines.push('');
     }
 
-    // bot.run()
+    lines.push('');
     lines.push('');
     const runArgs = [];
     if (!autoRestart) runArgs.push('auto_restart=False');
@@ -542,7 +672,6 @@
     a.click();
   }
 
-  // Init
   renderCommands();
   generate();
 </script>
