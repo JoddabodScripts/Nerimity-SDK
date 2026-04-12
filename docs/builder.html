@@ -2423,6 +2423,18 @@ function previewExecNode(node, ctx, depth) {
       ctx.replies.push(previewInterpolate(p.text || '', ctx));
       previewWalkChain(node.id, 'exec', ctx, depth+1);
       break;
+    case 'action_reply_buttons': {
+      const btns = [];
+      if (p.btn1_label) btns.push(`[${p.btn1_label}]`);
+      if (p.btn2_label) btns.push(`[${p.btn2_label}]`);
+      ctx.replies.push(`${previewInterpolate(p.text||'Choose:', ctx)}  ${btns.join('  ')}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    }
+    case 'action_popup':
+      ctx.replies.push(`🪟 ${p.title||'Popup'}: ${previewInterpolate(p.text||'', ctx)}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
     case 'action_send':
       ctx.replies.push(`[→ #${p.channel||'channel'}] ${previewInterpolate(p.text||'', ctx)}`);
       previewWalkChain(node.id, 'exec', ctx, depth+1);
