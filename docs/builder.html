@@ -4,593 +4,1123 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bot Builder — nerimity-sdk</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #1a1a2e; --surface: #16213e; --surface2: #0f3460;
-    --border: rgba(255,255,255,0.07); --purple: #a78bfa; --pink: #f472b6;
-    --green: #34d399; --text: #e2e8f0; --text-dim: #94a3b8;
-    --radius: 14px; --radius-sm: 8px;
-  }
-  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem 4rem; }
-  h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.04em; background: linear-gradient(135deg, var(--purple), var(--pink)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.3rem; }
-  .subtitle { color: var(--text-dim); font-size: 0.95rem; margin-bottom: 2.5rem; }
-  .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 1100px; margin: 0 auto; }
-  @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
-  .header { max-width: 1100px; margin: 0 auto 2rem; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
-  .card h2 { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--purple); margin-bottom: 1.2rem; }
-  label { display: block; font-size: 0.82rem; color: var(--text-dim); margin-bottom: 0.3rem; margin-top: 1rem; }
-  label:first-of-type { margin-top: 0; }
-  input[type="text"], select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.88rem; padding: 0.55rem 0.8rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
-  input[type="text"]:focus, select:focus { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
-  select option { background: var(--surface2); }
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
-  .toggle-row:last-child { border-bottom: none; }
-  .toggle-row span { color: var(--text-dim); font-size: 0.75rem; }
-  .switch { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
-  .switch input { opacity: 0; width: 0; height: 0; }
-  .slider { position: absolute; inset: 0; background: rgba(255,255,255,0.1); border-radius: 999px; cursor: pointer; transition: background 0.2s; }
-  .slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.2s; }
-  .switch input:checked + .slider { background: var(--purple); }
-  .switch input:checked + .slider::before { transform: translateX(16px); }
-  .commands-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem; }
-  .cmd-block { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem; animation: fadeIn 0.2s ease both; }
-  .cmd-block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.7rem; }
-  .cmd-block-header span { font-size: 0.78rem; font-weight: 600; color: var(--purple); font-family: 'JetBrains Mono', monospace; }
-  .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; }
-  .cmd-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; }
-  .cmd-full { grid-column: 1 / -1; }
-  textarea { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 0.55rem 0.8rem; outline: none; resize: vertical; min-height: 60px; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.5; }
-  textarea:focus { border-color: rgba(167,139,250,0.5); box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
-  .field-label { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.25rem; display: block; }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
-  .btn { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); border-radius: var(--radius-sm); color: var(--purple); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 500; padding: 0.5rem 1rem; transition: background 0.2s, transform 0.1s; white-space: nowrap; }
-  .btn:hover { background: rgba(167,139,250,0.25); }
-  .btn:active { transform: scale(0.97); }
-  .btn-danger { background: rgba(244,114,182,0.1); border-color: rgba(244,114,182,0.3); color: var(--pink); padding: 0.5rem 0.7rem; }
-  .btn-danger:hover { background: rgba(244,114,182,0.2); }
-  .btn-primary { background: linear-gradient(135deg, var(--purple), var(--pink)); border: none; color: white; font-weight: 600; padding: 0.65rem 1.4rem; font-size: 0.9rem; }
-  .btn-primary:hover { opacity: 0.9; }
-  .output-wrap { grid-column: 1 / -1; position: relative; }
-  pre { background: rgba(15,52,96,0.5); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; line-height: 1.7; overflow-x: auto; padding: 1.5rem; white-space: pre; max-height: 520px; overflow-y: auto; }
-  .copy-btn { position: absolute; top: 1rem; right: 1rem; background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.3); border-radius: var(--radius-sm); color: var(--purple); cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 500; padding: 0.35rem 0.8rem; transition: background 0.2s; }
-  .copy-btn:hover { background: rgba(167,139,250,0.25); }
-  .actions { display: flex; gap: 0.75rem; align-items: center; margin-top: 1rem; flex-wrap: wrap; }
-  .tag { background: rgba(167,139,250,0.12); border: 1px solid rgba(167,139,250,0.2); border-radius: 999px; color: var(--purple); font-size: 0.72rem; font-weight: 500; padding: 0.2rem 0.7rem; }
-  .section-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
-  .cron-block { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem; margin-bottom: 0.8rem; animation: fadeIn 0.2s ease both; }
-  .deploy-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
-  .deploy-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
-  .deploy-card:hover { border-color: rgba(167,139,250,0.4); background: rgba(167,139,250,0.05); }
-  .deploy-card.selected { border-color: var(--purple); background: rgba(167,139,250,0.1); }
-  .deploy-card .icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
-  .deploy-card .name { font-size: 0.82rem; font-weight: 600; }
-  .deploy-card .desc { font-size: 0.72rem; color: var(--text-dim); margin-top: 0.2rem; }
-  .info-box { background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.2); border-radius: var(--radius-sm); padding: 0.75rem 1rem; font-size: 0.8rem; color: var(--green); margin-top: 0.75rem; line-height: 1.5; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f17;--surface:#16161f;--surface2:#1e1e2e;--surface3:#252535;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --purple:#a78bfa;--pink:#f472b6;--green:#34d399;--blue:#60a5fa;--orange:#fb923c;
+  --red:#f87171;--yellow:#fbbf24;
+  --text:#e2e8f0;--text-dim:#64748b;--text-mid:#94a3b8;
+  --radius:12px;--radius-sm:7px;
+  --node-w:220px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── Token screen ─────────────────────────────────────────────────────── */
+#token-screen{
+  position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;
+  justify-content:center;z-index:1000;flex-direction:column;gap:1.5rem;
+  padding:2rem;
+}
+#token-screen h1{
+  font-size:2rem;font-weight:700;letter-spacing:-0.04em;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#token-screen p{color:var(--text-mid);font-size:0.9rem;text-align:center;max-width:380px;line-height:1.6}
+.token-box{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:2rem;display:flex;flex-direction:column;gap:1rem;width:100%;max-width:420px;
+}
+.token-box label{font-size:0.8rem;color:var(--text-mid);font-weight:500}
+.token-box input{
+  background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.85rem;
+  padding:0.6rem 0.9rem;outline:none;width:100%;
+  transition:border-color .2s,box-shadow .2s;
+}
+.token-box input:focus{border-color:rgba(167,139,250,.5);box-shadow:0 0 0 3px rgba(167,139,250,.12)}
+.btn-start{
+  background:linear-gradient(135deg,var(--purple),var(--pink));border:none;
+  border-radius:var(--radius-sm);color:#fff;font-family:'Inter',sans-serif;
+  font-size:0.9rem;font-weight:600;padding:.7rem 1.4rem;cursor:pointer;
+  transition:opacity .2s,transform .1s;width:100%;
+}
+.btn-start:hover{opacity:.9}
+.btn-start:active{transform:scale(.98)}
+
+/* ── App shell ────────────────────────────────────────────────────────── */
+#app{display:none;flex-direction:column;height:100vh}
+
+/* topbar */
+#topbar{
+  height:48px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 1rem;gap:1rem;flex-shrink:0;z-index:10;
+}
+#topbar .logo{
+  font-size:0.85rem;font-weight:700;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  white-space:nowrap;
+}
+#topbar .sep{width:1px;height:20px;background:var(--border2)}
+#bot-name-input{
+  background:transparent;border:none;color:var(--text);font-family:'Inter',sans-serif;
+  font-size:0.85rem;font-weight:500;outline:none;width:140px;
+}
+#topbar .spacer{flex:1}
+.tb-btn{
+  background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;font-size:0.78rem;
+  font-weight:500;padding:.35rem .85rem;transition:background .2s,color .2s;white-space:nowrap;
+}
+.tb-btn:hover{background:rgba(255,255,255,0.1);color:var(--text)}
+.tb-btn.primary{
+  background:linear-gradient(135deg,var(--purple),var(--pink));border:none;
+  color:#fff;font-weight:600;
+}
+.tb-btn.primary:hover{opacity:.9}
+
+/* main area */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* ── Palette sidebar ──────────────────────────────────────────────────── */
+#palette{
+  width:200px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  overflow-y:auto;padding:.75rem .6rem;display:flex;flex-direction:column;gap:.25rem;
+}
+#palette::-webkit-scrollbar{width:4px}
+#palette::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.pal-section{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--text-dim);padding:.5rem .4rem .25rem;margin-top:.25rem}
+.pal-item{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:.45rem .6rem;cursor:grab;font-size:.78rem;font-weight:500;
+  display:flex;align-items:center;gap:.5rem;transition:border-color .15s,background .15s;
+  user-select:none;
+}
+.pal-item:hover{border-color:var(--border2);background:var(--surface3)}
+.pal-item:active{cursor:grabbing}
+.pal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ── Canvas ───────────────────────────────────────────────────────────── */
+#canvas-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+#canvas-wrap::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:24px 24px;pointer-events:none;
+}
+#canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform-origin:0 0}
+#wire-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#wire-svg .wire{fill:none;stroke-width:2.5;stroke-linecap:round;pointer-events:stroke;cursor:pointer}
+#wire-svg .wire-preview{fill:none;stroke:rgba(167,139,250,.5);stroke-width:2;stroke-dasharray:6 4;stroke-linecap:round;pointer-events:none}
+
+/* ── Nodes ────────────────────────────────────────────────────────────── */
+.node{
+  position:absolute;width:var(--node-w);background:var(--surface2);
+  border:1.5px solid var(--border2);border-radius:var(--radius);
+  box-shadow:0 4px 24px rgba(0,0,0,.4);cursor:default;user-select:none;
+  transition:box-shadow .15s;
+}
+.node:hover{box-shadow:0 6px 32px rgba(0,0,0,.6)}
+.node.selected{border-color:var(--purple);box-shadow:0 0 0 2px rgba(167,139,250,.25),0 6px 32px rgba(0,0,0,.6)}
+.node-header{
+  padding:.55rem .75rem;border-radius:calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+  display:flex;align-items:center;gap:.5rem;cursor:move;
+}
+.node-icon{font-size:.95rem;line-height:1}
+.node-title{font-size:.78rem;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node-del{
+  background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;
+  font-size:.85rem;line-height:1;padding:0 .1rem;transition:color .15s;
+}
+.node-del:hover{color:var(--red)}
+.node-body{padding:.5rem .75rem .65rem;display:flex;flex-direction:column;gap:.35rem}
+.node-field{display:flex;flex-direction:column;gap:.2rem}
+.node-field label{font-size:.68rem;color:var(--text-dim);font-weight:500}
+.node-field input,.node-field select,.node-field textarea{
+  background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);font-family:'Inter',sans-serif;font-size:.75rem;
+  padding:.3rem .5rem;outline:none;width:100%;
+  transition:border-color .15s;
+}
+.node-field input:focus,.node-field select:focus,.node-field textarea:focus{border-color:rgba(167,139,250,.4)}
+.node-field select option{background:var(--surface2)}
+.node-field textarea{resize:vertical;min-height:44px;font-family:'JetBrains Mono',monospace;font-size:.72rem;line-height:1.5}
+
+/* ports */
+.ports{display:flex;flex-direction:column;gap:.3rem;padding:.1rem 0 .5rem}
+.port-row{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--text-mid);position:relative}
+.port-row.out{justify-content:flex-end}
+.port{
+  width:12px;height:12px;border-radius:50%;border:2px solid;
+  cursor:crosshair;flex-shrink:0;transition:transform .15s,box-shadow .15s;
+  position:relative;z-index:2;
+}
+.port:hover{transform:scale(1.4);box-shadow:0 0 0 3px rgba(255,255,255,.1)}
+.port.in{background:var(--surface3)}
+.port.out{background:var(--surface3)}
+.port.connected{background:currentColor!important}
+
+/* ── Inspector panel ──────────────────────────────────────────────────── */
+#inspector{
+  width:240px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);
+  overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.75rem;
+}
+#inspector::-webkit-scrollbar{width:4px}
+#inspector::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+#inspector h3{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim)}
+#inspector .empty{font-size:.8rem;color:var(--text-dim);text-align:center;margin-top:2rem;line-height:1.6}
+.insp-field{display:flex;flex-direction:column;gap:.25rem}
+.insp-field label{font-size:.72rem;color:var(--text-mid);font-weight:500}
+.insp-field input,.insp-field select,.insp-field textarea{
+  background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text);font-family:'Inter',sans-serif;font-size:.78rem;
+  padding:.4rem .6rem;outline:none;width:100%;transition:border-color .15s;
+}
+.insp-field input:focus,.insp-field select:focus,.insp-field textarea:focus{border-color:rgba(167,139,250,.4)}
+.insp-field select option{background:var(--surface2)}
+.insp-field textarea{resize:vertical;min-height:60px;font-family:'JetBrains Mono',monospace;font-size:.73rem;line-height:1.5}
+
+/* ── Code panel ───────────────────────────────────────────────────────── */
+#code-panel{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:500;display:none;align-items:center;justify-content:center;padding:2rem;
+}
+#code-panel.open{display:flex}
+#code-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  width:100%;max-width:760px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;
+}
+#code-box-header{
+  padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;
+}
+#code-box-header span{font-size:.82rem;font-weight:600;flex:1}
+#code-pre{
+  flex:1;overflow:auto;padding:1.25rem;
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.7;
+  color:var(--text);white-space:pre;background:rgba(15,15,23,.6);
+}
+#code-pre::-webkit-scrollbar{width:6px;height:6px}
+#code-pre::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* misc */
+.hint{font-size:.72rem;color:var(--text-dim);line-height:1.5}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-    <a href="./" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.2s" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">← back to docs</a>
-    <div style="display:flex;gap:1rem">
-      <a href="./guide/quickstart/" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">Quick start</a>
-      <a href="./api/bot/" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">API reference</a>
-      <a href="./plugins/" style="color:var(--text-dim);font-size:0.82rem;text-decoration:none" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">Plugins</a>
-    </div>
-  </div>
+<!-- ── Token screen ─────────────────────────────────────────────────── -->
+<div id="token-screen">
   <h1>Bot Builder</h1>
-  <p class="subtitle">Pick what you want, get a working <code style="font-family:JetBrains Mono;font-size:0.85em;color:var(--purple)">bot.py</code>. Fill in the channel IDs and you're good to go.</p>
+  <p>Enter your Nerimity bot token to start building. Your token never leaves your browser.</p>
+  <div class="token-box">
+    <label for="token-input">Bot token</label>
+    <input id="token-input" type="password" placeholder="paste your token here…" autocomplete="off">
+    <button class="btn-start" onclick="startBuilder()">Open Builder →</button>
+  </div>
+  <span class="hint">Don't have a token? <a href="https://nerimity.com" target="_blank" style="color:var(--purple)">Create a bot on Nerimity</a></span>
 </div>
 
-<div class="layout">
+<!-- ── App ──────────────────────────────────────────────────────────── -->
+<div id="app">
 
-  <!-- Bot settings -->
-  <div class="card">
-    <h2>Bot settings</h2>
-    <label>Bot name (for display only)</label>
-    <input type="text" id="botName" value="MyBot" oninput="generate()">
-    <label>Command prefix</label>
-    <input type="text" id="prefix" value="!" oninput="generate()">
-    <label>Status message (optional)</label>
-    <input type="text" id="status" placeholder="Playing something cool" oninput="generate()">
-    <label style="margin-top:1.2rem;margin-bottom:0.6rem">Options</label>
-    <div class="toggle-row">
-      <div>Auto-restart on crash<br><span>Restarts if something breaks</span></div>
-      <label class="switch"><input type="checkbox" id="autoRestart" checked onchange="generate()"><span class="slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <div>Auto-restart on file save<br><span>Reloads when you save bot.py</span></div>
-      <label class="switch"><input type="checkbox" id="autoReload" checked onchange="generate()"><span class="slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <div>JSON logs<br><span>Structured log output</span></div>
-      <label class="switch"><input type="checkbox" id="jsonLogs" onchange="generate()"><span class="slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <div>Health endpoint<br><span>GET /health on port 8080</span></div>
-      <label class="switch"><input type="checkbox" id="health" onchange="generate()"><span class="slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <div>Persistent storage<br><span>Saves data between restarts (JsonStore)</span></div>
-      <label class="switch"><input type="checkbox" id="store" onchange="generate()"><span class="slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <div>Global error handler<br><span>Catch errors so users see a message</span></div>
-      <label class="switch"><input type="checkbox" id="evError" checked onchange="generate()"><span class="slider"></span></label>
-    </div>
+  <!-- topbar -->
+  <div id="topbar">
+    <span class="logo">nerimity builder</span>
+    <div class="sep"></div>
+    <input id="bot-name-input" value="MyBot" title="Bot name">
+    <div class="spacer"></div>
+    <button class="tb-btn" onclick="clearCanvas()" title="Remove all nodes">Clear</button>
+    <button class="tb-btn" onclick="loadExample()">Load example</button>
+    <button class="tb-btn" onclick="openCode()" style="margin-left:.25rem">Preview code</button>
+    <button class="tb-btn primary" onclick="downloadBot()">⬇ Download bot.py</button>
   </div>
 
-  <!-- Commands -->
-  <div class="card">
-    <h2>Commands</h2>
-    <div class="commands-list" id="cmdList"></div>
-    <button class="btn" onclick="addCommand()">+ Add command</button>
-  </div>
+  <!-- main -->
+  <div id="main">
 
-  <!-- Events -->
-  <div class="card">
-    <h2>Event listeners</h2>
-    <div class="toggle-row"><div>on_ready<br><span>Runs when the bot connects</span></div><label class="switch"><input type="checkbox" id="evReady" checked onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>message:created<br><span>Runs on every new message</span></div><label class="switch"><input type="checkbox" id="evMessage" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>server:member_joined<br><span>Runs when someone joins</span></div><label class="switch"><input type="checkbox" id="evJoin" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>server:member_left<br><span>Runs when someone leaves</span></div><label class="switch"><input type="checkbox" id="evLeave" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>message:reaction_added<br><span>Runs when someone reacts</span></div><label class="switch"><input type="checkbox" id="evReaction" onchange="generate()"><span class="slider"></span></label></div>
-    <div class="toggle-row"><div>channel:typing<br><span>Runs when someone starts typing</span></div><label class="switch"><input type="checkbox" id="evTyping" onchange="generate()"><span class="slider"></span></label></div>
-  </div>
+    <!-- palette -->
+    <div id="palette">
+      <div class="pal-section">Triggers</div>
+      <div class="pal-item" draggable="true" data-type="trigger_ready">
+        <span class="pal-dot" style="background:#34d399"></span>on_ready
+      </div>
+      <div class="pal-item" draggable="true" data-type="trigger_command">
+        <span class="pal-dot" style="background:#a78bfa"></span>Command
+      </div>
+      <div class="pal-item" draggable="true" data-type="trigger_message">
+        <span class="pal-dot" style="background:#60a5fa"></span>Message created
+      </div>
+      <div class="pal-item" draggable="true" data-type="trigger_join">
+        <span class="pal-dot" style="background:#34d399"></span>Member joined
+      </div>
+      <div class="pal-item" draggable="true" data-type="trigger_leave">
+        <span class="pal-dot" style="background:#f87171"></span>Member left
+      </div>
+      <div class="pal-item" draggable="true" data-type="trigger_reaction">
+        <span class="pal-dot" style="background:#fbbf24"></span>Reaction added
+      </div>
 
-  <!-- Scheduled tasks -->
-  <div class="card">
-    <h2>Scheduled tasks <span class="tag">pip install croniter</span></h2>
-    <div id="cronList"></div>
-    <button class="btn" onclick="addCron()">+ Add scheduled task</button>
-  </div>
+      <div class="pal-section">Actions</div>
+      <div class="pal-item" draggable="true" data-type="action_reply">
+        <span class="pal-dot" style="background:#a78bfa"></span>Reply
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_send">
+        <span class="pal-dot" style="background:#60a5fa"></span>Send message
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_dm">
+        <span class="pal-dot" style="background:#f472b6"></span>Send DM
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_kick">
+        <span class="pal-dot" style="background:#fb923c"></span>Kick member
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_ban">
+        <span class="pal-dot" style="background:#f87171"></span>Ban member
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_store_set">
+        <span class="pal-dot" style="background:#34d399"></span>Store: set
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_store_get">
+        <span class="pal-dot" style="background:#34d399"></span>Store: get
+      </div>
 
-  <!-- Contrib plugins -->
-  <div class="card">
-    <h2>Contrib plugins <span class="tag">pip install nerimity-sdk-contrib</span></h2>
-    <div id="pluginList">
-      <div class="toggle-row"><div>WelcomePlugin<br><span>Greet new members</span></div><label class="switch"><input type="checkbox" data-plugin="WelcomePlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>LoggingPlugin<br><span>Log joins, leaves, edits, deletes</span></div><label class="switch"><input type="checkbox" data-plugin="LoggingPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>AutoModPlugin<br><span>Delete messages with blocked words</span></div><label class="switch"><input type="checkbox" data-plugin="AutoModPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>AntiSpamPlugin<br><span>Kick/ban users who spam</span></div><label class="switch"><input type="checkbox" data-plugin="AntiSpamPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>LevelingPlugin<br><span>XP system, /level, /leaderboard</span></div><label class="switch"><input type="checkbox" data-plugin="LevelingPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>WarnPlugin<br><span>/warn, /warnings, /clearwarns</span></div><label class="switch"><input type="checkbox" data-plugin="WarnPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>MutePlugin<br><span>/mute and /unmute users</span></div><label class="switch"><input type="checkbox" data-plugin="MutePlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>StarboardPlugin<br><span>Repost popular messages</span></div><label class="switch"><input type="checkbox" data-plugin="StarboardPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>BirthdayPlugin<br><span>/birthday, daily announcements</span></div><label class="switch"><input type="checkbox" data-plugin="BirthdayPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>ReminderPlugin<br><span>/remind 10m do something</span></div><label class="switch"><input type="checkbox" data-plugin="ReminderPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>AFKPlugin<br><span>/afk, pings back when mentioned</span></div><label class="switch"><input type="checkbox" data-plugin="AFKPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>CustomCommandPlugin<br><span>Admins add text commands at runtime</span></div><label class="switch"><input type="checkbox" data-plugin="CustomCommandPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>AutoReplyPlugin<br><span>Keyword-triggered auto-replies</span></div><label class="switch"><input type="checkbox" data-plugin="AutoReplyPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>ServerStatsPlugin<br><span>Post periodic stats to a channel</span></div><label class="switch"><input type="checkbox" data-plugin="ServerStatsPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>TempChannelPlugin<br><span>Auto-deleting temporary channels</span></div><label class="switch"><input type="checkbox" data-plugin="TempChannelPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>PollPlugin<br><span>Timed reaction polls</span></div><label class="switch"><input type="checkbox" data-plugin="PollPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>GiveawayPlugin<br><span>React-to-enter giveaways</span></div><label class="switch"><input type="checkbox" data-plugin="GiveawayPlugin" onchange="generate()"><span class="slider"></span></label></div>
-      <div class="toggle-row"><div>TicketPlugin<br><span>DM-based support tickets</span></div><label class="switch"><input type="checkbox" data-plugin="TicketPlugin" onchange="generate()"><span class="slider"></span></label></div>
-    </div>
-  </div>
+      <div class="pal-section">Logic</div>
+      <div class="pal-item" draggable="true" data-type="logic_if_contains">
+        <span class="pal-dot" style="background:#fbbf24"></span>If contains
+      </div>
+      <div class="pal-item" draggable="true" data-type="logic_if_perm">
+        <span class="pal-dot" style="background:#fbbf24"></span>If has permission
+      </div>
+      <div class="pal-item" draggable="true" data-type="logic_cooldown">
+        <span class="pal-dot" style="background:#fb923c"></span>Cooldown
+      </div>
 
-  <!-- Deploy -->
-  <div class="card">
-    <h2>Deploy target</h2>
-    <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:0.75rem">Choose where you want to host your bot. We'll add the right config file.</p>
-    <div class="deploy-grid">
-      <div class="deploy-card selected" onclick="selectDeploy('railway',this)">
-        <div class="icon">🚂</div>
-        <div class="name">Railway</div>
-        <div class="desc">Free tier, easy setup</div>
+      <div class="pal-section">Plugins</div>
+      <div class="pal-item" draggable="true" data-type="plugin_welcome">
+        <span class="pal-dot" style="background:#34d399"></span>WelcomePlugin
       </div>
-      <div class="deploy-card" onclick="selectDeploy('fly',this)">
-        <div class="icon">🪰</div>
-        <div class="name">Fly.io</div>
-        <div class="desc">Global edge hosting</div>
+      <div class="pal-item" draggable="true" data-type="plugin_leveling">
+        <span class="pal-dot" style="background:#a78bfa"></span>LevelingPlugin
       </div>
-      <div class="deploy-card" onclick="selectDeploy('render',this)">
-        <div class="icon">🎨</div>
-        <div class="name">Render</div>
-        <div class="desc">Git-connected deploys</div>
+      <div class="pal-item" draggable="true" data-type="plugin_automod">
+        <span class="pal-dot" style="background:#f87171"></span>AutoModPlugin
       </div>
-      <div class="deploy-card" onclick="selectDeploy('vps',this)">
-        <div class="icon">🖥️</div>
-        <div class="name">VPS / Linux</div>
-        <div class="desc">systemd service file</div>
+      <div class="pal-item" draggable="true" data-type="plugin_antispam">
+        <span class="pal-dot" style="background:#fb923c"></span>AntiSpamPlugin
       </div>
-      <div class="deploy-card" onclick="selectDeploy('docker',this)">
-        <div class="icon">🐳</div>
-        <div class="name">Docker</div>
-        <div class="desc">Dockerfile + compose</div>
+      <div class="pal-item" draggable="true" data-type="plugin_starboard">
+        <span class="pal-dot" style="background:#fbbf24"></span>StarboardPlugin
       </div>
-      <div class="deploy-card" onclick="selectDeploy('none',this)">
-        <div class="icon">⏭️</div>
-        <div class="name">Skip</div>
-        <div class="desc">No deploy config</div>
+      <div class="pal-item" draggable="true" data-type="plugin_tickets">
+        <span class="pal-dot" style="background:#60a5fa"></span>TicketPlugin
+      </div>
+      <div class="pal-item" draggable="true" data-type="plugin_economy">
+        <span class="pal-dot" style="background:#34d399"></span>EconomyPlugin
+      </div>
+      <div class="pal-item" draggable="true" data-type="plugin_quiz">
+        <span class="pal-dot" style="background:#f472b6"></span>QuizPlugin
       </div>
     </div>
-    <div id="deployInfo" class="info-box" style="margin-top:0.75rem"></div>
-  </div>
 
-  <!-- Output -->
-  <div class="output-wrap card">
-    <h2>Generated bot.py</h2>
-    <div style="position:relative;margin-top:0.5rem">
-      <pre id="output"></pre>
-      <button class="copy-btn" onclick="copyCode()">Copy</button>
+    <!-- canvas -->
+    <div id="canvas-wrap">
+      <div id="canvas">
+        <svg id="wire-svg"></svg>
+      </div>
+      <div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);
+        font-size:.72rem;color:var(--text-dim);pointer-events:none;white-space:nowrap">
+        Drag nodes from the left · Connect ports with wires · Click a node to inspect
+      </div>
     </div>
-    <div class="actions">
-      <button class="btn btn-primary" onclick="download()">⬇ Download bot.py</button>
-      <button class="btn" onclick="downloadConfig()" id="configBtn" style="display:none">⬇ Download config file</button>
-      <a href="guide/installation/" class="btn" style="text-decoration:none">Setup guide →</a>
-    </div>
-  </div>
 
+    <!-- inspector -->
+    <div id="inspector">
+      <h3>Inspector</h3>
+      <div class="empty" id="insp-empty">Select a node to edit its properties.</div>
+      <div id="insp-fields" style="display:none;flex-direction:column;gap:.65rem"></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- code panel -->
+<div id="code-panel">
+  <div id="code-box">
+    <div id="code-box-header">
+      <span>Generated bot.py</span>
+      <button class="tb-btn" onclick="copyCode()">Copy</button>
+      <button class="tb-btn primary" onclick="downloadBot()">⬇ Download</button>
+      <button class="tb-btn" onclick="closeCode()" style="margin-left:.25rem">✕</button>
+    </div>
+    <pre id="code-pre"></pre>
+  </div>
 </div>
-
 <script>
-let commands = [{name:'ping',description:'Check if the bot is alive',reply:'Pong! 🏓',args:false,argsHint:'',cooldown:'',permission:'',guildOnly:false,body:'',errorHandler:''}];
-let crons = [];
-let deployTarget = 'railway';
+// ── State ──────────────────────────────────────────────────────────────────
+let BOT_TOKEN = '';
+let nodes = [];       // {id, type, x, y, props, el}
+let wires = [];       // {id, fromNode, fromPort, toNode, toPort, el}
+let selectedNode = null;
+let nodeIdSeq = 0;
+let wireIdSeq = 0;
 
-const PERMISSIONS = ['','BAN_MEMBERS','KICK_MEMBERS','MANAGE_CHANNELS','MANAGE_ROLES','MANAGE_SERVER','ADMINISTRATOR'];
+// canvas pan/zoom
+let panX = 0, panY = 0, zoom = 1;
+let isPanning = false, panStart = null;
 
-const CRON_PRESETS = [
-  {label:'Every hour',value:'0 * * * *'},
-  {label:'Every day at 9am',value:'0 9 * * *'},
-  {label:'Every Monday 9am',value:'0 9 * * 1'},
-  {label:'Every 30 minutes',value:'*/30 * * * *'},
-  {label:'Custom…',value:'custom'},
-];
+// wire drawing state
+let wiringFrom = null; // {nodeId, port, portEl, isOut}
+let previewPath = null;
 
-const DEPLOY_INFO = {
-  railway: '🚂 Run <code>nerimity deploy railway</code> after downloading, or push to GitHub and connect at <a href="https://railway.app" target="_blank" style="color:var(--green)">railway.app</a>.',
-  fly: '🪰 Run <code>nerimity deploy fly</code> after downloading. Requires <a href="https://fly.io/docs/hands-on/install-flyctl/" target="_blank" style="color:var(--green)">flyctl</a>.',
-  render: '🎨 Push to GitHub, then connect your repo at <a href="https://render.com" target="_blank" style="color:var(--green)">render.com</a>. A render.yaml will be included.',
-  vps: '🖥️ A systemd service file will be included. Copy it to <code>/etc/systemd/system/</code> and run <code>systemctl enable --now mybot</code>.',
-  docker: '🐳 A Dockerfile and docker-compose.yml will be included. Run <code>docker compose up -d</code>.',
-  none: 'No deploy config will be added.',
+const canvas     = document.getElementById('canvas');
+const wireSvg    = document.getElementById('wire-svg');
+const canvasWrap = document.getElementById('canvas-wrap');
+
+// ── Node definitions ───────────────────────────────────────────────────────
+const NODE_DEFS = {
+  // Triggers
+  trigger_ready:    { label:'on_ready',       icon:'⚡', color:'#34d399', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_command:  { label:'Command',        icon:'💬', color:'#a78bfa', cat:'trigger', ins:[], outs:['exec'],
+    fields:[{k:'name',l:'Command name',t:'text',d:'ping'},{k:'desc',l:'Description',t:'text',d:'A command'},{k:'prefix',l:'Prefix',t:'text',d:'!'},{k:'guild_only',l:'Server only',t:'bool',d:false}] },
+  trigger_message:  { label:'Message created',icon:'✉️', color:'#60a5fa', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_join:     { label:'Member joined',  icon:'👋', color:'#34d399', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_leave:    { label:'Member left',    icon:'🚪', color:'#f87171', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_reaction: { label:'Reaction added', icon:'⭐', color:'#fbbf24', cat:'trigger', ins:[], outs:['exec'] },
+  // Actions
+  action_reply:     { label:'Reply',          icon:'↩️', color:'#a78bfa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Message text',t:'textarea',d:'Hello!'}] },
+  action_send:      { label:'Send message',   icon:'📤', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'text',l:'Message text',t:'textarea',d:'Hello!'}] },
+  action_dm:        { label:'Send DM',        icon:'💌', color:'#f472b6', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Message text',t:'textarea',d:'Hey there!'}] },
+  action_kick:      { label:'Kick member',    icon:'🦵', color:'#fb923c', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'reason',l:'Reason',t:'text',d:'Rule violation'}] },
+  action_ban:       { label:'Ban member',     icon:'🔨', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'reason',l:'Reason',t:'text',d:'Rule violation'}] },
+  action_store_set: { label:'Store: set',     icon:'💾', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'key',l:'Key',t:'text',d:'my_key'},{k:'value',l:'Value',t:'text',d:'my_value'}] },
+  action_store_get: { label:'Store: get',     icon:'📂', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'key',l:'Key',t:'text',d:'my_key'},{k:'var',l:'Variable name',t:'text',d:'result'}] },
+  // Logic
+  logic_if_contains:{ label:'If contains',   icon:'🔍', color:'#fbbf24', cat:'logic',   ins:['exec'], outs:['true','false'],
+    fields:[{k:'word',l:'Word / phrase',t:'text',d:'hello'}] },
+  logic_if_perm:    { label:'If has perm',    icon:'🔐', color:'#fbbf24', cat:'logic',   ins:['exec'], outs:['true','false'],
+    fields:[{k:'perm',l:'Permission',t:'select',d:'BAN_MEMBERS',opts:['BAN_MEMBERS','KICK_MEMBERS','MANAGE_CHANNELS','MANAGE_ROLES','ADMINISTRATOR']}] },
+  logic_cooldown:   { label:'Cooldown',       icon:'⏱️', color:'#fb923c', cat:'logic',   ins:['exec'], outs:['ok','blocked'],
+    fields:[{k:'seconds',l:'Seconds',t:'text',d:'5'},{k:'scope',l:'Scope',t:'select',d:'user',opts:['user','server','channel']}] },
+  // Plugins
+  plugin_welcome:   { label:'WelcomePlugin',  icon:'👋', color:'#34d399', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'msg',l:'Welcome message',t:'textarea',d:'Welcome {user}!'}] },
+  plugin_leveling:  { label:'LevelingPlugin', icon:'⭐', color:'#a78bfa', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'channel',l:'Announce channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'xp',l:'XP per message',t:'text',d:'10'}] },
+  plugin_automod:   { label:'AutoModPlugin',  icon:'🛡️', color:'#f87171', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'words',l:'Blocked words (comma-sep)',t:'text',d:'badword,spam'},{k:'log',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
+  plugin_antispam:  { label:'AntiSpamPlugin', icon:'🚫', color:'#fb923c', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'max',l:'Max messages',t:'text',d:'5'},{k:'window',l:'Window (sec)',t:'text',d:'5'},{k:'action',l:'Action',t:'select',d:'kick',opts:['kick','ban','warn']}] },
+  plugin_starboard: { label:'StarboardPlugin',icon:'⭐', color:'#fbbf24', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'channel',l:'Starboard channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Reactions needed',t:'text',d:'3'}] },
+  plugin_tickets:   { label:'TicketPlugin',   icon:'🎫', color:'#60a5fa', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'channel',l:'Staff channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_economy:   { label:'EconomyPlugin',  icon:'🪙', color:'#34d399', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'daily',l:'Daily amount',t:'text',d:'100'},{k:'currency',l:'Currency name',t:'text',d:'coins'}] },
+  plugin_quiz:      { label:'QuizPlugin',     icon:'🧠', color:'#f472b6', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'rounds',l:'Default rounds',t:'text',d:'5'},{k:'timeout',l:'Answer timeout (sec)',t:'text',d:'20'}] },
 };
 
-const DEPLOY_CONFIGS = {
-  railway: {name:'railway.toml', content:'[build]\nbuilder = "nixpacks"\n\n[deploy]\nstartCommand = "python bot.py"\nrestartPolicyType = "always"\n'},
-  fly: {name:'fly.toml', content:'app = "my-nerimity-bot"\nprimary_region = "iad"\n\n[build]\n\n[[services]]\ninternal_port = 8080\nprotocol = "tcp"\n'},
-  render: {name:'render.yaml', content:'services:\n  - type: worker\n    name: nerimity-bot\n    env: python\n    buildCommand: pip install -r requirements.txt\n    startCommand: python bot.py\n'},
-  vps: {name:'mybot.service', content:'[Unit]\nDescription=Nerimity Bot\nAfter=network.target\n\n[Service]\nType=simple\nWorkingDirectory=/opt/mybot\nExecStart=/usr/bin/python3 bot.py\nRestart=always\nEnvironmentFile=/opt/mybot/.env\n\n[Install]\nWantedBy=multi-user.target\n'},
-  docker: {name:'Dockerfile', content:'FROM python:3.11-slim\nWORKDIR /app\nCOPY requirements.txt .\nRUN pip install -r requirements.txt\nCOPY . .\nCMD ["python", "bot.py"]\n'},
-  none: null,
-};
-
-function selectDeploy(target, el) {
-  deployTarget = target;
-  document.querySelectorAll('.deploy-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  document.getElementById('deployInfo').innerHTML = DEPLOY_INFO[target] || '';
-  const cfg = DEPLOY_CONFIGS[target];
-  const btn = document.getElementById('configBtn');
-  if (cfg) { btn.style.display = ''; btn.textContent = `⬇ Download ${cfg.name}`; }
-  else { btn.style.display = 'none'; }
-  generate();
+// ── Token screen ───────────────────────────────────────────────────────────
+function startBuilder() {
+  const t = document.getElementById('token-input').value.trim();
+  if (!t) { alert('Please enter your bot token.'); return; }
+  BOT_TOKEN = t;
+  document.getElementById('token-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initCanvas();
 }
 
-function addCommand() {
-  commands.push({name:'',description:'',reply:'',args:false,argsHint:'',cooldown:'',permission:'',guildOnly:false,body:'',errorHandler:''});
-  renderCommands(); generate();
+// ── Canvas init ────────────────────────────────────────────────────────────
+function initCanvas() {
+  // palette drag
+  document.querySelectorAll('.pal-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('nodeType', item.dataset.type);
+    });
+  });
+
+  canvasWrap.addEventListener('dragover', e => e.preventDefault());
+  canvasWrap.addEventListener('drop', e => {
+    e.preventDefault();
+    const type = e.dataTransfer.getData('nodeType');
+    if (!type) return;
+    const rect = canvasWrap.getBoundingClientRect();
+    const x = (e.clientX - rect.left - panX) / zoom;
+    const y = (e.clientY - rect.top  - panY) / zoom;
+    createNode(type, x - 110, y - 30);
+  });
+
+  // pan
+  canvasWrap.addEventListener('mousedown', e => {
+    if (e.target === canvasWrap || e.target === canvas || e.target === wireSvg) {
+      isPanning = true;
+      panStart = {x: e.clientX - panX, y: e.clientY - panY};
+      deselectNode();
+    }
+  });
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+
+  // zoom
+  canvasWrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = canvasWrap.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.min(2, Math.max(0.3, zoom * delta));
+    panX = mx - (mx - panX) * (newZoom / zoom);
+    panY = my - (my - panY) * (newZoom / zoom);
+    zoom = newZoom;
+    applyTransform();
+  }, {passive:false});
+
+  // close code panel on backdrop click
+  document.getElementById('code-panel').addEventListener('click', e => {
+    if (e.target === document.getElementById('code-panel')) closeCode();
+  });
 }
 
-function removeCommand(i) { commands.splice(i,1); renderCommands(); generate(); }
-
-function addCron() {
-  crons.push({preset:'0 9 * * *',custom:'',channel:'',message:'Daily reminder!'});
-  renderCrons(); generate();
+function applyTransform() {
+  canvas.style.transform = `translate(${panX}px,${panY}px) scale(${zoom})`;
+  redrawWires();
 }
 
-function removeCron(i) { crons.splice(i,1); renderCrons(); generate(); }
+// ── Node creation ──────────────────────────────────────────────────────────
+function createNode(type, x, y, props) {
+  const def = NODE_DEFS[type];
+  if (!def) return;
+  const id = ++nodeIdSeq;
+  const defaultProps = {};
+  (def.fields||[]).forEach(f => defaultProps[f.k] = f.d);
+  const nodeProps = Object.assign({}, defaultProps, props||{});
 
-function renderCommands() {
-  document.getElementById('cmdList').innerHTML = commands.map((cmd,i) => `
-    <div class="cmd-block">
-      <div class="cmd-block-header">
-        <span>/${cmd.name||'unnamed'}</span>
-        <button class="btn btn-danger" onclick="removeCommand(${i})">✕</button>
-      </div>
-      <div class="cmd-grid">
-        <div>
-          <span class="field-label">Command name</span>
-          <input type="text" placeholder="ping" value="${esc(cmd.name)}" oninput="commands[${i}].name=this.value;renderCommands();generate()">
-        </div>
-        <div>
-          <span class="field-label">Description (shows in /menu)</span>
-          <input type="text" placeholder="What this command does" value="${esc(cmd.description)}" oninput="commands[${i}].description=this.value;generate()">
-        </div>
-      </div>
-      <div class="cmd-grid-3">
-        <div>
-          <span class="field-label">Cooldown (seconds)</span>
-          <input type="text" placeholder="none" value="${esc(cmd.cooldown)}" oninput="commands[${i}].cooldown=this.value;generate()">
-        </div>
-        <div>
-          <span class="field-label">Required permission</span>
-          <select onchange="commands[${i}].permission=this.value;generate()">
-            ${PERMISSIONS.map(p=>`<option value="${p}" ${cmd.permission===p?'selected':''}>${p||'none'}</option>`).join('')}
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:0.5rem;padding-top:1.2rem">
-          <label class="switch" style="margin:0"><input type="checkbox" ${cmd.guildOnly?'checked':''} onchange="commands[${i}].guildOnly=this.checked;generate()"><span class="slider"></span></label>
-          <span class="field-label" style="margin:0">Server only</span>
-        </div>
-      </div>
-      <div class="cmd-grid">
-        <div>
-          <span class="field-label">Takes arguments?</span>
-          <select onchange="commands[${i}].args=this.value==='yes';renderCommands();generate()">
-            <option value="no" ${!cmd.args?'selected':''}>No</option>
-            <option value="yes" ${cmd.args?'selected':''}>Yes</option>
-          </select>
-        </div>
-        ${cmd.args?`<div>
-          <span class="field-label">Argument hint (e.g. &lt;user&gt; &lt;reason&gt;)</span>
-          <input type="text" placeholder="<user> <reason>" value="${esc(cmd.argsHint)}" oninput="commands[${i}].argsHint=this.value;generate()">
-        </div>`:`<div></div>`}
-      </div>
-      <div>
-        <span class="field-label">Reply text (leave blank to write your own body)</span>
-        <input type="text" placeholder='e.g. Pong! 🏓' value="${esc(cmd.reply)}" oninput="commands[${i}].reply=this.value;commands[${i}].body='';generate()">
-      </div>
-      <div style="margin-top:0.5rem">
-        <span class="field-label">Custom body (overrides reply text — write real Python)</span>
-        <textarea placeholder="    await ctx.reply(ctx.rest_text or 'nothing provided')" oninput="commands[${i}].body=this.value;commands[${i}].reply='';generate()">${esc(cmd.body)}</textarea>
-      </div>
-      <div style="margin-top:0.5rem">
-        <span class="field-label">Per-command error reply (optional — overrides global error handler for this command)</span>
-        <input type="text" placeholder='e.g. ❌ Could not run this command.' value="${esc(cmd.errorHandler)}" oninput="commands[${i}].errorHandler=this.value;generate()">
-      </div>
-    </div>
-  `).join('');
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.dataset.id = id;
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+
+  el.innerHTML = buildNodeHTML(id, type, def, nodeProps);
+  canvas.appendChild(el);
+
+  const node = {id, type, x, y, props: nodeProps, el};
+  nodes.push(node);
+
+  // header drag
+  const header = el.querySelector('.node-header');
+  makeDraggable(el, header, node);
+
+  // port events
+  el.querySelectorAll('.port').forEach(portEl => {
+    portEl.addEventListener('mousedown', e => { e.stopPropagation(); startWire(e, id, portEl); });
+  });
+
+  // select on click
+  el.addEventListener('mousedown', e => {
+    e.stopPropagation();
+    selectNode(node);
+  });
+
+  // inline field changes
+  el.querySelectorAll('[data-prop]').forEach(input => {
+    input.addEventListener('input', () => {
+      node.props[input.dataset.prop] = input.type === 'checkbox' ? input.checked : input.value;
+      // sync inspector
+      const inspInput = document.querySelector(`#insp-fields [data-prop="${input.dataset.prop}"]`);
+      if (inspInput && inspInput !== input) inspInput.value = input.value;
+    });
+  });
+
+  selectNode(node);
+  return node;
 }
 
-function renderCrons() {
-  document.getElementById('cronList').innerHTML = crons.map((c,i) => `
-    <div class="cron-block">
-      <div class="cmd-block-header">
-        <span>⏰ ${c.preset==='custom'?c.custom||'custom':c.preset}</span>
-        <button class="btn btn-danger" onclick="removeCron(${i})">✕</button>
-      </div>
-      <div class="cmd-grid">
-        <div>
-          <span class="field-label">Schedule</span>
-          <select onchange="crons[${i}].preset=this.value;renderCrons();generate()">
-            ${CRON_PRESETS.map(p=>`<option value="${p.value}" ${c.preset===p.value?'selected':''}>${p.label}</option>`).join('')}
-          </select>
-        </div>
-        ${c.preset==='custom'?`<div>
-          <span class="field-label">Cron expression</span>
-          <input type="text" placeholder="*/5 * * * *" value="${esc(c.custom)}" oninput="crons[${i}].custom=this.value;generate()">
-        </div>`:`<div></div>`}
-      </div>
-      <div class="cmd-grid">
-        <div>
-          <span class="field-label">Channel ID to post in</span>
-          <input type="text" placeholder="YOUR_CHANNEL_ID" value="${esc(c.channel)}" oninput="crons[${i}].channel=this.value;generate()">
-        </div>
-        <div>
-          <span class="field-label">Message to send</span>
-          <input type="text" placeholder="Good morning!" value="${esc(c.message)}" oninput="crons[${i}].message=this.value;generate()">
-        </div>
-      </div>
-    </div>
-  `).join('');
+function buildNodeHTML(id, type, def, props) {
+  const portColor = def.color;
+  let html = `<div class="node-header" style="background:${def.color}22;border-bottom:1px solid ${def.color}44">
+    <span class="node-icon">${def.icon}</span>
+    <span class="node-title">${def.label}</span>
+    <button class="node-del" onclick="deleteNode(${id})">✕</button>
+  </div><div class="node-body">`;
+
+  // in ports
+  if (def.ins.length) {
+    html += '<div class="ports">';
+    def.ins.forEach(p => {
+      html += `<div class="port-row in">
+        <div class="port in" data-node="${id}" data-port="${p}" data-dir="in" style="border-color:${portColor};color:${portColor}"></div>
+        <span>${p}</span></div>`;
+    });
+    html += '</div>';
+  }
+
+  // fields
+  (def.fields||[]).forEach(f => {
+    const val = props[f.k] !== undefined ? props[f.k] : f.d;
+    html += `<div class="node-field"><label>${f.l}</label>`;
+    if (f.t === 'textarea') {
+      html += `<textarea data-prop="${f.k}" rows="2">${esc(val)}</textarea>`;
+    } else if (f.t === 'select') {
+      html += `<select data-prop="${f.k}">${(f.opts||[]).map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select>`;
+    } else if (f.t === 'bool') {
+      html += `<select data-prop="${f.k}"><option value="false" ${!val?'selected':''}>No</option><option value="true" ${val?'selected':''}>Yes</option></select>`;
+    } else {
+      html += `<input type="text" data-prop="${f.k}" value="${esc(val)}">`;
+    }
+    html += '</div>';
+  });
+
+  // out ports
+  if (def.outs.length) {
+    html += '<div class="ports">';
+    def.outs.forEach(p => {
+      html += `<div class="port-row out">
+        <span>${p}</span>
+        <div class="port out" data-node="${id}" data-port="${p}" data-dir="out" style="border-color:${portColor};color:${portColor}"></div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
 }
 
-function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function getPlugins() {
-  return [...document.querySelectorAll('[data-plugin]:checked')].map(el=>el.dataset.plugin);
+// ── Node drag ──────────────────────────────────────────────────────────────
+function makeDraggable(el, handle, node) {
+  let dragging = false, ox, oy;
+  handle.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    const rect = el.getBoundingClientRect();
+    ox = (e.clientX - rect.left) / zoom;
+    oy = (e.clientY - rect.top)  / zoom;
+    e.stopPropagation();
+  });
+  window._nodeDragHandlers = window._nodeDragHandlers || [];
+  window._nodeDragHandlers.push({
+    move: e => {
+      if (!dragging) return;
+      const wr = canvasWrap.getBoundingClientRect();
+      node.x = (e.clientX - wr.left - panX) / zoom - ox;
+      node.y = (e.clientY - wr.top  - panY) / zoom - oy;
+      el.style.left = node.x + 'px';
+      el.style.top  = node.y + 'px';
+      redrawWires();
+    },
+    up: () => { dragging = false; }
+  });
 }
 
-function generate() {
-  const name        = document.getElementById('botName').value||'MyBot';
-  const prefix      = document.getElementById('prefix').value||'!';
-  const status      = document.getElementById('status').value;
-  const autoRestart = document.getElementById('autoRestart').checked;
-  const autoReload  = document.getElementById('autoReload').checked;
-  const jsonLogs    = document.getElementById('jsonLogs').checked;
-  const health      = document.getElementById('health').checked;
-  const store       = document.getElementById('store').checked;
-  const plugins     = getPlugins();
-  const evReady     = document.getElementById('evReady').checked;
-  const evMessage   = document.getElementById('evMessage').checked;
-  const evJoin      = document.getElementById('evJoin').checked;
-  const evLeave     = document.getElementById('evLeave').checked;
-  const evReaction  = document.getElementById('evReaction').checked;
-  const evTyping    = document.getElementById('evTyping').checked;
-  const evError     = document.getElementById('evError').checked;
+function onMouseMove(e) {
+  if (isPanning && panStart) {
+    panX = e.clientX - panStart.x;
+    panY = e.clientY - panStart.y;
+    applyTransform();
+  }
+  window._nodeDragHandlers && window._nodeDragHandlers.forEach(h => h.move(e));
+  if (wiringFrom) updatePreviewWire(e);
+}
 
-  const needsContrib = plugins.length > 0;
-  const needsPerms   = commands.some(c=>c.permission);
-  const needsCron    = crons.length > 0;
+function onMouseUp(e) {
+  isPanning = false;
+  window._nodeDragHandlers && window._nodeDragHandlers.forEach(h => h.up(e));
+  if (wiringFrom) finishWire(e);
+}
+
+// ── Wire drawing ───────────────────────────────────────────────────────────
+function portCenter(portEl) {
+  const wr = canvasWrap.getBoundingClientRect();
+  const pr = portEl.getBoundingClientRect();
+  return {
+    x: (pr.left + pr.width/2  - wr.left - panX) / zoom,
+    y: (pr.top  + pr.height/2 - wr.top  - panY) / zoom,
+  };
+}
+
+function bezierPath(x1,y1,x2,y2) {
+  const cx = (x2-x1)*0.5;
+  return `M${x1},${y1} C${x1+cx},${y1} ${x2-cx},${y2} ${x2},${y2}`;
+}
+
+function startWire(e, nodeId, portEl) {
+  const dir = portEl.dataset.dir;
+  wiringFrom = {nodeId, port: portEl.dataset.port, portEl, isOut: dir==='out'};
+  previewPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+  previewPath.setAttribute('class','wire-preview');
+  wireSvg.appendChild(previewPath);
+  e.preventDefault();
+}
+
+function updatePreviewWire(e) {
+  if (!previewPath || !wiringFrom) return;
+  const c = portCenter(wiringFrom.portEl);
+  const wr = canvasWrap.getBoundingClientRect();
+  const mx = (e.clientX - wr.left - panX) / zoom;
+  const my = (e.clientY - wr.top  - panY) / zoom;
+  const [x1,y1,x2,y2] = wiringFrom.isOut ? [c.x,c.y,mx,my] : [mx,my,c.x,c.y];
+  previewPath.setAttribute('d', bezierPath(x1,y1,x2,y2));
+}
+
+function finishWire(e) {
+  if (previewPath) { wireSvg.removeChild(previewPath); previewPath = null; }
+  const from = wiringFrom;
+  wiringFrom = null;
+  if (!from) return;
+
+  // find port under cursor
+  const wr = canvasWrap.getBoundingClientRect();
+  const els = document.elementsFromPoint(e.clientX, e.clientY);
+  const targetPort = els.find(el => el.classList.contains('port') && el !== from.portEl);
+  if (!targetPort) return;
+
+  const toDir = targetPort.dataset.dir;
+  // must connect out→in
+  if (from.isOut && toDir !== 'in') return;
+  if (!from.isOut && toDir !== 'out') return;
+
+  const [outNode, outPort, inNode, inPort] = from.isOut
+    ? [from.nodeId, from.port, +targetPort.dataset.node, targetPort.dataset.port]
+    : [+targetPort.dataset.node, targetPort.dataset.port, from.nodeId, from.port];
+
+  if (outNode === inNode) return;
+  // no duplicate wires
+  if (wires.find(w => w.fromNode===outNode && w.fromPort===outPort && w.toNode===inNode && w.toPort===inPort)) return;
+
+  addWire(outNode, outPort, inNode, inPort);
+}
+
+function addWire(fromNode, fromPort, toNode, toPort) {
+  const id = ++wireIdSeq;
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  const fromDef = NODE_DEFS[nodes.find(n=>n.id===fromNode)?.type];
+  path.setAttribute('class','wire');
+  path.setAttribute('stroke', fromDef?.color || '#a78bfa');
+  path.setAttribute('data-wire', id);
+  path.addEventListener('click', () => deleteWire(id));
+  wireSvg.appendChild(path);
+  wires.push({id, fromNode, fromPort, toNode, toPort, el: path});
+  redrawWires();
+  markConnectedPorts();
+}
+
+function deleteWire(id) {
+  const idx = wires.findIndex(w=>w.id===id);
+  if (idx<0) return;
+  wires[idx].el.remove();
+  wires.splice(idx,1);
+  markConnectedPorts();
+}
+
+function redrawWires() {
+  wires.forEach(w => {
+    const fromEl = document.querySelector(`.port[data-node="${w.fromNode}"][data-port="${w.fromPort}"][data-dir="out"]`);
+    const toEl   = document.querySelector(`.port[data-node="${w.toNode}"][data-port="${w.toPort}"][data-dir="in"]`);
+    if (!fromEl || !toEl) return;
+    const c1 = portCenter(fromEl), c2 = portCenter(toEl);
+    w.el.setAttribute('d', bezierPath(c1.x,c1.y,c2.x,c2.y));
+  });
+}
+
+function markConnectedPorts() {
+  document.querySelectorAll('.port').forEach(p => p.classList.remove('connected'));
+  wires.forEach(w => {
+    const f = document.querySelector(`.port[data-node="${w.fromNode}"][data-port="${w.fromPort}"][data-dir="out"]`);
+    const t = document.querySelector(`.port[data-node="${w.toNode}"][data-port="${w.toPort}"][data-dir="in"]`);
+    if (f) f.classList.add('connected');
+    if (t) t.classList.add('connected');
+  });
+}
+
+// ── Node selection / deletion ──────────────────────────────────────────────
+function selectNode(node) {
+  if (selectedNode) selectedNode.el.classList.remove('selected');
+  selectedNode = node;
+  node.el.classList.add('selected');
+  renderInspector(node);
+}
+
+function deselectNode() {
+  if (selectedNode) selectedNode.el.classList.remove('selected');
+  selectedNode = null;
+  document.getElementById('insp-empty').style.display = '';
+  document.getElementById('insp-fields').style.display = 'none';
+}
+
+function deleteNode(id) {
+  const idx = nodes.findIndex(n=>n.id===id);
+  if (idx<0) return;
+  nodes[idx].el.remove();
+  // remove connected wires
+  wires.filter(w=>w.fromNode===id||w.toNode===id).forEach(w=>w.el.remove());
+  wires = wires.filter(w=>w.fromNode!==id&&w.toNode!==id);
+  nodes.splice(idx,1);
+  if (selectedNode?.id===id) deselectNode();
+}
+
+function clearCanvas() {
+  if (!confirm('Remove all nodes?')) return;
+  nodes.forEach(n=>n.el.remove());
+  wires.forEach(w=>w.el.remove());
+  nodes=[]; wires=[];
+  deselectNode();
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+<script>
+// ── Inspector ──────────────────────────────────────────────────────────────
+function renderInspector(node) {
+  const def = NODE_DEFS[node.type];
+  const empty = document.getElementById('insp-empty');
+  const fields = document.getElementById('insp-fields');
+  empty.style.display = 'none';
+  fields.style.display = 'flex';
+  fields.innerHTML = '';
+
+  // node type label
+  const typeLabel = document.createElement('div');
+  typeLabel.innerHTML = `<span style="font-size:.7rem;color:${def.color};font-weight:600">${def.icon} ${def.label}</span>`;
+  fields.appendChild(typeLabel);
+
+  if (!(def.fields||[]).length) {
+    const none = document.createElement('div');
+    none.className = 'hint';
+    none.textContent = 'No configurable properties.';
+    fields.appendChild(none);
+    return;
+  }
+
+  def.fields.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.className = 'insp-field';
+    let inputHTML = '';
+    const val = node.props[f.k] !== undefined ? node.props[f.k] : f.d;
+
+    if (f.t === 'textarea') {
+      inputHTML = `<textarea data-prop="${f.k}" rows="3">${esc(val)}</textarea>`;
+    } else if (f.t === 'select' || f.t === 'bool') {
+      const opts = f.t === 'bool'
+        ? [{v:'false',l:'No'},{v:'true',l:'Yes'}]
+        : (f.opts||[]).map(o=>({v:o,l:o}));
+      inputHTML = `<select data-prop="${f.k}">${opts.map(o=>`<option value="${o.v}" ${String(val)===o.v?'selected':''}>${o.l}</option>`).join('')}</select>`;
+    } else {
+      inputHTML = `<input type="text" data-prop="${f.k}" value="${esc(val)}">`;
+    }
+
+    wrap.innerHTML = `<label>${f.l}</label>${inputHTML}`;
+    fields.appendChild(wrap);
+
+    // sync changes back to node props + inline node fields
+    const input = wrap.querySelector('[data-prop]');
+    input.addEventListener('input', () => {
+      node.props[f.k] = input.value;
+      // sync inline node field
+      const nodeInput = node.el.querySelector(`[data-prop="${f.k}"]`);
+      if (nodeInput && nodeInput !== input) {
+        nodeInput.value = input.value;
+      }
+    });
+  });
+}
+
+// ── Example graph ──────────────────────────────────────────────────────────
+function loadExample() {
+  clearCanvas();
+
+  // on_ready → (standalone)
+  const ready = createNode('trigger_ready', 60, 60);
+
+  // command "ping" → reply "Pong!"
+  const cmd = createNode('trigger_command', 60, 200, {name:'ping', desc:'Check if the bot is alive', prefix:'!'});
+  const reply = createNode('action_reply', 340, 200, {text:'Pong! 🏓'});
+  addWire(cmd.id, 'exec', reply.id, 'exec');
+
+  // command "ban" → if has perm → ban / reply no-perm
+  const banCmd = createNode('trigger_command', 60, 380, {name:'ban', desc:'Ban a user', prefix:'!'});
+  const ifPerm = createNode('logic_if_perm', 340, 380, {perm:'BAN_MEMBERS'});
+  const banAction = createNode('action_ban', 620, 340, {reason:'Banned by moderator'});
+  const noPermReply = createNode('action_reply', 620, 440, {text:"❌ You don't have permission to ban."});
+  addWire(banCmd.id, 'exec', ifPerm.id, 'exec');
+  addWire(ifPerm.id, 'true', banAction.id, 'exec');
+  addWire(ifPerm.id, 'false', noPermReply.id, 'exec');
+
+  // WelcomePlugin (standalone)
+  createNode('plugin_welcome', 60, 560, {channel:'YOUR_CHANNEL_ID', msg:'Welcome {user} to the server!'});
+
+  deselectNode();
+}
+</script>
+<script>
+// ── Code generation ────────────────────────────────────────────────────────
+function generateCode() {
+  const botName = document.getElementById('bot-name-input').value || 'MyBot';
   const lines = [];
 
+  // collect node types present
+  const types = new Set(nodes.map(n => n.type));
+  const hasPlugins = nodes.some(n => n.type.startsWith('plugin_'));
+  const hasStore   = types.has('action_store_set') || types.has('action_store_get');
+  const needsPerms = types.has('logic_if_perm') || types.has('action_ban') || types.has('action_kick');
+
+  // imports
   lines.push('import os');
   lines.push('from dotenv import load_dotenv');
   const sdkImports = ['Bot'];
-  if (store) sdkImports.push('JsonStore');
-  if (needsPerms) sdkImports.push('Permissions');
+  if (hasStore) sdkImports.push('JsonStore');
   lines.push(`from nerimity_sdk import ${sdkImports.join(', ')}`);
-  if (needsContrib) lines.push(`from nerimity_sdk_contrib import ${plugins.join(', ')}`);
+
+  if (hasPlugins) {
+    const pluginNames = nodes
+      .filter(n => n.type.startsWith('plugin_'))
+      .map(n => NODE_DEFS[n.type].label);
+    const unique = [...new Set(pluginNames)];
+    lines.push(`from nerimity_sdk_contrib import ${unique.join(', ')}`);
+  }
+
   lines.push('');
   lines.push('load_dotenv()');
   lines.push('');
 
+  // Bot constructor
   const botArgs = [`token=os.environ["NERIMITY_TOKEN"]`];
-  if (prefix !== '!') botArgs.push(`prefix="${prefix}"`);
-  if (jsonLogs) botArgs.push('json_logs=True');
-  if (health)   botArgs.push('health_port=8080');
-  if (store)    botArgs.push('store=JsonStore("data.json")');
-
+  if (hasStore) botArgs.push('store=JsonStore("data.json")');
   if (botArgs.length > 1) {
     lines.push('bot = Bot(');
-    botArgs.forEach((a,i) => lines.push(`    ${a}${i<botArgs.length-1?',':''}`));
+    botArgs.forEach((a,i) => lines.push(`    ${a}${i < botArgs.length-1 ? ',' : ''}`));
     lines.push(')');
   } else {
     lines.push(`bot = Bot(${botArgs[0]})`);
   }
 
-  if (evReady || needsContrib) {
-    lines.push(''); lines.push('');
-    lines.push('@bot.on("ready")');
-    lines.push('async def on_ready(me):');
-    lines.push(`    print(f"✅ ${name} online as {me.username}!")`);
-    if (status) lines.push(`    # status: ${status}`);
-    plugins.forEach(p => lines.push(`    await bot.plugins.load(${pluginConfig(p)})`));
-  }
+  // ── Walk graph from each trigger ─────────────────────────────────────────
+  const triggerNodes = nodes.filter(n => NODE_DEFS[n.type]?.cat === 'trigger');
 
-  if (evMessage) {
+  triggerNodes.forEach(trigger => {
     lines.push(''); lines.push('');
-    lines.push('@bot.on("message:created")');
-    lines.push('async def on_message(event):');
-    lines.push('    pass');
-  }
-
-  if (evJoin) {
-    lines.push(''); lines.push('');
-    lines.push('@bot.on("server:member_joined")');
-    lines.push('async def on_join(event):');
-    lines.push('    pass');
-  }
-
-  if (evLeave) {
-    lines.push(''); lines.push('');
-    lines.push('@bot.on("server:member_left")');
-    lines.push('async def on_leave(event):');
-    lines.push('    pass');
-  }
-
-  if (evReaction) {
-    lines.push(''); lines.push('');
-    lines.push('@bot.on("message:reaction_added")');
-    lines.push('async def on_reaction(event):');
-    lines.push('    pass');
-  }
-
-  if (evTyping) {
-    lines.push(''); lines.push('');
-    lines.push('@bot.on("channel:typing")');
-    lines.push('async def on_typing(event):');
-    lines.push('    pass');
-  }
-
-  // Scheduled tasks
-  crons.forEach((c, idx) => {
-    const expr = c.preset === 'custom' ? (c.custom || '0 * * * *') : c.preset;
-    const ch = c.channel || 'YOUR_CHANNEL_ID';
-    const msg = (c.message || 'Scheduled message!').replace(/"/g, '\\"');
-    lines.push(''); lines.push('');
-    lines.push(`@bot.cron("${expr}")`);
-    lines.push(`async def scheduled_task_${idx+1}():`);
-    lines.push(`    await bot.rest.create_message("${ch}", "${msg}")`);
+    emitTrigger(trigger, lines);
   });
 
-  // Commands
-  commands.filter(c=>c.name.trim()).forEach(cmd => {
-    const fn = cmd.name.trim().replace(/[^a-z0-9]/gi,'_');
-    const decoratorArgs = [`"${cmd.name.trim()}"`];
-    if (cmd.description) decoratorArgs.push(`description="${cmd.description}"`);
-    if (cmd.guildOnly)   decoratorArgs.push('guild_only=True');
-    if (cmd.permission)  decoratorArgs.push(`requires=Permissions.${cmd.permission}`);
-    if (cmd.cooldown)    decoratorArgs.push(`cooldown=${cmd.cooldown}`);
-
-    lines.push(''); lines.push('');
-    lines.push(`@bot.command(${decoratorArgs.join(', ')})`);
-    if (cmd.args && cmd.argsHint) {
-      lines.push(`async def ${fn}(ctx):  # args: ${cmd.argsHint}`);
-    } else {
-      lines.push(`async def ${fn}(ctx):`);
-    }
-
-    if (cmd.body.trim()) {
-      cmd.body.split('\n').forEach(l => lines.push(l.startsWith('    ')?l:`    ${l}`));
-    } else if (cmd.reply.trim()) {
-      lines.push(`    await ctx.reply("${cmd.reply.replace(/"/g,'\\"')}")`);
-    } else {
-      lines.push('    pass');
-    }
-
-    // Per-command error handler
-    if (cmd.errorHandler.trim()) {
+  // ── Plugin nodes (standalone, not wired) ─────────────────────────────────
+  const pluginNodes = nodes.filter(n => n.type.startsWith('plugin_'));
+  if (pluginNodes.length) {
+    // find or create on_ready handler
+    const hasReady = triggerNodes.some(n => n.type === 'trigger_ready');
+    if (!hasReady) {
       lines.push(''); lines.push('');
-      lines.push(`@bot.router.on_error("${cmd.name.trim()}")`);
-      lines.push(`async def ${fn}_error(ctx, error):`);
-      lines.push(`    await ctx.reply("${cmd.errorHandler.replace(/"/g,'\\"')}")`);
+      lines.push('@bot.on("ready")');
+      lines.push(`async def on_ready(me):`);
+      lines.push(`    print(f"✅ ${botName} online as {me.username}!")`);
     }
-  });
-
-  if (evError) {
-    lines.push(''); lines.push('');
-    lines.push('@bot.on_command_error');
-    lines.push('async def on_error(ctx, error):');
-    lines.push('    await ctx.reply(f"❌ {error}")');
+    pluginNodes.forEach(n => {
+      lines.push(`    await bot.plugins.load(${pluginCallCode(n)})`);
+    });
   }
 
   lines.push(''); lines.push('');
-  const runArgs = [];
-  if (!autoRestart) runArgs.push('auto_restart=False');
-  if (!autoReload)  runArgs.push('watch=False');
-  lines.push(`bot.run(${runArgs.join(', ')})`);
+  lines.push('bot.run()');
 
-  document.getElementById('output').textContent = lines.join('\n').replace(/\n{3,}/g,'\n\n').trim();
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function pluginConfig(name) {
-  const configs = {
-    WelcomePlugin:       'WelcomePlugin(channel_id="YOUR_CHANNEL_ID")',
-    LoggingPlugin:       'LoggingPlugin(channel_id="YOUR_LOG_CHANNEL_ID")',
-    AutoModPlugin:       'AutoModPlugin(blocked=["badword"], log_channel_id="YOUR_LOG_CHANNEL_ID")',
-    AntiSpamPlugin:      'AntiSpamPlugin(max_messages=5, window=5.0, action="kick")',
-    LevelingPlugin:      'LevelingPlugin(announce_channel_id="YOUR_CHANNEL_ID")',
-    WarnPlugin:          'WarnPlugin(threshold=3, log_channel_id="YOUR_LOG_CHANNEL_ID")',
-    MutePlugin:          'MutePlugin(log_channel_id="YOUR_LOG_CHANNEL_ID")',
-    StarboardPlugin:     'StarboardPlugin(channel_id="YOUR_STARBOARD_CHANNEL_ID", threshold=3)',
-    BirthdayPlugin:      'BirthdayPlugin(announce_channel_id="YOUR_CHANNEL_ID")',
-    ReminderPlugin:      'ReminderPlugin()',
-    AFKPlugin:           'AFKPlugin()',
-    CustomCommandPlugin: 'CustomCommandPlugin()',
-    AutoReplyPlugin:     'AutoReplyPlugin(rules=[("thanks", "You\'re welcome! 😊")])',
-    ServerStatsPlugin:   'ServerStatsPlugin(channel_id="YOUR_STATS_CHANNEL_ID")',
-    TempChannelPlugin:   'TempChannelPlugin(timeout=300)',
-    PollPlugin:          'PollPlugin()',
-    GiveawayPlugin:      'GiveawayPlugin()',
-    TicketPlugin:        'TicketPlugin(support_channel_id="YOUR_CHANNEL_ID")',
-  };
-  return configs[name] || `${name}()`;
+function emitTrigger(trigger, lines) {
+  const p = trigger.props;
+  const botName = document.getElementById('bot-name-input').value || 'MyBot';
+
+  switch (trigger.type) {
+    case 'trigger_ready':
+      lines.push('@bot.on("ready")');
+      lines.push(`async def on_ready(me):`);
+      lines.push(`    print(f"✅ ${botName} online as {me.username}!")`);
+      // inline plugin loads
+      nodes.filter(n=>n.type.startsWith('plugin_')).forEach(n => {
+        lines.push(`    await bot.plugins.load(${pluginCallCode(n)})`);
+      });
+      emitChain(trigger.id, 'exec', lines, '    ');
+      break;
+
+    case 'trigger_command': {
+      const name = p.name || 'mycommand';
+      const fn   = name.replace(/[^a-z0-9]/gi,'_');
+      const desc = p.desc ? `, description="${p.desc}"` : '';
+      const guild = p.guild_only === 'true' || p.guild_only === true ? ', guild_only=True' : '';
+      lines.push(`@bot.command("${name}"${desc}${guild})`);
+      lines.push(`async def cmd_${fn}(ctx):`);
+      const body = emitChain(trigger.id, 'exec', [], '    ');
+      if (body.length) body.forEach(l => lines.push(l));
+      else lines.push('    pass');
+      break;
+    }
+
+    case 'trigger_message':
+      lines.push('@bot.on("message:created")');
+      lines.push('async def on_message(event):');
+      lines.push('    msg = event.message');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+
+    case 'trigger_join':
+      lines.push('@bot.on("server:member_joined")');
+      lines.push('async def on_member_join(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+
+    case 'trigger_leave':
+      lines.push('@bot.on("server:member_left")');
+      lines.push('async def on_member_leave(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+
+    case 'trigger_reaction':
+      lines.push('@bot.on("message:reaction_added")');
+      lines.push('async def on_reaction(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+  }
 }
 
+// Walk wires from (nodeId, outPort) and emit action code into lines
+function emitChain(fromNodeId, outPort, lines, indent) {
+  const wire = wires.find(w => w.fromNode === fromNodeId && w.fromPort === outPort);
+  if (!wire) return lines;
+  const node = nodes.find(n => n.id === wire.toNode);
+  if (!node) return lines;
+  emitAction(node, lines, indent);
+  return lines;
+}
+
+function emitAction(node, lines, indent) {
+  const p = node.props;
+  const i = indent;
+
+  switch (node.type) {
+    case 'action_reply':
+      lines.push(`${i}await ctx.reply("${esc2(p.text || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_send':
+      lines.push(`${i}await bot.rest.create_message("${p.channel || 'YOUR_CHANNEL_ID'}", "${esc2(p.text || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_dm':
+      lines.push(`${i}dm = await bot.rest.open_dm(ctx.author.id)`);
+      lines.push(`${i}await bot.rest.create_message(dm["id"], "${esc2(p.text || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_kick':
+      lines.push(`${i}await bot.rest.kick_member(ctx.server_id, ctx.author.id, reason="${esc2(p.reason || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_ban':
+      lines.push(`${i}await bot.rest.ban_member(ctx.server_id, ctx.author.id, reason="${esc2(p.reason || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_store_set':
+      lines.push(`${i}await bot.store.set("${esc2(p.key || 'key')}", "${esc2(p.value || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_store_get':
+      lines.push(`${i}${p.var || 'result'} = await bot.store.get("${esc2(p.key || 'key')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'logic_if_contains':
+      lines.push(`${i}if "${esc2(p.word || '')}" in (getattr(ctx, 'rest_text', '') or '').lower():`);
+      emitChain(node.id, 'true',  lines, i + '    ');
+      lines.push(`${i}else:`);
+      const falseLines = [];
+      emitChain(node.id, 'false', falseLines, i + '    ');
+      if (falseLines.length) falseLines.forEach(l => lines.push(l));
+      else lines.push(`${i}    pass`);
+      break;
+
+    case 'logic_if_perm':
+      lines.push(`${i}from nerimity_sdk import has_permission`);
+      lines.push(`${i}if has_permission(ctx.member.permissions, "${p.perm || 'BAN_MEMBERS'}"):`);
+      emitChain(node.id, 'true',  lines, i + '    ');
+      lines.push(`${i}else:`);
+      const fpLines = [];
+      emitChain(node.id, 'false', fpLines, i + '    ');
+      if (fpLines.length) fpLines.forEach(l => lines.push(l));
+      else lines.push(`${i}    pass`);
+      break;
+
+    case 'logic_cooldown': {
+      const sec = p.seconds || '5';
+      lines.push(`${i}from nerimity_sdk import CooldownManager, CooldownError`);
+      lines.push(`${i}# cooldown: ${sec}s per ${p.scope || 'user'}`);
+      lines.push(`${i}try:`);
+      emitChain(node.id, 'ok', lines, i + '    ');
+      lines.push(`${i}except CooldownError as _cd:`);
+      const blockedLines = [];
+      emitChain(node.id, 'blocked', blockedLines, i + '    ');
+      if (blockedLines.length) blockedLines.forEach(l => lines.push(l));
+      else lines.push(`${i}    await ctx.reply(f"⏳ Cooldown! Try again in {_cd.retry_after:.1f}s.")`);
+      break;
+    }
+  }
+}
+
+function pluginCallCode(node) {
+  const p = node.props;
+  switch (node.type) {
+    case 'plugin_welcome':   return `WelcomePlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}", message="${esc2(p.msg||'Welcome!')}")`;
+    case 'plugin_leveling':  return `LevelingPlugin(announce_channel_id="${p.channel||'YOUR_CHANNEL_ID'}", xp_per_message=${p.xp||10})`;
+    case 'plugin_automod':   return `AutoModPlugin(blocked=[${(p.words||'').split(',').map(w=>`"${w.trim()}"`).join(',')}], log_channel_id="${p.log||'YOUR_LOG_CHANNEL_ID'}")`;
+    case 'plugin_antispam':  return `AntiSpamPlugin(max_messages=${p.max||5}, window=${p.window||5}, action="${p.action||'kick'}")`;
+    case 'plugin_starboard': return `StarboardPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}", threshold=${p.threshold||3})`;
+    case 'plugin_tickets':   return `TicketPlugin(staff_channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_economy':   return `EconomyPlugin(daily_amount=${p.daily||100}, currency_name="${p.currency||'coins'}")`;
+    case 'plugin_quiz':      return `QuizPlugin(rounds=${p.rounds||5}, answer_timeout=${p.timeout||20})`;
+    default: return `${NODE_DEFS[node.type].label}()`;
+  }
+}
+
+// escape for Python string literals
+function esc2(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n'); }
+
+// ── Code panel ─────────────────────────────────────────────────────────────
+function openCode() {
+  document.getElementById('code-pre').textContent = generateCode();
+  document.getElementById('code-panel').classList.add('open');
+}
+function closeCode() {
+  document.getElementById('code-panel').classList.remove('open');
+}
 function copyCode() {
-  navigator.clipboard.writeText(document.getElementById('output').textContent);
-  const btn = document.querySelector('.copy-btn');
+  navigator.clipboard.writeText(document.getElementById('code-pre').textContent);
+  const btn = document.querySelector('#code-box-header .tb-btn');
   btn.textContent = 'Copied!';
   setTimeout(() => btn.textContent = 'Copy', 1500);
 }
-
-function download() {
-  const blob = new Blob([document.getElementById('output').textContent], {type:'text/plain'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'bot.py'; a.click();
+function downloadBot() {
+  const code = generateCode();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([code], {type:'text/plain'}));
+  a.download = 'bot.py';
+  a.click();
 }
-
-function downloadConfig() {
-  const cfg = DEPLOY_CONFIGS[deployTarget];
-  if (!cfg) return;
-  const blob = new Blob([cfg.content], {type:'text/plain'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = cfg.name; a.click();
-}
-
-// Init
-selectDeploy('railway', document.querySelector('.deploy-card.selected'));
-renderCommands();
-renderCrons();
-generate();
 </script>
 </body>
 </html>
