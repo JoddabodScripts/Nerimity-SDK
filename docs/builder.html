@@ -252,11 +252,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 /* ── Tutorial overlay ─────────────────────────────────────────────────── */
 #tutorial-overlay{position:fixed;inset:0;z-index:800;pointer-events:none;display:none}
 #tutorial-overlay.active{display:block}
-#tutorial-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);pointer-events:all}
+#tutorial-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);pointer-events:all;z-index:800}
 #tutorial-card{
   position:absolute;width:320px;background:var(--surface);border:1px solid var(--border2);
   border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,.6);pointer-events:all;
-  overflow:hidden;
+  overflow:hidden;z-index:802;
 }
 #tutorial-card-header{padding:.75rem 1rem;background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(244,114,182,.1));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
 #tutorial-card-header .tut-step{font-size:.68rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
