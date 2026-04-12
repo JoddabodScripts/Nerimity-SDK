@@ -2459,7 +2459,14 @@ function previewExecNode(node, ctx, depth) {
       feed.scrollTop = feed.scrollHeight;
       const btnRow = document.getElementById('btn-row-' + node.id);
       btns.forEach(b => {
+        // disable any existing button rows that share this ID
+        document.querySelectorAll(`[data-btn-id="${CSS.escape(b.id)}"]`).forEach(old => {
+          old.disabled = true;
+          old.style.opacity = '0.4';
+          old.style.cursor = 'default';
+        });
         const el = document.createElement('button');
+        el.dataset.btnId = b.id;
         el.style.cssText = `background:${b.alert?'rgba(248,113,113,.15)':'rgba(167,139,250,.15)'};border:1px solid ${b.alert?'rgba(248,113,113,.4)':'rgba(167,139,250,.4)'};border-radius:6px;color:${b.alert?'#f87171':'var(--purple)'};cursor:pointer;font-size:.78rem;font-weight:600;padding:.3rem .75rem;transition:background .15s`;
         el.textContent = b.label;
         el.onclick = () => {
