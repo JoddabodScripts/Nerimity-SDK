@@ -329,6 +329,50 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
       <div class="pal-item" draggable="true" data-type="plugin_quiz">
         <span class="pal-dot" style="background:#f472b6"></span>QuizPlugin
       </div>
+
+      <div class="pal-section">Utility</div>
+      <div class="pal-item" draggable="true" data-type="trigger_cron">
+        <span class="pal-dot" style="background:#fb923c"></span>Scheduler (cron)
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_webhook">
+        <span class="pal-dot" style="background:#60a5fa"></span>Send webhook
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_http">
+        <span class="pal-dot" style="background:#60a5fa"></span>HTTP request
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_random_int">
+        <span class="pal-dot" style="background:#fb923c"></span>Random int
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_random_choice">
+        <span class="pal-dot" style="background:#fb923c"></span>Random choice
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_math">
+        <span class="pal-dot" style="background:#fbbf24"></span>Math
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_string_format">
+        <span class="pal-dot" style="background:#a78bfa"></span>Format string
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_set_var">
+        <span class="pal-dot" style="background:#94a3b8"></span>Set variable
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_log">
+        <span class="pal-dot" style="background:#94a3b8"></span>Log
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_add_role">
+        <span class="pal-dot" style="background:#34d399"></span>Add role
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_remove_role">
+        <span class="pal-dot" style="background:#f87171"></span>Remove role
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_unban">
+        <span class="pal-dot" style="background:#34d399"></span>Unban member
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_pin">
+        <span class="pal-dot" style="background:#60a5fa"></span>Pin message
+      </div>
+      <div class="pal-item" draggable="true" data-type="action_delete_msg">
+        <span class="pal-dot" style="background:#f87171"></span>Delete message
+      </div>
     </div>
 
     <!-- canvas -->
@@ -434,6 +478,35 @@ const NODE_DEFS = {
     fields:[{k:'daily',l:'Daily amount',t:'text',d:'100'},{k:'currency',l:'Currency name',t:'text',d:'coins'}] },
   plugin_quiz:      { label:'QuizPlugin',     icon:'🧠', color:'#f472b6', cat:'plugin',  ins:[], outs:[],
     fields:[{k:'rounds',l:'Default rounds',t:'text',d:'5'},{k:'timeout',l:'Answer timeout (sec)',t:'text',d:'20'}] },
+  // Utility
+  action_webhook:   { label:'Send webhook',   icon:'🔗', color:'#60a5fa', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'url',l:'Webhook URL',t:'text',d:'https://...'},{k:'text',l:'Message text',t:'textarea',d:'Hello from Bot Zombie!'}] },
+  action_http:      { label:'HTTP request',   icon:'🌐', color:'#60a5fa', cat:'utility', ins:['exec'], outs:['exec','error'],
+    fields:[{k:'method',l:'Method',t:'select',d:'GET',opts:['GET','POST','PUT','PATCH','DELETE']},{k:'url',l:'URL',t:'text',d:'https://api.example.com/data'},{k:'body',l:'JSON body (optional)',t:'textarea',d:''},{k:'var',l:'Store response in',t:'text',d:'response'}] },
+  action_random_int:{ label:'Random int',     icon:'🎲', color:'#fb923c', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'min',l:'Min',t:'text',d:'1'},{k:'max',l:'Max',t:'text',d:'100'},{k:'var',l:'Store in variable',t:'text',d:'rand'}] },
+  action_random_choice:{ label:'Random choice',icon:'🎰',color:'#fb923c', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'items',l:'Items (comma-sep)',t:'text',d:'yes,no,maybe'},{k:'var',l:'Store in variable',t:'text',d:'choice'}] },
+  action_math:      { label:'Math',           icon:'➕', color:'#fbbf24', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'expr',l:'Expression (Python)',t:'text',d:'2 + 2'},{k:'var',l:'Store result in',t:'text',d:'result'}] },
+  action_string_format:{ label:'Format string',icon:'✏️',color:'#a78bfa', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'template',l:'Template (use {var})',t:'textarea',d:'Hello {name}!'},{k:'var',l:'Store result in',t:'text',d:'text'}] },
+  action_set_var:   { label:'Set variable',   icon:'📌', color:'#94a3b8', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'var',l:'Variable name',t:'text',d:'my_var'},{k:'value',l:'Value',t:'text',d:'hello'}] },
+  action_log:       { label:'Log',            icon:'📋', color:'#94a3b8', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Message to log',t:'text',d:'debug info'}] },
+  action_add_role:  { label:'Add role',       icon:'🏷️', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
+  action_remove_role:{ label:'Remove role',   icon:'🏷️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
+  action_unban:     { label:'Unban member',   icon:'🔓', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'user_id',l:'User ID',t:'text',d:'USER_ID'}] },
+  action_pin:       { label:'Pin message',    icon:'📌', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[] },
+  action_delete_msg:{ label:'Delete message', icon:'🗑️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[] },
+  trigger_cron:     { label:'Scheduler (cron)',icon:'⏰',color:'#fb923c', cat:'trigger', ins:[], outs:['exec'],
+    fields:[{k:'expr',l:'Cron expression',t:'text',d:'0 9 * * *'},{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
 };
 
 // ── Token screen ───────────────────────────────────────────────────────────
@@ -994,6 +1067,18 @@ function emitTrigger(trigger, lines) {
       emitChain(trigger.id, 'exec', lines, '    ');
       if (!lines[lines.length-1].trim()) lines.push('    pass');
       break;
+
+    case 'trigger_cron': {
+      const expr = p.expr || '0 9 * * *';
+      const ch   = p.channel || 'YOUR_CHANNEL_ID';
+      const fn   = `cron_${trigger.id}`;
+      lines.push(`@bot.cron("${expr}")`);
+      lines.push(`async def ${fn}():`);
+      const cronBody = emitChain(trigger.id, 'exec', [], '    ');
+      if (cronBody.length) cronBody.forEach(l => lines.push(l));
+      else lines.push(`    await bot.rest.create_message("${ch}", "Scheduled message")`);
+      break;
+    }
   }
 }
 
@@ -1082,6 +1167,86 @@ function emitAction(node, lines, indent) {
       else lines.push(`${i}    await ctx.reply(f"⏳ Cooldown! Try again in {_cd.retry_after:.1f}s.")`);
       break;
     }
+    // ── Utility ──────────────────────────────────────────────────────────
+    case 'action_webhook':
+      lines.push(`${i}from nerimity_sdk import Webhook`);
+      lines.push(`${i}await Webhook("${esc2(p.url||'')}").send("${esc2(p.text||'')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_http': {
+      const method = (p.method||'GET').upper ? p.method : p.method||'GET';
+      const hasBody = p.body && p.body.trim();
+      lines.push(`${i}import aiohttp as _aiohttp`);
+      lines.push(`${i}async with _aiohttp.ClientSession() as _sess:`);
+      if (hasBody) {
+        lines.push(`${i}    async with _sess.${(p.method||'GET').toLowerCase()}("${esc2(p.url||'')}", json=${p.body.trim()}) as _r:`);
+      } else {
+        lines.push(`${i}    async with _sess.${(p.method||'GET').toLowerCase()}("${esc2(p.url||'')}") as _r:`);
+      }
+      lines.push(`${i}        ${p.var||'response'} = await _r.json()`);
+      emitChain(node.id, 'exec', lines, i);
+      const errLines = [];
+      emitChain(node.id, 'error', errLines, i);
+      break;
+    }
+
+    case 'action_random_int':
+      lines.push(`${i}import random as _random`);
+      lines.push(`${i}${p.var||'rand'} = _random.randrange(${p.min||1}, ${p.max||100})`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_random_choice':
+      lines.push(`${i}import random as _random`);
+      lines.push(`${i}${p.var||'choice'} = _random.choice([${(p.items||'yes,no').split(',').map(s=>`"${s.trim()}"`).join(', ')}])`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_math':
+      lines.push(`${i}${p.var||'result'} = ${p.expr||'0'}`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_string_format':
+      lines.push(`${i}${p.var||'text'} = f"${esc2(p.template||'')}"`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_set_var':
+      lines.push(`${i}${p.var||'my_var'} = "${esc2(p.value||'')}"`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_log':
+      lines.push(`${i}print("[bot]", "${esc2(p.text||'')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_add_role':
+      lines.push(`${i}await bot.rest.add_role(ctx.server_id, ctx.author.id, "${p.role_id||'YOUR_ROLE_ID'}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_remove_role':
+      lines.push(`${i}await bot.rest.remove_role(ctx.server_id, ctx.author.id, "${p.role_id||'YOUR_ROLE_ID'}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_unban':
+      lines.push(`${i}await bot.rest.unban_member(ctx.server_id, "${p.user_id||'USER_ID'}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_pin':
+      lines.push(`${i}await bot.rest.pin_message(ctx.channel_id, ctx.message.id)`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_delete_msg':
+      lines.push(`${i}await bot.rest.delete_message(ctx.channel_id, ctx.message.id)`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
   }
 }
 
