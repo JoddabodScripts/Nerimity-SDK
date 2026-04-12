@@ -267,7 +267,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
     </div>
     <div class="spacer"></div>
     <button class="tb-btn" onclick="openBuilder()">🧩 Builder</button>
-    <button class="tb-btn" id="run-btn" onclick="toggleBot()">▶ Run bot</button>
+
     <button class="tb-btn danger" onclick="doLogout()">Logout</button>
   </div>
 
@@ -275,8 +275,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
   <div id="nav">
     <div class="nav-tab active" onclick="showTab('dashboard')">Dashboard</div>
     <div class="nav-tab" onclick="showTab('embed')">HTML Embed</div>
-    <div class="nav-tab" onclick="showTab('code')">Code Editor</div>
-    <div class="nav-tab" onclick="showTab('logs')">Logs</div>
   </div>
 
   <!-- Content -->
@@ -284,19 +282,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 
     <!-- Dashboard tab -->
     <div id="tab-dashboard">
-      <!-- Bot controls -->
-      <div id="bot-panel">
-        <div class="bot-panel-row">
-          <strong style="font-size:.9rem">Bot Status</strong>
-          <div class="stat-chip">Status: <span id="stat-status">Stopped</span></div>
-          <div class="stat-chip">Uptime: <span id="stat-uptime">—</span></div>
-          <div class="stat-chip">PID: <span id="stat-pid">—</span></div>
-          <div class="spacer"></div>
-          <button class="tb-btn" onclick="fetchLogs()">Refresh logs</button>
-        </div>
-        <div id="log-box">No logs yet. Start the bot to see output here.</div>
-      </div>
-
       <!-- Modules -->
       <div class="section-header">
         <span class="section-title">Commands & Events</span>
@@ -350,27 +335,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
       </div>
     </div>
 
-    <!-- Code editor tab -->
-    <div id="tab-code" style="display:none">
-      <div class="section-header">
-        <span class="section-title">Code Editor</span>
-        <div style="display:flex;gap:.5rem">
-          <button class="btn" onclick="loadCodeFromBuilder()">↓ Load from builder</button>
-          <button class="btn primary" onclick="saveAndRun()">💾 Save & restart bot</button>
-        </div>
-      </div>
-      <textarea id="code-editor" spellcheck="false" placeholder="# Your bot.py code here…"></textarea>
-    </div>
-
-    <!-- Logs tab -->
-    <div id="tab-logs" style="display:none">
-      <div class="section-header">
-        <span class="section-title">Bot Logs</span>
-        <button class="btn" onclick="fetchLogs()">Refresh</button>
-      </div>
-      <div id="log-box-full" style="background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:var(--radius);font-family:'JetBrains Mono',monospace;font-size:.75rem;line-height:1.7;color:#94a3b8;padding:1rem;min-height:400px;white-space:pre-wrap;word-break:break-all;overflow-y:auto;max-height:70vh"></div>
-    </div>
-
   </div><!-- /content -->
 </div><!-- /app -->
 
@@ -404,7 +368,6 @@ let BOT_TOKEN = '';
 let BOT_INFO = null;
 let modules = JSON.parse(localStorage.getItem('bz_modules') || '[]');
 let embedBlocks = [];
-let statusInterval = null;
 
 // ── Login ──────────────────────────────────────────────────────────────────
 async function doLogin() {
@@ -449,14 +412,9 @@ function openApp() {
   document.getElementById('bot-name-display').textContent = name;
   document.getElementById('bot-avatar').textContent = name[0].toUpperCase();
   renderModules();
-  startStatusPoll();
-  // restore saved code
-  fetch(`${API}/api/save_code?token_tail=${BOT_TOKEN.slice(-12)}`)
-    .then(r=>r.json()).then(d=>{ if(d.code) document.getElementById('code-editor').value = d.code; });
 }
 
 function doLogout() {
-  clearInterval(statusInterval);
   BOT_TOKEN = ''; BOT_INFO = null;
   localStorage.removeItem('bz_token');
   document.getElementById('login-screen').style.display = 'flex';
@@ -468,13 +426,12 @@ function doLogout() {
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
 function showTab(name) {
-  ['dashboard','embed','code','logs'].forEach(t => {
+  ['dashboard','embed'].forEach(t => {
     document.getElementById('tab-'+t).style.display = t===name ? '' : 'none';
   });
   document.querySelectorAll('.nav-tab').forEach((el,i) => {
-    el.classList.toggle('active', ['dashboard','embed','code','logs'][i] === name);
+    el.classList.toggle('active', ['dashboard','embed'][i] === name);
   });
-  if (name === 'logs') fetchLogs();
 }
 
 // ── Modules ────────────────────────────────────────────────────────────────
@@ -552,112 +509,18 @@ function addModule() {
 }
 
 function editModule(i) {
-  // open builder.html with this module pre-loaded
   const mod = modules[i];
-  localStorage.setItem('bz_edit_module', JSON.stringify({index: i, module: mod}));
-  window.open('./builder.html', '_blank');
+  localStorage.setItem('bz_edit_module_idx', i);
+  localStorage.setItem('bz_edit_module', JSON.stringify(mod));
+  document.getElementById('editor-modal').classList.add('open');
+  // load editor in iframe
+  const iframe = document.getElementById('editor-iframe');
+  iframe.src = './editor.html';
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // ── Bot controls ───────────────────────────────────────────────────────────
-let botRunning = false;
-
-async function toggleBot() {
-  const btn = document.getElementById('run-btn');
-  if (botRunning) {
-    await fetch(`${API}/api/stop`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({token: BOT_TOKEN})
-    });
-    botRunning = false;
-  } else {
-    const code = document.getElementById('code-editor').value || generateDefaultCode();
-    const res = await fetch(`${API}/api/spawn`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({token: BOT_TOKEN, code})
-    });
-    const data = await res.json();
-    if (data.ok) { botRunning = true; }
-    else { alert('Failed to start: ' + (data.detail || JSON.stringify(data))); return; }
-  }
-  updateRunBtn();
-  fetchLogs();
-}
-
-function updateRunBtn() {
-  const btn = document.getElementById('run-btn');
-  const dot = document.getElementById('status-dot');
-  btn.textContent = botRunning ? '⏹ Stop bot' : '▶ Run bot';
-  dot.className = 'status-dot' + (botRunning ? ' running' : '');
-  document.getElementById('stat-status').textContent = botRunning ? 'Running' : 'Stopped';
-}
-
-function startStatusPoll() {
-  statusInterval = setInterval(async () => {
-    try {
-      const res = await fetch(`${API}/api/status/${BOT_TOKEN.slice(-12)}`);
-      const data = await res.json();
-      botRunning = data.running;
-      updateRunBtn();
-      if (data.running) {
-        const up = Math.floor(data.uptime);
-        const h = Math.floor(up/3600), m = Math.floor((up%3600)/60), s = up%60;
-        document.getElementById('stat-uptime').textContent =
-          `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        document.getElementById('stat-pid').textContent = data.pid;
-      } else {
-        document.getElementById('stat-uptime').textContent = '—';
-        document.getElementById('stat-pid').textContent = '—';
-      }
-    } catch(e) {}
-  }, 3000);
-}
-
-async function fetchLogs() {
-  try {
-    const res = await fetch(`${API}/api/logs/${BOT_TOKEN.slice(-12)}?lines=200`);
-    const data = await res.json();
-    const text = data.lines.join('\n') || 'No logs yet.';
-    document.getElementById('log-box').textContent = text;
-    document.getElementById('log-box-full').textContent = text;
-    document.getElementById('log-box').scrollTop = 9999;
-    document.getElementById('log-box-full').scrollTop = 9999;
-  } catch(e) {}
-}
-
-async function saveAndRun() {
-  if (botRunning) {
-    await fetch(`${API}/api/stop`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({token: BOT_TOKEN})
-    });
-    botRunning = false;
-    await new Promise(r => setTimeout(r, 800));
-  }
-  const code = document.getElementById('code-editor').value;
-  const res = await fetch(`${API}/api/spawn`, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({token: BOT_TOKEN, code})
-  });
-  const data = await res.json();
-  if (data.ok) { botRunning = true; updateRunBtn(); fetchLogs(); }
-  else alert('Failed: ' + JSON.stringify(data));
-}
-
-function loadCodeFromBuilder() {
-  const saved = localStorage.getItem('botzombie_graph');
-  if (!saved) { alert('No saved builder graph found.'); return; }
-  // just note — full codegen would require importing builder's generateCode
-  alert('Open the Builder tab, use "Preview code", copy it, then paste here.');
-}
-
-function generateDefaultCode() {
-  return `import os\nfrom nerimity_sdk import Bot\n\nbot = Bot(token="${BOT_TOKEN}")\n\n@bot.on("ready")\nasync def on_ready(me):\n    print(f"Bot online as {me.username}")\n\nbot.run()\n`;
-}
-
-function openBuilder() { window.open('./builder.html', '_blank'); }
-
 // ── HTML Embed builder ─────────────────────────────────────────────────────
 let embedIdSeq = 0;
 
@@ -779,6 +642,27 @@ window.addEventListener('load', () => {
     doLogin();
   }
 });
+
+// ── Handle editor iframe messages ──────────────────────────────────────────────────
+window.addEventListener('message', (e) => {
+  if (e.data.action === 'save_module') {
+    const idx = e.data.index;
+    modules[idx] = e.data.module;
+    saveModules();
+    renderModules();
+  }
+});
 </script>
+<!-- Editor modal -->
+<div class="modal-backdrop" id="editor-modal">
+  <div class="modal" style="width:90%;max-width:1000px;height:80vh;padding:0;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem;border-bottom:1px solid var(--border)">
+      <h2 style="margin:0">Edit Module</h2>
+      <button class="tb-btn" onclick="closeModal('editor-modal')">✕</button>
+    </div>
+    <iframe id="editor-iframe" style="flex:1;border:none;background:var(--bg)"></iframe>
+  </div>
+</div>
+
 </body>
 </html>
