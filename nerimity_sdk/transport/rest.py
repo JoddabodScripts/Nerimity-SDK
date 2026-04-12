@@ -33,6 +33,14 @@ class RESTClient:
         key = self._bucket_key(method, path)
         url = f"{BASE_URL}{path}"
 
+        # Safety: strip any key containing "token" from json/params payloads
+        for kw in ("json", "params"):
+            if kw in kwargs and isinstance(kwargs[kw], dict):
+                kwargs[kw] = {
+                    k: v for k, v in kwargs[kw].items()
+                    if "token" not in k.lower()
+                }
+
         for attempt in range(5):
             await self._rl.acquire_global()
             await self._rl.acquire(key)

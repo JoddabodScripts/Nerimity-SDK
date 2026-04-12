@@ -54,7 +54,7 @@ from nerimity_sdk_contrib.economy import EconomyPlugin
 from nerimity_sdk_contrib.pinboard import PinboardPlugin
 from nerimity_sdk_contrib.raid_guard import RaidGuardPlugin
 
-__version__ = "1.0.9"
+__version__ = "1.1.0"
 
 __all__ = [
     "WelcomePlugin",
