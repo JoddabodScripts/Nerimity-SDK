@@ -2425,9 +2425,46 @@ function previewExecNode(node, ctx, depth) {
       break;
     case 'action_reply_buttons': {
       const btns = [];
-      if (p.btn1_label) btns.push(`[${p.btn1_label}]`);
-      if (p.btn2_label) btns.push(`[${p.btn2_label}]`);
-      ctx.replies.push(`${previewInterpolate(p.text||'Choose:', ctx)}  ${btns.join('  ')}`);
+      if (p.btn1_id) btns.push({id: p.btn1_id, label: p.btn1_label||'Button 1', alert: false});
+      if (p.btn2_id) btns.push({id: p.btn2_id, label: p.btn2_label||'Button 2', alert: p.btn2_alert==='true'||p.btn2_alert===true});
+      // render as real clickable buttons in the chat
+      const feed = document.getElementById('preview-messages');
+      const row = document.createElement('div');
+      row.className = 'pm-row bot';
+      const botName = document.getElementById('bot-name-input').value || 'Bot';
+      row.innerHTML = `
+        <div class="pm-avatar" style="background:var(--purple)">${botName[0]}</div>
+        <div>
+          <div class="pm-name">${esc(botName)}</div>
+          <div class="pm-bubble">${esc(previewInterpolate(p.text||'Choose:', ctx))}</div>
+          <div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap" id="btn-row-${node.id}"></div>
+        </div>`;
+      feed.appendChild(row);
+      feed.scrollTop = feed.scrollHeight;
+      const btnRow = document.getElementById('btn-row-' + node.id);
+      btns.forEach(b => {
+        const el = document.createElement('button');
+        el.style.cssText = `background:${b.alert?'rgba(248,113,113,.15)':'rgba(167,139,250,.15)'};border:1px solid ${b.alert?'rgba(248,113,113,.4)':'rgba(167,139,250,.4)'};border-radius:6px;color:${b.alert?'#f87171':'var(--purple)'};cursor:pointer;font-size:.78rem;font-weight:600;padding:.3rem .75rem;transition:background .15s`;
+        el.textContent = b.label;
+        el.onclick = () => {
+          el.disabled = true;
+          btnRow.querySelectorAll('button').forEach(x => x.disabled = true);
+          // find matching trigger_button node and walk its chain
+          const pattern = b.id.replace(/\{[^}]+\}/g, '.*');
+          const re = new RegExp('^' + pattern + '$');
+          const triggerNode = nodes.find(n => n.type === 'trigger_button' && re.test(n.props.id||''));
+          if (triggerNode) {
+            const bctx = {...ctx, button_id: b.id};
+            const replies = [];
+            bctx.replies = replies;
+            previewWalkChain(triggerNode.id, 'exec', bctx, 0);
+            replies.forEach(r => addPreviewMessage(r, true, botName));
+          } else {
+            addPreviewMessage(`[No button handler found for "${b.id}"]`, true, botName);
+          }
+        };
+        btnRow.appendChild(el);
+      });
       previewWalkChain(node.id, 'exec', ctx, depth+1);
       break;
     }
