@@ -361,12 +361,8 @@ function addModule() {
 }
 
 function editModule(i) {
-  editingIdx = i;
-  const mod = modules[i];
-  document.getElementById('edit-name').value = mod.name;
-  document.getElementById('edit-desc').value = mod.desc || '';
-  document.getElementById('edit-code').value = mod.code || '';
-  document.getElementById('edit-modal').classList.add('open');
+  localStorage.setItem('bz_edit_idx', i);
+  window.location.href = 'node-editor.html';
 }
 
 function saveEdit() {
