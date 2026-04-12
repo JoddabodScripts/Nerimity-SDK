@@ -399,12 +399,15 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
         <div class="pal-item" draggable="true" data-type="trigger_msg_update"><span class="pal-dot" style="background:#60a5fa"></span>Message updated</div>
         <div class="pal-item" draggable="true" data-type="trigger_msg_delete"><span class="pal-dot" style="background:#f87171"></span>Message deleted</div>
         <div class="pal-item" draggable="true" data-type="trigger_typing"><span class="pal-dot" style="background:#94a3b8"></span>User typing</div>
+        <div class="pal-item" draggable="true" data-type="trigger_button"><span class="pal-dot" style="background:#a78bfa"></span>Button clicked</div>
       </div>
 
       <!-- Actions -->
       <div class="acc-header" onclick="toggleAcc(this)"><span>Actions</span><span class="acc-arrow">▶</span></div>
       <div class="acc-body">
         <div class="pal-item" draggable="true" data-type="action_reply"><span class="pal-dot" style="background:#a78bfa"></span>Reply</div>
+        <div class="pal-item" draggable="true" data-type="action_reply_buttons"><span class="pal-dot" style="background:#a78bfa"></span>Reply with buttons</div>
+        <div class="pal-item" draggable="true" data-type="action_popup"><span class="pal-dot" style="background:#a78bfa"></span>Button popup</div>
         <div class="pal-item" draggable="true" data-type="action_send"><span class="pal-dot" style="background:#60a5fa"></span>Send message</div>
         <div class="pal-item" draggable="true" data-type="action_dm"><span class="pal-dot" style="background:#f472b6"></span>Send DM</div>
         <div class="pal-item" draggable="true" data-type="action_kick"><span class="pal-dot" style="background:#fb923c"></span>Kick member</div>
@@ -761,6 +764,20 @@ const NODE_DEFS = {
     fields:[{k:'path',l:'File path',t:'text',d:'./file.png'},{k:'var',l:'Store file ID in',t:'text',d:'file_id'}] },
   action_unpin:      { label:'Unpin message',   icon:'📌', color:'#94a3b8', cat:'action',  ins:['exec'], outs:['exec'],
     fields:[] },
+  // Buttons
+  trigger_button:    { label:'Button clicked',  icon:'🔘', color:'#a78bfa', cat:'trigger', ins:[], outs:['exec'],
+    fields:[{k:'id',l:'Button ID pattern (use {param} for wildcards)',t:'text',d:'my_button_{user_id}'}] },
+  action_reply_buttons:{ label:'Reply with buttons', icon:'🔘', color:'#a78bfa', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[
+      {k:'text',l:'Message text',t:'textarea',d:'Choose an option:'},
+      {k:'btn1_id',l:'Button 1 ID',t:'text',d:'btn_yes_{channel_id}'},
+      {k:'btn1_label',l:'Button 1 label',t:'text',d:'👍 Yes'},
+      {k:'btn2_id',l:'Button 2 ID (optional)',t:'text',d:'btn_no_{channel_id}'},
+      {k:'btn2_label',l:'Button 2 label',t:'text',d:'👎 No'},
+      {k:'btn2_alert',l:'Button 2 is alert style',t:'bool',d:false},
+    ] },
+  action_popup:      { label:'Button popup',    icon:'💬', color:'#a78bfa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'title',l:'Popup title',t:'text',d:'Done!'},{k:'text',l:'Popup body',t:'text',d:'Action completed.'}] },
   // Extra plugins
   plugin_afk:        { label:'AFKPlugin',       icon:'💤', color:'#94a3b8', cat:'plugin', ins:[], outs:[], fields:[] },
   plugin_autorole:   { label:'AutoRolePlugin',  icon:'🏷️', color:'#34d399', cat:'plugin', ins:[], outs:[],
@@ -1608,6 +1625,17 @@ function emitTrigger(trigger, lines) {
       if (!lines[lines.length-1].trim()) lines.push('    pass');
       break;
 
+    case 'trigger_button': {
+      const btnId = p.id || 'my_button';
+      const fn = btnId.replace(/[^a-z0-9]/gi,'_').replace(/_+/g,'_');
+      lines.push(`@bot.button("${esc2(btnId)}")`);
+      lines.push(`async def btn_${fn}(bctx):`);
+      const body = emitChain(trigger.id, 'exec', [], '    ');
+      if (body.length) body.forEach(l => lines.push(l));
+      else lines.push('    pass');
+      break;
+    }
+
     case 'trigger_cron': {
       const expr = p.expr || '0 9 * * *';
       const ch   = p.channel || 'YOUR_CHANNEL_ID';
@@ -1860,6 +1888,18 @@ function emitAction(node, lines, indent) {
     case 'action_unpin':
       lines.push(`${i}await bot.rest.unpin_message(ctx.channel_id, ctx.message.id)`);
       emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_reply_buttons': {
+      const btns = [];
+      if (p.btn1_id) btns.push(`Button(id=f"${esc2(p.btn1_id)}", label="${esc2(p.btn1_label||'Option 1')}")`);
+      if (p.btn2_id) btns.push(`Button(id=f"${esc2(p.btn2_id)}", label="${esc2(p.btn2_label||'Option 2')}"${p.btn2_alert==='true'||p.btn2_alert===true?', alert=True':''})`);
+      lines.push(`${i}from nerimity_sdk import Button`);
+      lines.push(`${i}await ctx.reply(f"${esc2(p.text||'Choose:')}", buttons=[${btns.join(', ')}])`);
+      emitChain(node.id, 'exec', lines, i); break;
+    }
+    case 'action_popup':
+      lines.push(`${i}await bctx.popup("${esc2(p.title||'Done!')}", "${esc2(p.text||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
   }
 }
 
@@ -2073,53 +2113,93 @@ function importPy(input) {
 }
 
 function parsePySrc(src) {
-    clearCanvas();
-    let y = 60;
+  clearCanvas();
+  let y = 60;
 
-    // Extract bot token
-    const tokenMatch = src.match(/token\s*=\s*["']([^"']+)["']/);
-    if (tokenMatch) BOT_TOKEN = tokenMatch[1];
+  const tokenMatch = src.match(/token\s*=\s*["']([^"']+)["']/);
+  if (tokenMatch) BOT_TOKEN = tokenMatch[1];
 
-    // Extract bot name from comment or variable
-    const nameMatch = src.match(/# bot[:\s]+(\w+)/i);
-    if (nameMatch) document.getElementById('bot-name-input').value = nameMatch[1];
+  const nameMatch = src.match(/# bot[:\s]+(\w+)/i);
+  if (nameMatch) document.getElementById('bot-name-input').value = nameMatch[1];
 
-    // Detect @bot.command(...)
-    const cmdRe = /@bot\.command\(\s*["']([^"']+)["'](?:[^)]*description\s*=\s*["']([^"']*)["'])?/g;
-    let m;
-    while ((m = cmdRe.exec(src)) !== null) {
-      const replyMatch = src.slice(m.index).match(/ctx\.reply\(["']([^"']+)["']\)/);
-      createNode('trigger_command', 60, y, {name: m[1], desc: m[2]||''});
-      if (replyMatch) {
-        const cmd = nodes[nodes.length-1];
-        const reply = createNode('action_reply', 340, y, {text: replyMatch[1]});
-        addWire(cmd.id, 'exec', reply.id, 'exec');
-      }
-      y += 160;
+  let m;
+
+  // @bot.command(...)
+  const cmdRe = /@bot\.command\(\s*["']([^"']+)["'](?:[^)]*description\s*=\s*["']([^"']*)["'])?[^)]*\)/g;
+  while ((m = cmdRe.exec(src)) !== null) {
+    const after = src.slice(m.index);
+    const body = after.match(/async def \w+\(ctx\):((?:\n(?:    .*))*)/)?.[1] || '';
+    const hasButtons = /buttons\s*=\s*\[/.test(body);
+    const replyMatch = body.match(/ctx\.reply\(\s*f?["'`]([^"'`]+)/);
+    const replyText = replyMatch ? replyMatch[1] : '';
+    const cmd = createNode('trigger_command', 60, y, {name: m[1], desc: m[2]||''});
+    if (hasButtons) {
+      const allBtns = [...body.matchAll(/Button\(id=f?["']([^"']+)["'],\s*label=["']([^"']+)["']([^)]*)/g)];
+      const props = {text: replyText};
+      if (allBtns[0]) { props.btn1_id = allBtns[0][1]; props.btn1_label = allBtns[0][2]; }
+      if (allBtns[1]) { props.btn2_id = allBtns[1][1]; props.btn2_label = allBtns[1][2]; props.btn2_alert = /alert=True/.test(allBtns[1][3]); }
+      const rn = createNode('action_reply_buttons', 340, y, props);
+      addWire(cmd.id, 'exec', rn.id, 'exec');
+    } else if (replyText) {
+      const rn = createNode('action_reply', 340, y, {text: replyText});
+      addWire(cmd.id, 'exec', rn.id, 'exec');
     }
+    y += 160;
+  }
 
-    // Detect @bot.on("ready")
-    if (src.includes('@bot.on("ready")') || src.includes("@bot.on('ready')")) {
-      createNode('trigger_ready', 60, y); y += 120;
+  // @bot.button(...)
+  const btnRe = /@bot\.button\(\s*["']([^"']+)["']\)/g;
+  while ((m = btnRe.exec(src)) !== null) {
+    const after = src.slice(m.index);
+    const body = after.match(/async def \w+\(bctx\):((?:\n(?:    .*))*)/)?.[1] || '';
+    const btn = createNode('trigger_button', 60, y, {id: m[1]});
+    const popupMatch = body.match(/bctx\.popup\(\s*["']([^"']+)["'],\s*["']([^"']+)["']/);
+    if (popupMatch) {
+      const pn = createNode('action_popup', 340, y, {title: popupMatch[1], text: popupMatch[2]});
+      addWire(btn.id, 'exec', pn.id, 'exec');
     }
+    y += 140;
+  }
 
-    // Detect @bot.on("message:created")
-    if (src.includes('message:created')) {
-      createNode('trigger_message', 60, y); y += 120;
-    }
+  // event triggers
+  const evMap = {
+    'message:created': 'trigger_message', 'message:updated': 'trigger_msg_update',
+    'message:deleted': 'trigger_msg_delete', 'channel:typing': 'trigger_typing',
+    'message:reaction_added': 'trigger_reaction', 'server:member_joined': 'trigger_join',
+    'server:member_left': 'trigger_leave',
+  };
+  if (src.includes('@bot.on("ready")') || src.includes("@bot.on('ready')")) {
+    createNode('trigger_ready', 60, y); y += 120;
+  }
+  Object.entries(evMap).forEach(([ev, type]) => {
+    if (src.includes(ev)) { createNode(type, 60, y); y += 120; }
+  });
 
-    // Detect plugins
-    const pluginMap = {
-      WelcomePlugin:'plugin_welcome', LevelingPlugin:'plugin_leveling',
-      AutoModPlugin:'plugin_automod', AntiSpamPlugin:'plugin_antispam',
-      StarboardPlugin:'plugin_starboard', TicketPlugin:'plugin_tickets',
-      EconomyPlugin:'plugin_economy', QuizPlugin:'plugin_quiz',
-    };
-    Object.entries(pluginMap).forEach(([cls, type]) => {
-      if (src.includes(cls)) { createNode(type, 60, y); y += 120; }
-    });
+  // plugins
+  const pluginMap = {
+    WelcomePlugin:'plugin_welcome', LevelingPlugin:'plugin_leveling',
+    AutoModPlugin:'plugin_automod', AntiSpamPlugin:'plugin_antispam',
+    StarboardPlugin:'plugin_starboard', TicketPlugin:'plugin_tickets',
+    EconomyPlugin:'plugin_economy', QuizPlugin:'plugin_quiz',
+    AFKPlugin:'plugin_afk', AutoRolePlugin:'plugin_autorole',
+    BirthdayPlugin:'plugin_birthday', CounterPlugin:'plugin_counter',
+    CustomCommandPlugin:'plugin_custom_cmd', GiveawayPlugin:'plugin_giveaway',
+    MessageFilterPlugin:'plugin_msg_filter', MessageSnapshotPlugin:'plugin_msg_snap',
+    ModerationLogPlugin:'plugin_mod_log', MutePlugin:'plugin_mute',
+    PinboardPlugin:'plugin_pinboard', PollPlugin:'plugin_poll',
+    RaidGuardPlugin:'plugin_raid_guard', ReactionRolesPlugin:'plugin_reaction_roles',
+    ReminderPlugin:'plugin_reminders', RoleMenuPlugin:'plugin_role_menu',
+    LoggingPlugin:'plugin_logging', ServerStatsPlugin:'plugin_server_stats',
+    SlowmodePlugin:'plugin_slowmode', SuggestionPlugin:'plugin_suggestions',
+    TagPlugin:'plugin_tags', TempChannelPlugin:'plugin_temp_channel',
+    TranslatePlugin:'plugin_translate', WarnPlugin:'plugin_warn',
+    AutoReplyPlugin:'plugin_auto_reply',
+  };
+  Object.entries(pluginMap).forEach(([cls, type]) => {
+    if (src.includes(cls)) { createNode(type, 60, y); y += 120; }
+  });
 
-    deselectNode();
+  deselectNode();
 }
 
 // ── Accordion palette ──────────────────────────────────────────────────────
