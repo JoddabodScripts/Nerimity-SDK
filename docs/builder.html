@@ -2,10 +2,2592 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="refresh" content="0;url=dashboard.html">
-<title>Redirecting...</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bot Zombie - nerimity-sdk</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f17;--surface:#16161f;--surface2:#1e1e2e;--surface3:#252535;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --purple:#a78bfa;--pink:#f472b6;--green:#34d399;--blue:#60a5fa;--orange:#fb923c;
+  --red:#f87171;--yellow:#fbbf24;
+  --text:#e2e8f0;--text-dim:#64748b;--text-mid:#94a3b8;
+  --radius:12px;--radius-sm:7px;
+  --node-w:220px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── Token screen ─────────────────────────────────────────────────────── */
+#token-screen{
+  position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;
+  justify-content:center;z-index:1000;flex-direction:column;gap:1.5rem;
+  padding:2rem;
+}
+#token-screen h1{
+  font-size:2rem;font-weight:700;letter-spacing:-0.04em;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+#token-screen p{color:var(--text-mid);font-size:0.9rem;text-align:center;max-width:380px;line-height:1.6}
+.token-box{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:2rem;display:flex;flex-direction:column;gap:1rem;width:100%;max-width:420px;
+}
+.token-box label{font-size:0.8rem;color:var(--text-mid);font-weight:500}
+.token-box input{
+  background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.85rem;
+  padding:0.6rem 0.9rem;outline:none;width:100%;
+  transition:border-color .2s,box-shadow .2s;
+}
+.token-box input:focus{border-color:rgba(167,139,250,.5);box-shadow:0 0 0 3px rgba(167,139,250,.12)}
+.btn-start{
+  background:linear-gradient(135deg,var(--purple),var(--pink));border:none;
+  border-radius:var(--radius-sm);color:#fff;font-family:'Inter',sans-serif;
+  font-size:0.9rem;font-weight:600;padding:.7rem 1.4rem;cursor:pointer;
+  transition:opacity .2s,transform .1s;width:100%;
+}
+.btn-start:hover{opacity:.9}
+.btn-start:active{transform:scale(.98)}
+
+/* ── App shell ────────────────────────────────────────────────────────── */
+#app{display:none;flex-direction:column;height:100vh}
+
+/* topbar */
+#topbar{
+  height:48px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 1rem;gap:1rem;flex-shrink:0;z-index:10;
+}
+#topbar .logo{
+  font-size:0.85rem;font-weight:700;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  white-space:nowrap;
+}
+#topbar .sep{width:1px;height:20px;background:var(--border2)}
+#bot-name-input{
+  background:transparent;border:none;color:var(--text);font-family:'Inter',sans-serif;
+  font-size:0.85rem;font-weight:500;outline:none;width:140px;
+}
+#topbar .spacer{flex:1}
+.tb-btn{
+  background:rgba(255,255,255,0.05);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;font-size:0.78rem;
+  font-weight:500;padding:.35rem .85rem;transition:background .2s,color .2s;white-space:nowrap;
+}
+.tb-btn:hover{background:rgba(255,255,255,0.1);color:var(--text)}
+.tb-btn.primary{
+  background:linear-gradient(135deg,var(--purple),var(--pink));border:none;
+  color:#fff;font-weight:600;
+}
+.tb-btn.primary:hover{opacity:.9}
+
+/* main area */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* ── Palette sidebar ──────────────────────────────────────────────────── */
+#palette{
+  width:200px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  overflow-y:auto;padding:.75rem .6rem;display:flex;flex-direction:column;gap:.25rem;
+}
+#palette::-webkit-scrollbar{width:4px}
+#palette::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.pal-section{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
+  color:var(--text-dim);padding:.5rem .4rem .25rem;margin-top:.25rem}
+/* accordion */
+.acc-header{display:flex;align-items:center;justify-content:space-between;padding:.45rem .5rem;cursor:pointer;border-radius:var(--radius-sm);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text-mid);user-select:none;transition:background .15s}
+.acc-header:hover{background:var(--surface3)}
+.acc-header .acc-arrow{font-size:.6rem;transition:transform .2s;color:var(--text-dim)}
+.acc-header.open .acc-arrow{transform:rotate(90deg)}
+.acc-body{display:none;flex-direction:column;gap:.25rem;padding-bottom:.35rem}
+.acc-body.open{display:flex}
+.pal-item{
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:.45rem .6rem;cursor:grab;font-size:.78rem;font-weight:500;
+  display:flex;align-items:center;gap:.5rem;transition:border-color .15s,background .15s;
+  user-select:none;
+}
+.pal-item:hover{border-color:var(--border2);background:var(--surface3)}
+.pal-item:active{cursor:grabbing}
+.pal-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ── Canvas ───────────────────────────────────────────────────────────── */
+#canvas-wrap{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+#canvas-wrap::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:24px 24px;pointer-events:none;
+}
+#canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform-origin:0 0}
+#wire-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+#wire-svg .wire{fill:none;stroke-width:2.5;stroke-linecap:round;pointer-events:stroke;cursor:pointer}
+#wire-svg .wire-preview{fill:none;stroke:rgba(167,139,250,.5);stroke-width:2;stroke-dasharray:6 4;stroke-linecap:round;pointer-events:none}
+
+/* ── Nodes ────────────────────────────────────────────────────────────── */
+.node{
+  position:absolute;width:var(--node-w);background:var(--surface2);
+  border:1.5px solid var(--border2);border-radius:var(--radius);
+  box-shadow:0 4px 24px rgba(0,0,0,.4);cursor:default;user-select:none;
+  transition:box-shadow .15s;
+}
+.node:hover{box-shadow:0 6px 32px rgba(0,0,0,.6)}
+.node.selected{border-color:var(--purple);box-shadow:0 0 0 2px rgba(167,139,250,.25),0 6px 32px rgba(0,0,0,.6)}
+.node-header{
+  padding:.55rem .75rem;border-radius:calc(var(--radius) - 1px) calc(var(--radius) - 1px) 0 0;
+  display:flex;align-items:center;gap:.5rem;cursor:move;
+}
+.node-icon{font-size:.95rem;line-height:1}
+.node-title{font-size:.78rem;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.node-del{
+  background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;
+  font-size:.85rem;line-height:1;padding:0 .1rem;transition:color .15s;
+}
+.node-del:hover{color:var(--red)}
+.node-body{padding:.5rem .75rem .65rem;display:flex;flex-direction:column;gap:.35rem}
+.node-field{display:flex;flex-direction:column;gap:.2rem}
+.node-field label{font-size:.68rem;color:var(--text-dim);font-weight:500}
+.node-field input,.node-field select,.node-field textarea{
+  background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:5px;
+  color:var(--text);font-family:'Inter',sans-serif;font-size:.75rem;
+  padding:.3rem .5rem;outline:none;width:100%;
+  transition:border-color .15s;
+}
+.node-field input:focus,.node-field select:focus,.node-field textarea:focus{border-color:rgba(167,139,250,.4)}
+.node-field select option{background:var(--surface2)}
+.node-field textarea{resize:vertical;min-height:44px;font-family:'JetBrains Mono',monospace;font-size:.72rem;line-height:1.5}
+
+/* ports */
+.ports{display:flex;flex-direction:column;gap:.3rem;padding:.1rem 0 .5rem}
+.port-row{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:var(--text-mid);position:relative}
+.port-row.out{justify-content:flex-end}
+.port{
+  width:12px;height:12px;border-radius:50%;border:2px solid;
+  cursor:crosshair;flex-shrink:0;transition:transform .15s,box-shadow .15s;
+  position:relative;z-index:2;
+}
+.port:hover{transform:scale(1.4);box-shadow:0 0 0 3px rgba(255,255,255,.1)}
+.port.in{background:var(--surface3)}
+.port.out{background:var(--surface3)}
+.port.connected{background:currentColor!important}
+
+/* ── Inspector panel ──────────────────────────────────────────────────── */
+#inspector{
+  width:240px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);
+  overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.75rem;
+}
+#inspector::-webkit-scrollbar{width:4px}
+#inspector::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+#inspector h3{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim)}
+#inspector .empty{font-size:.8rem;color:var(--text-dim);text-align:center;margin-top:2rem;line-height:1.6}
+.insp-field{display:flex;flex-direction:column;gap:.25rem}
+.insp-field label{font-size:.72rem;color:var(--text-mid);font-weight:500}
+.insp-field input,.insp-field select,.insp-field textarea{
+  background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text);font-family:'Inter',sans-serif;font-size:.78rem;
+  padding:.4rem .6rem;outline:none;width:100%;transition:border-color .15s;
+}
+.insp-field input:focus,.insp-field select:focus,.insp-field textarea:focus{border-color:rgba(167,139,250,.4)}
+.insp-field select option{background:var(--surface2)}
+.insp-field textarea{resize:vertical;min-height:60px;font-family:'JetBrains Mono',monospace;font-size:.73rem;line-height:1.5}
+
+/* ── Code panel ───────────────────────────────────────────────────────── */
+#code-panel{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:500;display:none;align-items:center;justify-content:center;padding:2rem;
+}
+#code-panel.open{display:flex}
+#code-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  width:100%;max-width:760px;height:85vh;display:flex;flex-direction:column;overflow:hidden;
+}
+#code-box-header{
+  padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;
+}
+#code-box-header span{font-size:.82rem;font-weight:600;flex:1}
+#code-pre{
+  flex:1;overflow:auto;padding:1.25rem;resize:none;
+  font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.7;
+  color:var(--text);white-space:pre;background:rgba(15,15,23,.6);
+  border:none;outline:none;width:100%;
+}
+#code-pre[readonly]{cursor:default;caret-color:transparent}
+#code-pre::-webkit-scrollbar{width:6px;height:6px}
+#code-pre::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* misc */
+.hint{font-size:.72rem;color:var(--text-dim);line-height:1.5}
+
+/* ── Preview panel ────────────────────────────────────────────────────── */
+#preview-panel{
+  position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;
+  padding:2rem;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+}
+#preview-panel.open{display:flex}
+#preview-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  width:100%;max-width:520px;height:80vh;display:flex;flex-direction:column;overflow:hidden;
+}
+#preview-header{
+  padding:.65rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.6rem;flex-shrink:0;
+}
+#preview-header span{font-size:.85rem;font-weight:600;flex:1}
+#preview-users{
+  padding:.5rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;
+  gap:.5rem;flex-wrap:wrap;flex-shrink:0;background:var(--surface2);
+}
+.preview-user-chip{
+  display:flex;align-items:center;gap:.35rem;background:var(--surface3);border:1.5px solid var(--border2);
+  border-radius:999px;padding:.2rem .55rem .2rem .3rem;cursor:pointer;font-size:.75rem;font-weight:500;
+  transition:border-color .15s;user-select:none;
+}
+.preview-user-chip.active{border-color:var(--purple)}
+.preview-user-chip .pu-avatar{
+  width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:700;color:#fff;flex-shrink:0;
+}
+.preview-user-add{
+  background:none;border:1.5px dashed var(--border2);border-radius:999px;color:var(--text-dim);
+  cursor:pointer;font-size:.75rem;padding:.2rem .65rem;transition:border-color .15s,color .15s;
+}
+.preview-user-add:hover{border-color:var(--purple);color:var(--purple)}
+#preview-messages{
+  flex:1;overflow-y:auto;padding:.75rem;display:flex;flex-direction:column;gap:.5rem;
+}
+#preview-messages::-webkit-scrollbar{width:4px}
+#preview-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.pm-row{display:flex;gap:.55rem;align-items:flex-start;animation:fadeIn .15s ease}
+.pm-row.bot{flex-direction:row-reverse}
+.pm-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0}
+.pm-bubble{
+  max-width:75%;background:var(--surface3);border-radius:10px;padding:.45rem .7rem;
+  font-size:.82rem;line-height:1.5;word-break:break-word;
+}
+.pm-row.bot .pm-bubble{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.2)}
+.pm-name{font-size:.65rem;color:var(--text-dim);margin-bottom:.15rem;font-weight:600}
+.pm-typing{display:flex;gap:3px;align-items:center;padding:.45rem .7rem}
+.pm-typing span{width:6px;height:6px;border-radius:50%;background:var(--text-dim);animation:typing-dot 1.2s infinite}
+.pm-typing span:nth-child(2){animation-delay:.2s}
+.pm-typing span:nth-child(3){animation-delay:.4s}
+@keyframes typing-dot{0%,60%,100%{opacity:.3}30%{opacity:1}}
+#preview-input-row{
+  padding:.6rem .75rem;border-top:1px solid var(--border);display:flex;gap:.5rem;flex-shrink:0;
+}
+#preview-input{
+  flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text);font-family:'Inter',sans-serif;font-size:.83rem;padding:.45rem .7rem;outline:none;
+  transition:border-color .15s;
+}
+#preview-input:focus{border-color:rgba(167,139,250,.4)}
+#preview-send{
+  background:linear-gradient(135deg,var(--purple),var(--pink));border:none;border-radius:var(--radius-sm);
+  color:#fff;cursor:pointer;font-size:.82rem;font-weight:600;padding:.45rem .9rem;transition:opacity .15s;
+}
+#preview-send:hover{opacity:.9}
+
+/* ── Right sidebar tabs ───────────────────────────────────────────────── */
+#right-sidebar{width:240px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-tab{flex:1;padding:.5rem .25rem;font-size:.7rem;font-weight:600;text-align:center;cursor:pointer;color:var(--text-dim);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;text-transform:uppercase;letter-spacing:.06em}
+.sidebar-tab.active{color:var(--purple);border-bottom-color:var(--purple)}
+.sidebar-panel{flex:1;overflow-y:auto;padding:.75rem;display:none;flex-direction:column;gap:.65rem}
+.sidebar-panel.active{display:flex}
+.sidebar-panel::-webkit-scrollbar{width:4px}
+.sidebar-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.sidebar-panel h3{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim)}
+.sidebar-panel .empty{font-size:.8rem;color:var(--text-dim);text-align:center;margin-top:1.5rem;line-height:1.6}
+
+/* variables */
+.var-row{display:flex;align-items:center;gap:.4rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.35rem .5rem}
+.var-row .var-name{font-size:.75rem;font-weight:600;color:var(--purple);font-family:'JetBrains Mono',monospace;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.var-row .var-val{font-size:.72rem;color:var(--text-mid);flex:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.var-del{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:.8rem;padding:0 .1rem;transition:color .15s;flex-shrink:0}
+.var-del:hover{color:var(--red)}
+.var-add-row{display:flex;gap:.4rem}
+.var-add-row input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:.75rem;padding:.3rem .5rem;outline:none;min-width:0}
+.var-add-row input:focus{border-color:rgba(167,139,250,.4)}
+
+/* error log */
+.err-row{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:var(--radius-sm);padding:.45rem .6rem;font-size:.75rem;color:#fca5a5;line-height:1.5;cursor:pointer;transition:background .15s}
+.err-row:hover{background:rgba(248,113,113,.15)}
+.err-row .err-node{font-size:.68rem;color:var(--text-dim);margin-top:.15rem}
+.err-clear{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.2);border-radius:var(--radius-sm);color:#f87171;font-size:.72rem;padding:.3rem .6rem;cursor:pointer;transition:background .15s;align-self:flex-start}
+.err-clear:hover{background:rgba(248,113,113,.2)}
+.err-badge{background:#f87171;color:#fff;border-radius:999px;font-size:.6rem;font-weight:700;padding:.05rem .35rem;margin-left:.3rem;vertical-align:middle}
+.kbd{display:inline-block;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.68rem;padding:.1rem .35rem;color:var(--text-mid)}
+.keybind-row{display:flex;align-items:center;justify-content:space-between;font-size:.75rem;color:var(--text-mid);padding:.2rem 0;border-bottom:1px solid var(--border)}
+.keybind-row:last-child{border-bottom:none}
+
+/* ── Tutorial overlay ─────────────────────────────────────────────────── */
+#tutorial-overlay{position:fixed;inset:0;z-index:800;pointer-events:none;display:none}
+#tutorial-overlay.active{display:block}
+#tutorial-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);pointer-events:all;z-index:800}
+#tutorial-card{
+  position:absolute;width:320px;background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius);box-shadow:0 8px 40px rgba(0,0,0,.6);pointer-events:all;
+  overflow:hidden;z-index:802;
+}
+#tutorial-card-header{padding:.75rem 1rem;background:linear-gradient(135deg,rgba(167,139,250,.15),rgba(244,114,182,.1));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+#tutorial-card-header .tut-step{font-size:.68rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+#tutorial-card-header .tut-title{font-size:.9rem;font-weight:700;flex:1}
+#tutorial-card-body{padding:1rem;font-size:.82rem;color:var(--text-mid);line-height:1.65}
+#tutorial-card-body strong{color:var(--text)}
+#tutorial-card-body .tut-tip{background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.15);border-radius:var(--radius-sm);padding:.5rem .75rem;margin-top:.75rem;font-size:.75rem;color:var(--purple)}
+#tutorial-card-footer{padding:.65rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+.tut-dots{display:flex;gap:.35rem;flex:1}
+.tut-dot{width:6px;height:6px;border-radius:50%;background:var(--border2);transition:background .2s}
+.tut-dot.active{background:var(--purple)}
+.tut-btn{background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:var(--radius-sm);color:var(--purple);cursor:pointer;font-family:'Inter',sans-serif;font-size:.78rem;font-weight:600;padding:.35rem .85rem;transition:background .15s}
+.tut-btn:hover{background:rgba(167,139,250,.25)}
+.tut-btn.primary{background:linear-gradient(135deg,var(--purple),var(--pink));border:none;color:#fff}
+#tutorial-highlight{position:absolute;border-radius:var(--radius-sm);box-shadow:0 0 0 4px rgba(167,139,250,.6),0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;transition:all .3s ease;z-index:801}
+</style>
 </head>
 <body>
-<script>window.location.href = 'dashboard.html';</script>
+
+<!-- ── Token screen ─────────────────────────────────────────────────── -->
+<div id="token-screen">
+  <a href="./" style="position:absolute;top:1.25rem;left:1.5rem;color:var(--text-dim);font-size:0.82rem;text-decoration:none" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">← back to docs</a>
+  <h1>Bot Zombie</h1>
+  <p>Enter your Nerimity bot token to start building. Your token never leaves your browser.</p>
+  <div class="token-box">
+    <label for="token-input">Bot token</label>
+    <input id="token-input" type="password" placeholder="paste your token here…" autocomplete="off">
+    <button class="btn-start" onclick="startBuilder()">Open Builder →</button>
+  </div>
+  <span class="hint">Don't have a token? <a href="https://nerimity.com" target="_blank" style="color:var(--purple)">Create a bot on Nerimity</a></span>
+</div>
+
+<!-- ── App ──────────────────────────────────────────────────────────── -->
+<div id="app">
+
+  <!-- topbar -->
+  <div id="topbar">
+    <a href="./" style="color:var(--text-dim);font-size:0.78rem;text-decoration:none;white-space:nowrap" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-dim)'">← docs</a>
+    <div class="sep"></div>
+    <span class="logo">bot zombie</span>
+    <span style="font-size:.68rem;color:var(--text-dim);background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:999px;padding:.1rem .55rem">v1.3.1</span>
+    <div class="sep"></div>
+    <input id="bot-name-input" value="MyBot" title="Bot name">
+    <div class="spacer"></div>
+    <button class="tb-btn" onclick="clearCanvas()" title="Remove all nodes">Clear</button>
+    <button class="tb-btn" onclick="loadExample()">Load example</button>
+    <button class="tb-btn" onclick="openTutorial()" style="margin-left:.25rem">🎓 Tutorial</button>
+    <button class="tb-btn" onclick="saveGraph()" style="margin-left:.25rem">💾 Save</button>
+    <label class="tb-btn" title="Import a .py file" style="cursor:pointer">📂 Import .py<input type="file" accept=".py" style="display:none" onchange="importPy(this)"></label>
+    <button class="tb-btn" onclick="openCode()" style="margin-left:.25rem">Preview code</button>
+    <button class="tb-btn" onclick="openPreview()" style="margin-left:.25rem">💬 Test bot</button>
+    <button class="tb-btn primary" onclick="downloadBot()">⬇ Download bot.py</button>
+  </div>
+
+  <!-- main -->
+  <div id="main">
+
+    <!-- palette -->
+    <div id="palette">
+
+      <!-- Triggers -->
+      <div class="acc-header open" onclick="toggleAcc(this)"><span>Triggers</span><span class="acc-arrow">▶</span></div>
+      <div class="acc-body open">
+        <div class="pal-item" draggable="true" data-type="trigger_ready"><span class="pal-dot" style="background:#34d399"></span>on_ready</div>
+        <div class="pal-item" draggable="true" data-type="trigger_command"><span class="pal-dot" style="background:#a78bfa"></span>Command</div>
+        <div class="pal-item" draggable="true" data-type="trigger_message"><span class="pal-dot" style="background:#60a5fa"></span>Message created</div>
+        <div class="pal-item" draggable="true" data-type="trigger_join"><span class="pal-dot" style="background:#34d399"></span>Member joined</div>
+        <div class="pal-item" draggable="true" data-type="trigger_leave"><span class="pal-dot" style="background:#f87171"></span>Member left</div>
+        <div class="pal-item" draggable="true" data-type="trigger_reaction"><span class="pal-dot" style="background:#fbbf24"></span>Reaction added</div>
+        <div class="pal-item" draggable="true" data-type="trigger_cron"><span class="pal-dot" style="background:#fb923c"></span>Scheduler (cron)</div>
+        <div class="pal-item" draggable="true" data-type="trigger_msg_update"><span class="pal-dot" style="background:#60a5fa"></span>Message updated</div>
+        <div class="pal-item" draggable="true" data-type="trigger_msg_delete"><span class="pal-dot" style="background:#f87171"></span>Message deleted</div>
+        <div class="pal-item" draggable="true" data-type="trigger_typing"><span class="pal-dot" style="background:#94a3b8"></span>User typing</div>
+        <div class="pal-item" draggable="true" data-type="trigger_button"><span class="pal-dot" style="background:#a78bfa"></span>Button clicked</div>
+      </div>
+
+      <!-- Actions -->
+      <div class="acc-header" onclick="toggleAcc(this)"><span>Actions</span><span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        <div class="pal-item" draggable="true" data-type="action_reply"><span class="pal-dot" style="background:#a78bfa"></span>Reply</div>
+        <div class="pal-item" draggable="true" data-type="action_reply_buttons"><span class="pal-dot" style="background:#a78bfa"></span>Reply with buttons</div>
+        <div class="pal-item" draggable="true" data-type="action_popup"><span class="pal-dot" style="background:#a78bfa"></span>Button popup</div>
+        <div class="pal-item" draggable="true" data-type="action_send"><span class="pal-dot" style="background:#60a5fa"></span>Send message</div>
+        <div class="pal-item" draggable="true" data-type="action_dm"><span class="pal-dot" style="background:#f472b6"></span>Send DM</div>
+        <div class="pal-item" draggable="true" data-type="action_kick"><span class="pal-dot" style="background:#fb923c"></span>Kick member</div>
+        <div class="pal-item" draggable="true" data-type="action_ban"><span class="pal-dot" style="background:#f87171"></span>Ban member</div>
+        <div class="pal-item" draggable="true" data-type="action_unban"><span class="pal-dot" style="background:#34d399"></span>Unban member</div>
+        <div class="pal-item" draggable="true" data-type="action_add_role"><span class="pal-dot" style="background:#34d399"></span>Add role</div>
+        <div class="pal-item" draggable="true" data-type="action_remove_role"><span class="pal-dot" style="background:#f87171"></span>Remove role</div>
+        <div class="pal-item" draggable="true" data-type="action_pin"><span class="pal-dot" style="background:#60a5fa"></span>Pin message</div>
+        <div class="pal-item" draggable="true" data-type="action_delete_msg"><span class="pal-dot" style="background:#f87171"></span>Delete message</div>
+        <div class="pal-item" draggable="true" data-type="action_store_set"><span class="pal-dot" style="background:#34d399"></span>Store: set</div>
+        <div class="pal-item" draggable="true" data-type="action_store_get"><span class="pal-dot" style="background:#34d399"></span>Store: get</div>
+        <div class="pal-item" draggable="true" data-type="action_webhook"><span class="pal-dot" style="background:#60a5fa"></span>Send webhook</div>
+        <div class="pal-item" draggable="true" data-type="action_fetch_user"><span class="pal-dot" style="background:#60a5fa"></span>Fetch user</div>
+        <div class="pal-item" draggable="true" data-type="action_fetch_msg"><span class="pal-dot" style="background:#60a5fa"></span>Fetch message</div>
+        <div class="pal-item" draggable="true" data-type="action_fetch_msgs"><span class="pal-dot" style="background:#60a5fa"></span>Fetch messages</div>
+        <div class="pal-item" draggable="true" data-type="action_update_msg"><span class="pal-dot" style="background:#a78bfa"></span>Edit message</div>
+        <div class="pal-item" draggable="true" data-type="action_bulk_delete"><span class="pal-dot" style="background:#f87171"></span>Bulk delete msgs</div>
+        <div class="pal-item" draggable="true" data-type="action_add_reaction"><span class="pal-dot" style="background:#fbbf24"></span>Add reaction</div>
+        <div class="pal-item" draggable="true" data-type="action_remove_reaction"><span class="pal-dot" style="background:#fbbf24"></span>Remove reaction</div>
+        <div class="pal-item" draggable="true" data-type="action_create_role"><span class="pal-dot" style="background:#34d399"></span>Create role</div>
+        <div class="pal-item" draggable="true" data-type="action_delete_role"><span class="pal-dot" style="background:#f87171"></span>Delete role</div>
+        <div class="pal-item" draggable="true" data-type="action_set_nickname"><span class="pal-dot" style="background:#a78bfa"></span>Set nickname</div>
+        <div class="pal-item" draggable="true" data-type="action_create_channel"><span class="pal-dot" style="background:#34d399"></span>Create channel</div>
+        <div class="pal-item" draggable="true" data-type="action_send_typing"><span class="pal-dot" style="background:#94a3b8"></span>Send typing</div>
+        <div class="pal-item" draggable="true" data-type="action_upload_file"><span class="pal-dot" style="background:#60a5fa"></span>Upload file</div>
+        <div class="pal-item" draggable="true" data-type="action_unpin"><span class="pal-dot" style="background:#94a3b8"></span>Unpin message</div>
+      </div>
+
+      <!-- Logic -->
+      <div class="acc-header" onclick="toggleAcc(this)"><span>Logic</span><span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        <div class="pal-item" draggable="true" data-type="logic_if_contains"><span class="pal-dot" style="background:#fbbf24"></span>If contains</div>
+        <div class="pal-item" draggable="true" data-type="logic_if_perm"><span class="pal-dot" style="background:#fbbf24"></span>If has permission</div>
+        <div class="pal-item" draggable="true" data-type="logic_cooldown"><span class="pal-dot" style="background:#fb923c"></span>Cooldown</div>
+        <div class="pal-item" draggable="true" data-type="action_loop_start"><span class="pal-dot" style="background:#60a5fa"></span>Loop start</div>
+        <div class="pal-item" draggable="true" data-type="action_loop_stop"><span class="pal-dot" style="background:#f87171"></span>Loop stop</div>
+      </div>
+
+      <!-- Utility -->
+      <div class="acc-header" onclick="toggleAcc(this)"><span>Utility</span><span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        <div class="pal-item" draggable="true" data-type="action_http"><span class="pal-dot" style="background:#60a5fa"></span>HTTP request</div>
+        <div class="pal-item" draggable="true" data-type="action_random_int"><span class="pal-dot" style="background:#fb923c"></span>Random int</div>
+        <div class="pal-item" draggable="true" data-type="action_random_choice"><span class="pal-dot" style="background:#fb923c"></span>Random choice</div>
+        <div class="pal-item" draggable="true" data-type="action_random_text"><span class="pal-dot" style="background:#fb923c"></span>Random text</div>
+        <div class="pal-item" draggable="true" data-type="action_math"><span class="pal-dot" style="background:#fbbf24"></span>Math</div>
+        <div class="pal-item" draggable="true" data-type="action_string_format"><span class="pal-dot" style="background:#a78bfa"></span>Format string</div>
+        <div class="pal-item" draggable="true" data-type="action_set_var"><span class="pal-dot" style="background:#94a3b8"></span>Set variable</div>
+        <div class="pal-item" draggable="true" data-type="action_get_rest"><span class="pal-dot" style="background:#a78bfa"></span>Get rest text</div>
+        <div class="pal-item" draggable="true" data-type="action_get_arg"><span class="pal-dot" style="background:#a78bfa"></span>Get argument</div>
+        <div class="pal-item" draggable="true" data-type="action_log"><span class="pal-dot" style="background:#94a3b8"></span>Log</div>
+      </div>
+
+      <!-- Plugins -->
+      <div class="acc-header" onclick="toggleAcc(this)"><span>Plugins</span><span class="acc-arrow">▶</span></div>
+      <div class="acc-body">
+        <div class="pal-item" draggable="true" data-type="plugin_welcome"><span class="pal-dot" style="background:#34d399"></span>WelcomePlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_leveling"><span class="pal-dot" style="background:#a78bfa"></span>LevelingPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_automod"><span class="pal-dot" style="background:#f87171"></span>AutoModPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_antispam"><span class="pal-dot" style="background:#fb923c"></span>AntiSpamPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_starboard"><span class="pal-dot" style="background:#fbbf24"></span>StarboardPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_tickets"><span class="pal-dot" style="background:#60a5fa"></span>TicketPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_economy"><span class="pal-dot" style="background:#34d399"></span>EconomyPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_quiz"><span class="pal-dot" style="background:#f472b6"></span>QuizPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_afk"><span class="pal-dot" style="background:#94a3b8"></span>AFKPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_autorole"><span class="pal-dot" style="background:#34d399"></span>AutoRolePlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_birthday"><span class="pal-dot" style="background:#f472b6"></span>BirthdayPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_counter"><span class="pal-dot" style="background:#60a5fa"></span>CounterPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_custom_cmd"><span class="pal-dot" style="background:#a78bfa"></span>CustomCommandPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_giveaway"><span class="pal-dot" style="background:#fbbf24"></span>GiveawayPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_msg_filter"><span class="pal-dot" style="background:#f87171"></span>MessageFilterPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_msg_snap"><span class="pal-dot" style="background:#60a5fa"></span>MessageSnapshotPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_mod_log"><span class="pal-dot" style="background:#fb923c"></span>ModerationLogPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_mute"><span class="pal-dot" style="background:#f87171"></span>MutePlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_pinboard"><span class="pal-dot" style="background:#60a5fa"></span>PinboardPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_poll"><span class="pal-dot" style="background:#a78bfa"></span>PollPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_raid_guard"><span class="pal-dot" style="background:#f87171"></span>RaidGuardPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_reaction_roles"><span class="pal-dot" style="background:#a78bfa"></span>ReactionRolesPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_reminders"><span class="pal-dot" style="background:#fb923c"></span>ReminderPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_role_menu"><span class="pal-dot" style="background:#60a5fa"></span>RoleMenuPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_logging"><span class="pal-dot" style="background:#94a3b8"></span>LoggingPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_server_stats"><span class="pal-dot" style="background:#60a5fa"></span>ServerStatsPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_slowmode"><span class="pal-dot" style="background:#fb923c"></span>SlowmodePlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_suggestions"><span class="pal-dot" style="background:#fbbf24"></span>SuggestionPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_tags"><span class="pal-dot" style="background:#a78bfa"></span>TagPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_temp_channel"><span class="pal-dot" style="background:#fb923c"></span>TempChannelPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_translate"><span class="pal-dot" style="background:#60a5fa"></span>TranslatePlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_warn"><span class="pal-dot" style="background:#fbbf24"></span>WarnPlugin</div>
+        <div class="pal-item" draggable="true" data-type="plugin_auto_reply"><span class="pal-dot" style="background:#34d399"></span>AutoReplyPlugin</div>
+      </div>
+
+    </div>
+
+    <!-- canvas -->
+    <div id="canvas-wrap">
+      <div id="canvas">
+        <svg id="wire-svg"></svg>
+      </div>
+      <div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);
+        font-size:.72rem;color:var(--text-dim);pointer-events:none;white-space:nowrap">
+        Drag nodes from the left · Connect ports with wires · Click a node to inspect
+      </div>
+    </div>
+
+    <!-- right sidebar -->
+    <div id="right-sidebar">
+      <div class="sidebar-tabs">
+        <div class="sidebar-tab active" onclick="switchTab('inspector')">Inspector</div>
+        <div class="sidebar-tab" onclick="switchTab('variables')">Variables</div>
+        <div class="sidebar-tab" onclick="switchTab('errors')">Errors<span class="err-badge" id="err-badge" style="display:none">0</span></div>
+        <div class="sidebar-tab" onclick="switchTab('settings')">⚙</div>
+      </div>
+
+      <!-- Inspector -->
+      <div class="sidebar-panel active" id="panel-inspector">
+        <div class="empty" id="insp-empty">Select a node to edit its properties.</div>
+        <div id="insp-fields" style="display:none;flex-direction:column;gap:.65rem"></div>
+      </div>
+
+      <!-- Variables -->
+      <div class="sidebar-panel" id="panel-variables">
+        <h3>Bot Variables</h3>
+        <p class="hint">Variables are accessible in any block using <code style="color:var(--purple);font-family:'JetBrains Mono',monospace">{var_name}</code> syntax.</p>
+        <div id="var-list" style="display:flex;flex-direction:column;gap:.4rem"></div>
+        <div class="var-add-row" style="margin-top:.25rem">
+          <input id="var-name-input" placeholder="name" maxlength="32">
+          <input id="var-val-input" placeholder="default value">
+          <button class="tut-btn" onclick="addVariable()" style="white-space:nowrap;padding:.3rem .6rem">+</button>
+        </div>
+      </div>
+
+      <!-- Error log -->
+      <div class="sidebar-panel" id="panel-errors">
+        <h3>Error Log</h3>
+        <button class="err-clear" onclick="clearErrors()">Clear all</button>
+        <div id="err-list" style="display:flex;flex-direction:column;gap:.4rem">
+          <div class="empty">No errors detected.</div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="sidebar-panel" id="panel-settings">
+        <h3>Theme</h3>
+        <div style="display:flex;flex-direction:column;gap:.4rem">
+          <div class="insp-field"><label>Accent color</label>
+            <select onchange="applyTheme('accent',this.value)">
+              <option value="#a78bfa">Purple (default)</option>
+              <option value="#60a5fa">Blue</option>
+              <option value="#34d399">Green</option>
+              <option value="#f472b6">Pink</option>
+              <option value="#fb923c">Orange</option>
+            </select>
+          </div>
+          <div class="insp-field"><label>Canvas background</label>
+            <select onchange="applyTheme('bg',this.value)">
+              <option value="#0f0f17">Dark (default)</option>
+              <option value="#0a0a0f">Darker</option>
+              <option value="#111827">Slate</option>
+              <option value="#0f1a0f">Forest</option>
+            </select>
+          </div>
+        </div>
+        <h3 style="margin-top:.75rem">Keybinds</h3>
+        <div style="display:flex;flex-direction:column;gap:.3rem" id="keybind-list"></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- preview panel -->
+<div id="preview-panel">
+  <div id="preview-box">
+    <div id="preview-header">
+      <span>💬 Bot Preview</span>
+      <button class="tb-btn" onclick="clearPreview()">Clear</button>
+      <button class="tb-btn" onclick="closePreview()" style="margin-left:.25rem">✕</button>
+    </div>
+    <div id="preview-users">
+      <span style="font-size:.68rem;color:var(--text-dim);white-space:nowrap">As:</span>
+    </div>
+    <div id="preview-messages"></div>
+    <div id="preview-input-row">
+      <input id="preview-input" placeholder="Type a message or /command…" onkeydown="if(event.key==='Enter')sendPreviewMessage()">
+      <button id="preview-send" onclick="sendPreviewMessage()">Send</button>
+    </div>
+  </div>
+</div>
+
+<!-- tutorial overlay -->
+<div id="tutorial-overlay">
+  <div id="tutorial-backdrop" onclick="closeTutorial()"></div>
+  <div id="tutorial-highlight"></div>
+  <div id="tutorial-card">
+    <div id="tutorial-card-header">
+      <span class="tut-step" id="tut-step-label">Step 1 / 8</span>
+      <span class="tut-title" id="tut-title"></span>
+    </div>
+    <div id="tutorial-card-body"></div>
+    <div id="tutorial-card-footer">
+      <div class="tut-dots" id="tut-dots"></div>
+      <button class="tut-btn" onclick="tutPrev()" id="tut-prev-btn">← Back</button>
+      <button class="tut-btn primary" onclick="tutNext()" id="tut-next-btn">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- code panel -->
+<div id="code-panel">
+  <div id="code-box">
+    <div id="code-box-header">
+      <span id="code-panel-title">Generated bot.py</span>
+      <button class="tb-btn" id="code-edit-btn" onclick="toggleCodeEdit()" title="Edit code directly">✏️ Edit</button>
+      <button class="tb-btn" onclick="copyCode()">Copy</button>
+      <button class="tb-btn primary" onclick="downloadBot()">⬇ Download</button>
+      <button class="tb-btn" onclick="closeCode()" style="margin-left:.25rem">✕</button>
+    </div>
+    <textarea id="code-pre" spellcheck="false" readonly></textarea>
+  </div>
+</div>
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let BOT_TOKEN = '';
+let nodes = [];       // {id, type, x, y, props, el}
+let wires = [];       // {id, fromNode, fromPort, toNode, toPort, el}
+let selectedNode = null;
+let nodeIdSeq = 0;
+let wireIdSeq = 0;
+
+// canvas pan/zoom
+let panX = 0, panY = 0, zoom = 1;
+let isPanning = false, panStart = null;
+
+// wire drawing state
+let wiringFrom = null; // {nodeId, port, portEl, isOut}
+let previewPath = null;
+
+const canvas     = document.getElementById('canvas');
+const wireSvg    = document.getElementById('wire-svg');
+const canvasWrap = document.getElementById('canvas-wrap');
+
+// ── Node definitions ───────────────────────────────────────────────────────
+const NODE_DEFS = {
+  // Triggers
+  trigger_ready:    { label:'on_ready',       icon:'⚡', color:'#34d399', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_command:  { label:'Command',        icon:'💬', color:'#a78bfa', cat:'trigger', ins:[], outs:['exec'],
+    fields:[{k:'name',l:'Command name',t:'text',d:'ping'},{k:'desc',l:'Description',t:'text',d:'A command'},{k:'prefix',l:'Prefix',t:'text',d:'!'},{k:'guild_only',l:'Server only',t:'bool',d:false}] },
+  trigger_message:  { label:'Message created',icon:'✉️', color:'#60a5fa', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_join:     { label:'Member joined',  icon:'👋', color:'#34d399', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_leave:    { label:'Member left',    icon:'🚪', color:'#f87171', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_reaction: { label:'Reaction added', icon:'⭐', color:'#fbbf24', cat:'trigger', ins:[], outs:['exec'] },
+  // Actions
+  action_reply:     { label:'Reply',          icon:'↩️', color:'#a78bfa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Message text',t:'textarea',d:'Hello!'}] },
+  action_send:      { label:'Send message',   icon:'📤', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'text',l:'Message text',t:'textarea',d:'Hello!'}] },
+  action_dm:        { label:'Send DM',        icon:'💌', color:'#f472b6', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Message text',t:'textarea',d:'Hey there!'}] },
+  action_kick:      { label:'Kick member',    icon:'🦵', color:'#fb923c', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'reason',l:'Reason',t:'text',d:'Rule violation'}] },
+  action_ban:       { label:'Ban member',     icon:'🔨', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'reason',l:'Reason',t:'text',d:'Rule violation'}] },
+  action_store_set: { label:'Store: set',     icon:'💾', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'key',l:'Key',t:'text',d:'my_key'},{k:'value',l:'Value',t:'text',d:'my_value'}] },
+  action_store_get: { label:'Store: get',     icon:'📂', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'key',l:'Key',t:'text',d:'my_key'},{k:'var',l:'Variable name',t:'text',d:'result'}] },
+  // Logic
+  logic_if_contains:{ label:'If contains',   icon:'🔍', color:'#fbbf24', cat:'logic',   ins:['exec'], outs:['true','false'],
+    fields:[{k:'word',l:'Word / phrase',t:'text',d:'hello'}] },
+  logic_if_perm:    { label:'If has perm',    icon:'🔐', color:'#fbbf24', cat:'logic',   ins:['exec'], outs:['true','false'],
+    fields:[{k:'perm',l:'Permission',t:'select',d:'BAN_MEMBERS',opts:['BAN_MEMBERS','KICK_MEMBERS','MANAGE_CHANNELS','MANAGE_ROLES','ADMINISTRATOR']}] },
+  logic_cooldown:   { label:'Cooldown',       icon:'⏱️', color:'#fb923c', cat:'logic',   ins:['exec'], outs:['ok','blocked'],
+    fields:[{k:'seconds',l:'Seconds',t:'text',d:'5'},{k:'scope',l:'Scope',t:'select',d:'user',opts:['user','server','channel']}] },
+  // Plugins
+  plugin_welcome:   { label:'WelcomePlugin',  icon:'👋', color:'#34d399', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'msg',l:'Welcome message',t:'textarea',d:'Welcome {user}!'}] },
+  plugin_leveling:  { label:'LevelingPlugin', icon:'⭐', color:'#a78bfa', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'channel',l:'Announce channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'xp',l:'XP per message',t:'text',d:'10'}] },
+  plugin_automod:   { label:'AutoModPlugin',  icon:'🛡️', color:'#f87171', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'words',l:'Blocked words (comma-sep)',t:'text',d:'badword,spam'},{k:'log',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
+  plugin_antispam:  { label:'AntiSpamPlugin', icon:'🚫', color:'#fb923c', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'max',l:'Max messages',t:'text',d:'5'},{k:'window',l:'Window (sec)',t:'text',d:'5'},{k:'action',l:'Action',t:'select',d:'kick',opts:['kick','ban','warn']}] },
+  plugin_starboard: { label:'StarboardPlugin',icon:'⭐', color:'#fbbf24', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'channel',l:'Starboard channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Reactions needed',t:'text',d:'3'}] },
+  plugin_tickets:   { label:'TicketPlugin',   icon:'🎫', color:'#60a5fa', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'channel',l:'Staff channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_economy:   { label:'EconomyPlugin',  icon:'🪙', color:'#34d399', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'daily',l:'Daily amount',t:'text',d:'100'},{k:'currency',l:'Currency name',t:'text',d:'coins'}] },
+  plugin_quiz:      { label:'QuizPlugin',     icon:'🧠', color:'#f472b6', cat:'plugin',  ins:[], outs:[],
+    fields:[{k:'rounds',l:'Default rounds',t:'text',d:'5'},{k:'timeout',l:'Answer timeout (sec)',t:'text',d:'20'}] },
+  // Utility
+  action_webhook:   { label:'Send webhook',   icon:'🔗', color:'#60a5fa', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'url',l:'Webhook URL',t:'text',d:'https://...'},{k:'text',l:'Message text',t:'textarea',d:'Hello from Bot Zombie!'}] },
+  action_http:      { label:'HTTP request',   icon:'🌐', color:'#60a5fa', cat:'utility', ins:['exec'], outs:['exec','error'],
+    fields:[{k:'method',l:'Method',t:'select',d:'GET',opts:['GET','POST','PUT','PATCH','DELETE']},{k:'url',l:'URL',t:'text',d:'https://api.example.com/data'},{k:'body',l:'JSON body (optional)',t:'textarea',d:''},{k:'var',l:'Store response in',t:'text',d:'response'}] },
+  action_random_int:{ label:'Random int',     icon:'🎲', color:'#fb923c', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'min',l:'Min',t:'text',d:'1'},{k:'max',l:'Max',t:'text',d:'100'},{k:'var',l:'Store in variable',t:'text',d:'rand'}] },
+  action_random_choice:{ label:'Random choice',icon:'🎰',color:'#fb923c', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'items',l:'Items (comma-sep)',t:'text',d:'yes,no,maybe'},{k:'var',l:'Store in variable',t:'text',d:'choice'}] },
+  action_random_text: { label:'Random text',   icon:'🎲', color:'#fb923c', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'items',l:'Texts (one per line)',t:'textarea',d:'Hello!\nHey there!\nHi!'},{k:'var',l:'Store in variable',t:'text',d:'rand_text'}] },
+  action_loop_start:  { label:'Loop start',    icon:'🔁', color:'#60a5fa', cat:'utility', ins:['exec'], outs:['loop','done'],
+    fields:[{k:'times',l:'Times (leave blank for while-true)',t:'text',d:'5'}] },
+  action_loop_stop:   { label:'Loop stop',     icon:'⏹️', color:'#f87171', cat:'utility', ins:['exec'], outs:[],
+    fields:[] },
+  action_get_rest:    { label:'Get rest text',  icon:'📝', color:'#a78bfa', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'var',l:'Store in variable',t:'text',d:'input'}] },
+  action_get_arg:     { label:'Get argument',   icon:'📝', color:'#a78bfa', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'index',l:'Argument index (0 = first)',t:'text',d:'0'},{k:'var',l:'Store in variable',t:'text',d:'arg'}] },
+  action_math:      { label:'Math',           icon:'➕', color:'#fbbf24', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'expr',l:'Expression (Python)',t:'text',d:'2 + 2'},{k:'var',l:'Store result in',t:'text',d:'result'}] },
+  action_string_format:{ label:'Format string',icon:'✏️',color:'#a78bfa', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'template',l:'Template (use {var})',t:'textarea',d:'Hello {name}!'},{k:'var',l:'Store result in',t:'text',d:'text'}] },
+  action_set_var:   { label:'Set variable',   icon:'📌', color:'#94a3b8', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'var',l:'Variable name',t:'text',d:'my_var'},{k:'value',l:'Value',t:'text',d:'hello'}] },
+  action_log:       { label:'Log',            icon:'📋', color:'#94a3b8', cat:'utility', ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Message to log',t:'text',d:'debug info'}] },
+  action_add_role:  { label:'Add role',       icon:'🏷️', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
+  action_remove_role:{ label:'Remove role',   icon:'🏷️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
+  action_unban:     { label:'Unban member',   icon:'🔓', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'user_id',l:'User ID',t:'text',d:'USER_ID'}] },
+  action_pin:       { label:'Pin message',    icon:'📌', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[] },
+  action_delete_msg:{ label:'Delete message', icon:'🗑️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[] },
+  trigger_cron:     { label:'Scheduler (cron)',icon:'⏰',color:'#fb923c', cat:'trigger', ins:[], outs:['exec'],
+    fields:[{k:'expr',l:'Cron expression',t:'text',d:'0 9 * * *'},{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  // Extra triggers
+  trigger_msg_update:{ label:'Message updated', icon:'✏️', color:'#60a5fa', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_msg_delete:{ label:'Message deleted', icon:'🗑️', color:'#f87171', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_typing:    { label:'User typing',     icon:'⌨️', color:'#94a3b8', cat:'trigger', ins:[], outs:['exec'] },
+  // Extra actions
+  action_fetch_user: { label:'Fetch user',      icon:'👤', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'user_id',l:'User ID (or "author")',t:'text',d:'author'},{k:'var',l:'Store in',t:'text',d:'fetched_user'}] },
+  action_fetch_msg:  { label:'Fetch message',   icon:'📨', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'msg_id',l:'Message ID',t:'text',d:'MESSAGE_ID'},{k:'var',l:'Store in',t:'text',d:'fetched_msg'}] },
+  action_fetch_msgs: { label:'Fetch messages',  icon:'📋', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'limit',l:'Limit',t:'text',d:'50'},{k:'var',l:'Store in',t:'text',d:'messages'}] },
+  action_update_msg: { label:'Edit message',    icon:'✏️', color:'#a78bfa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'msg_id',l:'Message ID',t:'text',d:'MESSAGE_ID'},{k:'text',l:'New content',t:'textarea',d:'Updated!'}] },
+  action_bulk_delete:{ label:'Bulk delete msgs',icon:'🗑️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'ids',l:'Message IDs (comma-sep)',t:'text',d:'ID1,ID2'}] },
+  action_add_reaction:   { label:'Add reaction',    icon:'😀', color:'#fbbf24', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'msg_id',l:'Message ID',t:'text',d:'MESSAGE_ID'},{k:'emoji',l:'Emoji name',t:'text',d:'👍'}] },
+  action_remove_reaction:{ label:'Remove reaction', icon:'😶', color:'#fbbf24', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'msg_id',l:'Message ID',t:'text',d:'MESSAGE_ID'},{k:'emoji',l:'Emoji name',t:'text',d:'👍'}] },
+  action_create_role:{ label:'Create role',     icon:'🏷️', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'name',l:'Role name',t:'text',d:'New Role'},{k:'color',l:'Hex color',t:'text',d:'#a78bfa'}] },
+  action_delete_role:{ label:'Delete role',     icon:'🏷️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
+  action_set_nickname:{ label:'Set nickname',   icon:'📝', color:'#a78bfa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'user_id',l:'User ID (or "author")',t:'text',d:'author'},{k:'nick',l:'Nickname (blank to clear)',t:'text',d:''}] },
+  action_create_channel:{ label:'Create channel',icon:'#️⃣', color:'#34d399', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'name',l:'Channel name',t:'text',d:'new-channel'},{k:'type',l:'Type (0=text)',t:'text',d:'0'}] },
+  action_send_typing:{ label:'Send typing',     icon:'⌨️', color:'#94a3b8', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  action_upload_file:{ label:'Upload file',     icon:'📎', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'path',l:'File path',t:'text',d:'./file.png'},{k:'var',l:'Store file ID in',t:'text',d:'file_id'}] },
+  action_unpin:      { label:'Unpin message',   icon:'📌', color:'#94a3b8', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[] },
+  // Buttons
+  trigger_button:    { label:'Button clicked',  icon:'🔘', color:'#a78bfa', cat:'trigger', ins:[], outs:['exec'],
+    fields:[{k:'id',l:'Button ID pattern (use {param} for wildcards)',t:'text',d:'my_button_{user_id}'}] },
+  action_reply_buttons:{ label:'Reply with buttons', icon:'🔘', color:'#a78bfa', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[
+      {k:'text',l:'Message text',t:'textarea',d:'Choose an option:'},
+      {k:'btn1_id',l:'Button 1 ID',t:'text',d:'btn_yes_{channel_id}'},
+      {k:'btn1_label',l:'Button 1 label',t:'text',d:'👍 Yes'},
+      {k:'btn2_id',l:'Button 2 ID (optional)',t:'text',d:'btn_no_{channel_id}'},
+      {k:'btn2_label',l:'Button 2 label',t:'text',d:'👎 No'},
+      {k:'btn2_alert',l:'Button 2 is alert style',t:'bool',d:false},
+    ] },
+  action_popup:      { label:'Button popup',    icon:'💬', color:'#a78bfa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'title',l:'Popup title',t:'text',d:'Done!'},{k:'text',l:'Popup body',t:'text',d:'Action completed.'}] },
+  // Extra plugins
+  plugin_afk:        { label:'AFKPlugin',       icon:'💤', color:'#94a3b8', cat:'plugin', ins:[], outs:[], fields:[] },
+  plugin_autorole:   { label:'AutoRolePlugin',  icon:'🏷️', color:'#34d399', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'role_id',l:'Role ID to assign',t:'text',d:'YOUR_ROLE_ID'}] },
+  plugin_birthday:   { label:'BirthdayPlugin',  icon:'🎂', color:'#f472b6', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Announce channel',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_counter:    { label:'CounterPlugin',   icon:'🔢', color:'#60a5fa', cat:'plugin', ins:[], outs:[], fields:[] },
+  plugin_custom_cmd: { label:'CustomCommandPlugin',icon:'⚡',color:'#a78bfa',cat:'plugin', ins:[], outs:[], fields:[] },
+  plugin_giveaway:   { label:'GiveawayPlugin',  icon:'🎉', color:'#fbbf24', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_msg_filter: { label:'MessageFilterPlugin',icon:'🔍',color:'#f87171',cat:'plugin',ins:[], outs:[],
+    fields:[{k:'words',l:'Blocked words (comma-sep)',t:'text',d:'badword'}] },
+  plugin_msg_snap:   { label:'MessageSnapshotPlugin',icon:'📸',color:'#60a5fa',cat:'plugin',ins:[],outs:[],fields:[] },
+  plugin_mod_log:    { label:'ModerationLogPlugin',icon:'📋',color:'#fb923c',cat:'plugin',ins:[],outs:[],
+    fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
+  plugin_mute:       { label:'MutePlugin',      icon:'🔇', color:'#f87171', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
+  plugin_pinboard:   { label:'PinboardPlugin',  icon:'📌', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Pinboard channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Reactions needed',t:'text',d:'3'}] },
+  plugin_poll:       { label:'PollPlugin',      icon:'📊', color:'#a78bfa', cat:'plugin', ins:[], outs:[], fields:[] },
+  plugin_raid_guard: { label:'RaidGuardPlugin', icon:'🚨', color:'#f87171', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Alert channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Join threshold',t:'text',d:'10'}] },
+  plugin_reaction_roles:{ label:'ReactionRolesPlugin',icon:'🎭',color:'#a78bfa',cat:'plugin',ins:[],outs:[],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_reminders:  { label:'ReminderPlugin',  icon:'⏰', color:'#fb923c', cat:'plugin', ins:[], outs:[], fields:[] },
+  plugin_role_menu:  { label:'RoleMenuPlugin',  icon:'📋', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_logging:    { label:'LoggingPlugin',   icon:'📝', color:'#94a3b8', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
+  plugin_server_stats:{ label:'ServerStatsPlugin',icon:'📊',color:'#60a5fa',cat:'plugin',ins:[],outs:[],
+    fields:[{k:'channel',l:'Stats channel',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_slowmode:   { label:'SlowmodePlugin',  icon:'🐢', color:'#fb923c', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'seconds',l:'Slowmode seconds',t:'text',d:'5'}] },
+  plugin_suggestions:{ label:'SuggestionPlugin',icon:'💡', color:'#fbbf24', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Suggestions channel',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_tags:       { label:'TagPlugin',       icon:'🏷️', color:'#a78bfa', cat:'plugin', ins:[], outs:[], fields:[] },
+  plugin_temp_channel:{ label:'TempChannelPlugin',icon:'⏱️',color:'#fb923c',cat:'plugin',ins:[],outs:[],
+    fields:[{k:'timeout',l:'Timeout (seconds)',t:'text',d:'300'}] },
+  plugin_translate:  { label:'TranslatePlugin', icon:'🌐', color:'#60a5fa', cat:'plugin', ins:[], outs:[], fields:[] },
+  plugin_warn:       { label:'WarnPlugin',      icon:'⚠️', color:'#fbbf24', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'threshold',l:'Warn threshold',t:'text',d:'3'},{k:'channel',l:'Log channel',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
+  plugin_auto_reply: { label:'AutoReplyPlugin', icon:'💬', color:'#34d399', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'rules',l:'Rules (keyword:reply, one per line)',t:'textarea',d:'hello:Hi there!\nthanks:You\'re welcome!'}] },
+};
+
+// ── Token screen ───────────────────────────────────────────────────────────
+function startBuilder() {
+  const t = document.getElementById('token-input').value.trim();
+  if (!t) { alert('Please enter your bot token.'); return; }
+  BOT_TOKEN = t;
+  document.getElementById('token-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initCanvas();
+  loadGraph();
+}
+
+// ── Canvas init ────────────────────────────────────────────────────────────
+function initCanvas() {
+  // palette drag
+  document.querySelectorAll('.pal-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('nodeType', item.dataset.type);
+    });
+  });
+
+  canvasWrap.addEventListener('dragover', e => e.preventDefault());
+  canvasWrap.addEventListener('drop', e => {
+    e.preventDefault();
+    const type = e.dataTransfer.getData('nodeType');
+    if (!type) return;
+    const rect = canvasWrap.getBoundingClientRect();
+    const x = (e.clientX - rect.left - panX) / zoom;
+    const y = (e.clientY - rect.top  - panY) / zoom;
+    createNode(type, x - 110, y - 30);
+  });
+
+  // pan
+  canvasWrap.addEventListener('mousedown', e => {
+    if (e.target === canvasWrap || e.target === canvas || e.target === wireSvg) {
+      isPanning = true;
+      panStart = {x: e.clientX - panX, y: e.clientY - panY};
+      deselectNode();
+    }
+  });
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
+
+  // zoom
+  canvasWrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = canvasWrap.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.min(2, Math.max(0.3, zoom * delta));
+    panX = mx - (mx - panX) * (newZoom / zoom);
+    panY = my - (my - panY) * (newZoom / zoom);
+    zoom = newZoom;
+    applyTransform();
+  }, {passive:false});
+
+  // close code panel on backdrop click
+  document.getElementById('code-panel').addEventListener('click', e => {
+    if (e.target === document.getElementById('code-panel')) closeCode();
+  });
+}
+
+function applyTransform() {
+  canvas.style.transform = `translate(${panX}px,${panY}px) scale(${zoom})`;
+  redrawWires();
+}
+
+// ── Node creation ──────────────────────────────────────────────────────────
+function createNode(type, x, y, props) {
+  const def = NODE_DEFS[type];
+  if (!def) return;
+  const id = ++nodeIdSeq;
+  const defaultProps = {};
+  (def.fields||[]).forEach(f => defaultProps[f.k] = f.d);
+  const nodeProps = Object.assign({}, defaultProps, props||{});
+
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.dataset.id = id;
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+
+  el.innerHTML = buildNodeHTML(id, type, def, nodeProps);
+  canvas.appendChild(el);
+
+  const node = {id, type, x, y, props: nodeProps, el};
+  nodes.push(node);
+
+  // header drag
+  const header = el.querySelector('.node-header');
+  makeDraggable(el, header, node);
+
+  // port events
+  el.querySelectorAll('.port').forEach(portEl => {
+    portEl.addEventListener('mousedown', e => { e.stopPropagation(); startWire(e, id, portEl); });
+  });
+
+  // select on click
+  el.addEventListener('mousedown', e => {
+    e.stopPropagation();
+    selectNode(node);
+  });
+
+  // inline field changes
+  el.querySelectorAll('[data-prop]').forEach(input => {
+    input.addEventListener('input', () => {
+      node.props[input.dataset.prop] = input.type === 'checkbox' ? input.checked : input.value;
+      // sync inspector
+      const inspInput = document.querySelector(`#insp-fields [data-prop="${input.dataset.prop}"]`);
+      if (inspInput && inspInput !== input) inspInput.value = input.value;
+    });
+  });
+
+  selectNode(node);
+  return node;
+}
+
+function buildNodeHTML(id, type, def, props) {
+  const portColor = def.color;
+  let html = `<div class="node-header" style="background:${def.color}22;border-bottom:1px solid ${def.color}44">
+    <span class="node-icon" style="width:9px;height:9px;border-radius:50%;background:${def.color};display:inline-block;flex-shrink:0"></span>
+    <span class="node-title">${def.label}</span>
+    <button class="node-del" onclick="deleteNode(${id})">✕</button>
+  </div><div class="node-body">`;
+
+  // in ports
+  if (def.ins.length) {
+    html += '<div class="ports">';
+    def.ins.forEach(p => {
+      html += `<div class="port-row in">
+        <div class="port in" data-node="${id}" data-port="${p}" data-dir="in" style="border-color:${portColor};color:${portColor}"></div>
+        <span>${p}</span></div>`;
+    });
+    html += '</div>';
+  }
+
+  // fields
+  (def.fields||[]).forEach(f => {
+    const val = props[f.k] !== undefined ? props[f.k] : f.d;
+    html += `<div class="node-field"><label>${f.l}</label>`;
+    if (f.t === 'textarea') {
+      html += `<textarea data-prop="${f.k}" rows="2">${esc(val)}</textarea>`;
+    } else if (f.t === 'select') {
+      html += `<select data-prop="${f.k}">${(f.opts||[]).map(o=>`<option value="${o}" ${val===o?'selected':''}>${o}</option>`).join('')}</select>`;
+    } else if (f.t === 'bool') {
+      html += `<select data-prop="${f.k}"><option value="false" ${!val?'selected':''}>No</option><option value="true" ${val?'selected':''}>Yes</option></select>`;
+    } else {
+      html += `<input type="text" data-prop="${f.k}" value="${esc(val)}">`;
+    }
+    html += '</div>';
+  });
+
+  // out ports
+  if (def.outs.length) {
+    html += '<div class="ports">';
+    def.outs.forEach(p => {
+      html += `<div class="port-row out">
+        <span>${p}</span>
+        <div class="port out" data-node="${id}" data-port="${p}" data-dir="out" style="border-color:${portColor};color:${portColor}"></div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+// ── Node drag ──────────────────────────────────────────────────────────────
+function makeDraggable(el, handle, node) {
+  let dragging = false, ox, oy;
+  handle.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    const rect = el.getBoundingClientRect();
+    ox = (e.clientX - rect.left) / zoom;
+    oy = (e.clientY - rect.top)  / zoom;
+    e.stopPropagation();
+  });
+  window._nodeDragHandlers = window._nodeDragHandlers || [];
+  window._nodeDragHandlers.push({
+    move: e => {
+      if (!dragging) return;
+      const wr = canvasWrap.getBoundingClientRect();
+      node.x = (e.clientX - wr.left - panX) / zoom - ox;
+      node.y = (e.clientY - wr.top  - panY) / zoom - oy;
+      el.style.left = node.x + 'px';
+      el.style.top  = node.y + 'px';
+      redrawWires();
+    },
+    up: () => { dragging = false; }
+  });
+}
+
+function onMouseMove(e) {
+  if (isPanning && panStart) {
+    panX = e.clientX - panStart.x;
+    panY = e.clientY - panStart.y;
+    applyTransform();
+  }
+  window._nodeDragHandlers && window._nodeDragHandlers.forEach(h => h.move(e));
+  if (wiringFrom) updatePreviewWire(e);
+}
+
+function onMouseUp(e) {
+  isPanning = false;
+  window._nodeDragHandlers && window._nodeDragHandlers.forEach(h => h.up(e));
+  if (wiringFrom) finishWire(e);
+}
+
+// ── Wire drawing ───────────────────────────────────────────────────────────
+function portCenter(portEl) {
+  const wr = canvasWrap.getBoundingClientRect();
+  const pr = portEl.getBoundingClientRect();
+  return {
+    x: (pr.left + pr.width/2  - wr.left - panX) / zoom,
+    y: (pr.top  + pr.height/2 - wr.top  - panY) / zoom,
+  };
+}
+
+function bezierPath(x1,y1,x2,y2) {
+  const cx = (x2-x1)*0.5;
+  return `M${x1},${y1} C${x1+cx},${y1} ${x2-cx},${y2} ${x2},${y2}`;
+}
+
+function startWire(e, nodeId, portEl) {
+  const dir = portEl.dataset.dir;
+  wiringFrom = {nodeId, port: portEl.dataset.port, portEl, isOut: dir==='out'};
+  previewPath = document.createElementNS('http://www.w3.org/2000/svg','path');
+  previewPath.setAttribute('class','wire-preview');
+  wireSvg.appendChild(previewPath);
+  e.preventDefault();
+}
+
+function updatePreviewWire(e) {
+  if (!previewPath || !wiringFrom) return;
+  const c = portCenter(wiringFrom.portEl);
+  const wr = canvasWrap.getBoundingClientRect();
+  const mx = (e.clientX - wr.left - panX) / zoom;
+  const my = (e.clientY - wr.top  - panY) / zoom;
+  const [x1,y1,x2,y2] = wiringFrom.isOut ? [c.x,c.y,mx,my] : [mx,my,c.x,c.y];
+  previewPath.setAttribute('d', bezierPath(x1,y1,x2,y2));
+}
+
+function finishWire(e) {
+  if (previewPath) { wireSvg.removeChild(previewPath); previewPath = null; }
+  const from = wiringFrom;
+  wiringFrom = null;
+  if (!from) return;
+
+  // find port under cursor
+  const wr = canvasWrap.getBoundingClientRect();
+  const els = document.elementsFromPoint(e.clientX, e.clientY);
+  const targetPort = els.find(el => el.classList.contains('port') && el !== from.portEl);
+  if (!targetPort) return;
+
+  const toDir = targetPort.dataset.dir;
+  // must connect out→in
+  if (from.isOut && toDir !== 'in') return;
+  if (!from.isOut && toDir !== 'out') return;
+
+  const [outNode, outPort, inNode, inPort] = from.isOut
+    ? [from.nodeId, from.port, +targetPort.dataset.node, targetPort.dataset.port]
+    : [+targetPort.dataset.node, targetPort.dataset.port, from.nodeId, from.port];
+
+  if (outNode === inNode) return;
+  // no duplicate wires
+  if (wires.find(w => w.fromNode===outNode && w.fromPort===outPort && w.toNode===inNode && w.toPort===inPort)) return;
+
+  addWire(outNode, outPort, inNode, inPort);
+}
+
+function addWire(fromNode, fromPort, toNode, toPort) {
+  const id = ++wireIdSeq;
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  const fromDef = NODE_DEFS[nodes.find(n=>n.id===fromNode)?.type];
+  path.setAttribute('class','wire');
+  path.setAttribute('stroke', fromDef?.color || '#a78bfa');
+  path.setAttribute('data-wire', id);
+  path.addEventListener('click', () => deleteWire(id));
+  wireSvg.appendChild(path);
+  wires.push({id, fromNode, fromPort, toNode, toPort, el: path});
+  redrawWires();
+  markConnectedPorts();
+}
+
+function deleteWire(id) {
+  const idx = wires.findIndex(w=>w.id===id);
+  if (idx<0) return;
+  wires[idx].el.remove();
+  wires.splice(idx,1);
+  markConnectedPorts();
+}
+
+function redrawWires() {
+  wires.forEach(w => {
+    const fromEl = document.querySelector(`.port[data-node="${w.fromNode}"][data-port="${w.fromPort}"][data-dir="out"]`);
+    const toEl   = document.querySelector(`.port[data-node="${w.toNode}"][data-port="${w.toPort}"][data-dir="in"]`);
+    if (!fromEl || !toEl) return;
+    const c1 = portCenter(fromEl), c2 = portCenter(toEl);
+    w.el.setAttribute('d', bezierPath(c1.x,c1.y,c2.x,c2.y));
+  });
+}
+
+function markConnectedPorts() {
+  document.querySelectorAll('.port').forEach(p => p.classList.remove('connected'));
+  wires.forEach(w => {
+    const f = document.querySelector(`.port[data-node="${w.fromNode}"][data-port="${w.fromPort}"][data-dir="out"]`);
+    const t = document.querySelector(`.port[data-node="${w.toNode}"][data-port="${w.toPort}"][data-dir="in"]`);
+    if (f) f.classList.add('connected');
+    if (t) t.classList.add('connected');
+  });
+}
+
+// ── Node selection / deletion ──────────────────────────────────────────────
+function selectNode(node) {
+  if (selectedNode) selectedNode.el.classList.remove('selected');
+  selectedNode = node;
+  node.el.classList.add('selected');
+  renderInspector(node);
+}
+
+function deselectNode() {
+  if (selectedNode) selectedNode.el.classList.remove('selected');
+  selectedNode = null;
+  document.getElementById('insp-empty').style.display = '';
+  document.getElementById('insp-fields').style.display = 'none';
+}
+
+function deleteNode(id) {
+  const idx = nodes.findIndex(n=>n.id===id);
+  if (idx<0) return;
+  nodes[idx].el.remove();
+  // remove connected wires
+  wires.filter(w=>w.fromNode===id||w.toNode===id).forEach(w=>w.el.remove());
+  wires = wires.filter(w=>w.fromNode!==id&&w.toNode!==id);
+  nodes.splice(idx,1);
+  if (selectedNode?.id===id) deselectNode();
+}
+
+function clearCanvas() {
+  if (!confirm('Remove all nodes?')) return;
+  nodes.forEach(n=>n.el.remove());
+  wires.forEach(w=>w.el.remove());
+  nodes=[]; wires=[];
+  deselectNode();
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Sidebar tabs ───────────────────────────────────────────────────────────
+function switchTab(name) {
+  const names = ['inspector','variables','errors','settings'];
+  document.querySelectorAll('.sidebar-tab').forEach((t,i) => t.classList.toggle('active', names[i] === name));
+  document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ── Variables panel ────────────────────────────────────────────────────────
+let botVariables = []; // [{name, value}]
+
+function renderVariables() {
+  const list = document.getElementById('var-list');
+  if (!botVariables.length) {
+    list.innerHTML = '<div class="empty" style="font-size:.78rem">No variables yet.</div>';
+    return;
+  }
+  list.innerHTML = botVariables.map((v,i) => `
+    <div class="var-row">
+      <span class="var-name">{${esc(v.name)}}</span>
+      <span class="var-val">${esc(v.value||'""')}</span>
+      <button class="var-del" onclick="deleteVariable(${i})">✕</button>
+    </div>`).join('');
+}
+
+function addVariable() {
+  const nameEl = document.getElementById('var-name-input');
+  const valEl  = document.getElementById('var-val-input');
+  const name = nameEl.value.trim().replace(/\s+/g,'_');
+  if (!name) return;
+  if (botVariables.find(v => v.name === name)) {
+    logError('Variable "' + name + '" already exists.', 'Variables panel');
+    return;
+  }
+  botVariables.push({name, value: valEl.value.trim() || '""'});
+  nameEl.value = ''; valEl.value = '';
+  renderVariables();
+}
+
+function deleteVariable(i) {
+  botVariables.splice(i, 1);
+  renderVariables();
+}
+
+// ── Error log ──────────────────────────────────────────────────────────────
+let errorLog = [];
+
+function logError(msg, nodeLabel) {
+  errorLog.push({msg, nodeLabel, time: new Date().toLocaleTimeString()});
+  renderErrors();
+  switchTab('errors');
+}
+
+function renderErrors() {
+  const list = document.getElementById('err-list');
+  const badge = document.getElementById('err-badge');
+  if (!errorLog.length) {
+    list.innerHTML = '<div class="empty">No errors detected.</div>';
+    badge.style.display = 'none';
+    return;
+  }
+  badge.style.display = '';
+  badge.textContent = errorLog.length;
+  list.innerHTML = errorLog.map((e,i) => `
+    <div class="err-row" onclick="highlightErrorNode(${i})">
+      <div>${esc(e.msg)}</div>
+      <div class="err-node">${esc(e.nodeLabel)} · ${e.time}</div>
+    </div>`).join('');
+}
+
+function clearErrors() {
+  errorLog = [];
+  renderErrors();
+}
+
+function highlightErrorNode(i) {
+  // future: scroll to and select the offending node
+}
+
+// Validate graph and populate error log
+function validateGraph() {
+  clearErrors();
+  nodes.forEach(n => {
+    const def = NODE_DEFS[n.type];
+    (def.fields||[]).forEach(f => {
+      const val = n.props[f.k];
+      if (f.t !== 'bool' && f.t !== 'select' && (!val || !String(val).trim())) {
+        logError(`"${f.l}" is empty.`, `${def.label} #${n.id}`);
+      }
+    });
+  });
+  if (!errorLog.length) {
+    const badge = document.getElementById('err-badge');
+    badge.style.display = 'none';
+  }
+}
+
+// ── Tutorial ───────────────────────────────────────────────────────────────
+const TUTORIAL_STEPS = [
+  {
+    title: '🎯 Welcome to Bot Zombie!',
+    body: `This is your visual bot builder — the starting point for every command is a <strong>Trigger block</strong>. Drag one from the left palette to begin.\n\n<strong>Key Points:</strong>\n• Every flow starts with a Trigger\n• Set your command name and description\n• All other blocks connect to it`,
+    tip: 'Drag a "Command" block from the palette onto the canvas to get started!',
+    highlight: '#palette',
+  },
+  {
+    title: '📦 Adding Your First Block',
+    body: `The <strong>left sidebar</strong> contains all building blocks:\n\n• <strong style="color:#a78bfa">Triggers</strong> — when something happens\n• <strong style="color:#60a5fa">Actions</strong> — what your bot does\n• <strong style="color:#fbbf24">Logic</strong> — conditions and decisions\n• <strong style="color:#fb923c">Utility</strong> — variables, loops, HTTP`,
+    tip: 'Drag blocks onto the canvas OR click them to add instantly.',
+    highlight: '#palette',
+  },
+  {
+    title: '🔗 Connecting Blocks with Wires',
+    body: `Connect blocks by <strong>clicking an output port</strong> (right side of a block) then <strong>clicking an input port</strong> (left side of another block).\n\nWires show the flow of execution — top to bottom, left to right.`,
+    tip: 'Click a wire to delete it. Output ports are on the right, input ports on the left.',
+    highlight: '#canvas-wrap',
+  },
+  {
+    title: '⚙️ Configuring Blocks',
+    body: `Click any block to select it. Its properties appear in the <strong>Inspector tab</strong> on the right.\n\nYou can also edit fields directly inside the block on the canvas.`,
+    tip: 'Try clicking a block now — the Inspector will show all its settings.',
+    highlight: '#right-sidebar',
+  },
+  {
+    title: '📊 Variables Tab',
+    body: `The <strong>Variables tab</strong> lets you store data usable across all blocks.\n\n• <strong>Add</strong> variables with a name and default value\n• <strong>Access</strong> them using <code style="color:var(--purple)">{var_name}</code> syntax in any text field\n• Great for storing HTTP responses, random results, counters`,
+    tip: 'Variables persist across all your bot\'s commands and events!',
+    highlight: '#panel-variables',
+    onShow: () => switchTab('variables'),
+  },
+  {
+    title: '🚨 Error Log Tab',
+    body: `The <strong>Errors tab</strong> shows validation problems before you generate code.\n\n• Red badges show the error count\n• Click an error to jump to the problem block\n• Fix all errors before downloading`,
+    tip: 'Run "Preview code" — it validates your graph automatically.',
+    highlight: '#panel-errors',
+    onShow: () => switchTab('errors'),
+  },
+  {
+    title: '🔁 Loops & Random Text',
+    body: `Two powerful utility blocks:\n\n• <strong>Loop start</strong> — repeat a block chain N times (or forever with while-true). Connect the <em>loop</em> port to what repeats, <em>done</em> to what comes after.\n• <strong>Random text</strong> — pick a random line from a list and store it in a variable.`,
+    tip: 'Use "Loop stop" inside a loop to break out early.',
+    highlight: '#palette',
+    onShow: () => switchTab('inspector'),
+  },
+  {
+    title: '💾 Save & Download',
+    body: `When you\'re done:\n\n• <strong>💾 Save</strong> — saves your graph to the browser (auto-restores next visit)\n• <strong>Preview code</strong> — shows the generated Python and validates errors\n• <strong>⬇ Download bot.py</strong> — get your ready-to-run bot file`,
+    tip: 'The graph is saved in your browser\'s localStorage — no account needed!',
+    highlight: '#topbar',
+  },
+];
+
+let tutStep = 0;
+
+function openTutorial() {
+  tutStep = 0;
+  document.getElementById('tutorial-overlay').classList.add('active');
+  renderTutStep();
+}
+
+function closeTutorial() {
+  document.getElementById('tutorial-overlay').classList.remove('active');
+  document.getElementById('tutorial-highlight').style.display = 'none';
+}
+
+function tutNext() {
+  if (tutStep < TUTORIAL_STEPS.length - 1) { tutStep++; renderTutStep(); }
+  else closeTutorial();
+}
+
+function tutPrev() {
+  if (tutStep > 0) { tutStep--; renderTutStep(); }
+}
+
+function renderTutStep() {
+  const step = TUTORIAL_STEPS[tutStep];
+  document.getElementById('tut-step-label').textContent = `Step ${tutStep+1} / ${TUTORIAL_STEPS.length}`;
+  document.getElementById('tut-title').textContent = step.title;
+
+  const body = step.body.replace(/\n/g, '<br>');
+  document.getElementById('tutorial-card-body').innerHTML =
+    body + (step.tip ? `<div class="tut-tip">💡 ${step.tip}</div>` : '');
+
+  // dots
+  document.getElementById('tut-dots').innerHTML = TUTORIAL_STEPS.map((_,i) =>
+    `<div class="tut-dot ${i===tutStep?'active':''}"></div>`).join('');
+
+  document.getElementById('tut-prev-btn').style.display = tutStep === 0 ? 'none' : '';
+  document.getElementById('tut-next-btn').textContent = tutStep === TUTORIAL_STEPS.length-1 ? 'Finish ✓' : 'Next →';
+
+  // run onShow hook
+  if (step.onShow) step.onShow();
+
+  // highlight target element
+  const hl = document.getElementById('tutorial-highlight');
+  const card = document.getElementById('tutorial-card');
+  if (step.highlight) {
+    const el = document.querySelector(step.highlight);
+    if (el) {
+      const r = el.getBoundingClientRect();
+      hl.style.cssText = `display:block;left:${r.left-4}px;top:${r.top-4}px;width:${r.width+8}px;height:${r.height+8}px`;
+      // position card near the highlight
+      const cardW = 320, cardH = 280;
+      let cx = r.right + 16, cy = r.top;
+      if (cx + cardW > window.innerWidth) cx = r.left - cardW - 16;
+      if (cy + cardH > window.innerHeight) cy = window.innerHeight - cardH - 16;
+      card.style.left = Math.max(8, cx) + 'px';
+      card.style.top  = Math.max(8, cy) + 'px';
+    }
+  } else {
+    hl.style.display = 'none';
+    card.style.left = '50%';
+    card.style.top  = '50%';
+    card.style.transform = 'translate(-50%,-50%)';
+  }
+}
+</script>
+<script>
+// ── Inspector ──────────────────────────────────────────────────────────────
+function renderInspector(node) {
+  const def = NODE_DEFS[node.type];
+  const empty = document.getElementById('insp-empty');
+  const fields = document.getElementById('insp-fields');
+  empty.style.display = 'none';
+  fields.style.display = 'flex';
+  fields.innerHTML = '';
+
+  // node type label
+  const typeLabel = document.createElement('div');
+  typeLabel.innerHTML = `<span style="font-size:.7rem;color:${def.color};font-weight:600">${def.icon} ${def.label}</span>`;
+  fields.appendChild(typeLabel);
+
+  if (!(def.fields||[]).length) {
+    const none = document.createElement('div');
+    none.className = 'hint';
+    none.textContent = 'No configurable properties.';
+    fields.appendChild(none);
+    return;
+  }
+
+  def.fields.forEach(f => {
+    const wrap = document.createElement('div');
+    wrap.className = 'insp-field';
+    let inputHTML = '';
+    const val = node.props[f.k] !== undefined ? node.props[f.k] : f.d;
+
+    if (f.t === 'textarea') {
+      inputHTML = `<textarea data-prop="${f.k}" rows="3">${esc(val)}</textarea>`;
+    } else if (f.t === 'select' || f.t === 'bool') {
+      const opts = f.t === 'bool'
+        ? [{v:'false',l:'No'},{v:'true',l:'Yes'}]
+        : (f.opts||[]).map(o=>({v:o,l:o}));
+      inputHTML = `<select data-prop="${f.k}">${opts.map(o=>`<option value="${o.v}" ${String(val)===o.v?'selected':''}>${o.l}</option>`).join('')}</select>`;
+    } else {
+      inputHTML = `<input type="text" data-prop="${f.k}" value="${esc(val)}">`;
+    }
+
+    wrap.innerHTML = `<label>${f.l}</label>${inputHTML}`;
+    fields.appendChild(wrap);
+
+    // sync changes back to node props + inline node fields
+    const input = wrap.querySelector('[data-prop]');
+    input.addEventListener('input', () => {
+      node.props[f.k] = input.value;
+      // sync inline node field
+      const nodeInput = node.el.querySelector(`[data-prop="${f.k}"]`);
+      if (nodeInput && nodeInput !== input) {
+        nodeInput.value = input.value;
+      }
+    });
+  });
+}
+
+// ── Example graph ──────────────────────────────────────────────────────────
+function loadExample() {
+  clearCanvas();
+
+  // on_ready → (standalone)
+  const ready = createNode('trigger_ready', 60, 60);
+
+  // command "ping" → reply "Pong!"
+  const cmd = createNode('trigger_command', 60, 200, {name:'ping', desc:'Check if the bot is alive', prefix:'!'});
+  const reply = createNode('action_reply', 340, 200, {text:'Pong! 🏓'});
+  addWire(cmd.id, 'exec', reply.id, 'exec');
+
+  // command "ban" → if has perm → ban / reply no-perm
+  const banCmd = createNode('trigger_command', 60, 380, {name:'ban', desc:'Ban a user', prefix:'!'});
+  const ifPerm = createNode('logic_if_perm', 340, 380, {perm:'BAN_MEMBERS'});
+  const banAction = createNode('action_ban', 620, 340, {reason:'Banned by moderator'});
+  const noPermReply = createNode('action_reply', 620, 440, {text:"❌ You don't have permission to ban."});
+  addWire(banCmd.id, 'exec', ifPerm.id, 'exec');
+  addWire(ifPerm.id, 'true', banAction.id, 'exec');
+  addWire(ifPerm.id, 'false', noPermReply.id, 'exec');
+
+  // WelcomePlugin (standalone)
+  createNode('plugin_welcome', 60, 560, {channel:'YOUR_CHANNEL_ID', msg:'Welcome {user} to the server!'});
+
+  deselectNode();
+}
+</script>
+<script>
+// ── Code generation ────────────────────────────────────────────────────────
+function generateCode() {
+  const botName = document.getElementById('bot-name-input').value || 'MyBot';
+  const lines = [];
+
+  // collect node types present
+  const types = new Set(nodes.map(n => n.type));
+  const hasPlugins = nodes.some(n => n.type.startsWith('plugin_'));
+  const hasStore   = types.has('action_store_set') || types.has('action_store_get');
+  const needsPerms = types.has('logic_if_perm') || types.has('action_ban') || types.has('action_kick');
+
+  // imports
+  lines.push('import os');
+  const sdkImports = ['Bot'];
+  if (hasStore) sdkImports.push('JsonStore');
+  lines.push(`from nerimity_sdk import ${sdkImports.join(', ')}`);
+  if (hasPlugins) {
+    const pluginNames = nodes
+      .filter(n => n.type.startsWith('plugin_'))
+      .map(n => NODE_DEFS[n.type].label);
+    const unique = [...new Set(pluginNames)];
+    lines.push(`from nerimity_sdk_contrib import ${unique.join(', ')}`);
+  }
+
+  lines.push('');
+
+  // Bot variables
+  if (botVariables.length) {
+    lines.push('# -- Bot variables --');
+    botVariables.forEach(v => lines.push(`${v.name} = ${v.value}`));
+    lines.push('');
+  }
+
+  // Bot constructor
+  const botArgs = [`token="${BOT_TOKEN}"`];
+  if (hasStore) botArgs.push('store=JsonStore("data.json")');
+  if (botArgs.length > 1) {
+    lines.push('bot = Bot(');
+    botArgs.forEach((a,i) => lines.push(`    ${a}${i < botArgs.length-1 ? ',' : ''}`));
+    lines.push(')');
+  } else {
+    lines.push(`bot = Bot(${botArgs[0]})`);
+  }
+
+  // ── Walk graph from each trigger ─────────────────────────────────────────
+  const triggerNodes = nodes.filter(n => NODE_DEFS[n.type]?.cat === 'trigger');
+
+  triggerNodes.forEach(trigger => {
+    lines.push(''); lines.push('');
+    emitTrigger(trigger, lines);
+  });
+
+  // ── Plugin nodes (standalone, not wired) ─────────────────────────────────
+  const pluginNodes = nodes.filter(n => n.type.startsWith('plugin_'));
+  if (pluginNodes.length) {
+    // find or create on_ready handler
+    const hasReady = triggerNodes.some(n => n.type === 'trigger_ready');
+    if (!hasReady) {
+      lines.push(''); lines.push('');
+      lines.push('@bot.on("ready")');
+      lines.push(`async def on_ready(me):`);
+      lines.push(`    print(f"✅ ${botName} online as {me.username}!")`);
+    }
+    pluginNodes.forEach(n => {
+      lines.push(`    await bot.plugins.load(${pluginCallCode(n)})`);
+    });
+  }
+
+  lines.push(''); lines.push('');
+  lines.push('bot.run()');
+
+  return lines.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function emitTrigger(trigger, lines) {
+  const p = trigger.props;
+  const botName = document.getElementById('bot-name-input').value || 'MyBot';
+
+  switch (trigger.type) {
+    case 'trigger_ready':
+      lines.push('@bot.on("ready")');
+      lines.push(`async def on_ready(me):`);
+      lines.push(`    print(f"✅ ${botName} online as {me.username}!")`);
+      // inline plugin loads
+      nodes.filter(n=>n.type.startsWith('plugin_')).forEach(n => {
+        lines.push(`    await bot.plugins.load(${pluginCallCode(n)})`);
+      });
+      emitChain(trigger.id, 'exec', lines, '    ');
+      break;
+
+    case 'trigger_command': {
+      const name = p.name || 'mycommand';
+      const fn   = name.replace(/[^a-z0-9]/gi,'_');
+      const desc = p.desc ? `, description="${p.desc}"` : '';
+      const guild = p.guild_only === 'true' || p.guild_only === true ? ', guild_only=True' : '';
+      lines.push(`@bot.command("${name}"${desc}${guild})`);
+      lines.push(`async def cmd_${fn}(ctx):`);
+      const body = emitChain(trigger.id, 'exec', [], '    ');
+      if (body.length) body.forEach(l => lines.push(l));
+      else lines.push('    pass');
+      break;
+    }
+
+    case 'trigger_message':
+      lines.push('@bot.on("message:created")');
+      lines.push('async def on_message(event):');
+      lines.push('    msg = event.message');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+
+    case 'trigger_join':
+      lines.push('@bot.on("server:member_joined")');
+      lines.push('async def on_member_join(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+
+    case 'trigger_leave':
+      lines.push('@bot.on("server:member_left")');
+      lines.push('async def on_member_leave(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+
+    case 'trigger_reaction':
+      lines.push('@bot.on("message:reaction_added")');
+      lines.push('async def on_reaction(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+
+    case 'trigger_msg_update':
+      lines.push('@bot.on("message:updated")');
+      lines.push('async def on_message_update(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+    case 'trigger_msg_delete':
+      lines.push('@bot.on("message:deleted")');
+      lines.push('async def on_message_delete(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+    case 'trigger_typing':
+      lines.push('@bot.on("channel:typing")');
+      lines.push('async def on_typing(event):');
+      emitChain(trigger.id, 'exec', lines, '    ');
+      if (!lines[lines.length-1].trim()) lines.push('    pass');
+      break;
+
+    case 'trigger_button': {
+      const btnId = p.id || 'my_button';
+      const fn = btnId.replace(/[^a-z0-9]/gi,'_').replace(/_+/g,'_');
+      lines.push(`@bot.button("${esc2(btnId)}")`);
+      lines.push(`async def btn_${fn}(bctx):`);
+      const body = emitChain(trigger.id, 'exec', [], '    ');
+      if (body.length) body.forEach(l => lines.push(l));
+      else lines.push('    pass');
+      break;
+    }
+
+    case 'trigger_cron': {
+      const expr = p.expr || '0 9 * * *';
+      const ch   = p.channel || 'YOUR_CHANNEL_ID';
+      const fn   = `cron_${trigger.id}`;
+      lines.push(`@bot.cron("${expr}")`);
+      lines.push(`async def ${fn}():`);
+      const cronBody = emitChain(trigger.id, 'exec', [], '    ');
+      if (cronBody.length) cronBody.forEach(l => lines.push(l));
+      else lines.push(`    await bot.rest.create_message("${ch}", "Scheduled message")`);
+      break;
+    }
+  }
+}
+
+// Walk wires from (nodeId, outPort) and emit action code into lines
+function emitChain(fromNodeId, outPort, lines, indent) {
+  const wire = wires.find(w => w.fromNode === fromNodeId && w.fromPort === outPort);
+  if (!wire) return lines;
+  const node = nodes.find(n => n.id === wire.toNode);
+  if (!node) return lines;
+  emitAction(node, lines, indent);
+  return lines;
+}
+
+function emitAction(node, lines, indent) {
+  const p = node.props;
+  const i = indent;
+
+  switch (node.type) {
+    case 'action_reply':
+      lines.push(`${i}await ctx.reply("${esc2(p.text || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_send':
+      lines.push(`${i}await bot.rest.create_message("${p.channel || 'YOUR_CHANNEL_ID'}", "${esc2(p.text || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_dm':
+      lines.push(`${i}dm = await bot.rest.open_dm(ctx.author.id)`);
+      lines.push(`${i}await bot.rest.create_message(dm["id"], "${esc2(p.text || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_kick':
+      lines.push(`${i}await bot.rest.kick_member(ctx.server_id, ctx.author.id, reason="${esc2(p.reason || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_ban':
+      lines.push(`${i}await bot.rest.ban_member(ctx.server_id, ctx.author.id, reason="${esc2(p.reason || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_store_set':
+      lines.push(`${i}await bot.store.set("${esc2(p.key || 'key')}", "${esc2(p.value || '')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_store_get':
+      lines.push(`${i}${p.var || 'result'} = await bot.store.get("${esc2(p.key || 'key')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'logic_if_contains':
+      lines.push(`${i}if "${esc2(p.word || '')}" in (getattr(ctx, 'rest_text', '') or '').lower():`);
+      emitChain(node.id, 'true',  lines, i + '    ');
+      lines.push(`${i}else:`);
+      const falseLines = [];
+      emitChain(node.id, 'false', falseLines, i + '    ');
+      if (falseLines.length) falseLines.forEach(l => lines.push(l));
+      else lines.push(`${i}    pass`);
+      break;
+
+    case 'logic_if_perm':
+      lines.push(`${i}from nerimity_sdk import has_permission`);
+      lines.push(`${i}if has_permission(ctx.member.permissions, "${p.perm || 'BAN_MEMBERS'}"):`);
+      emitChain(node.id, 'true',  lines, i + '    ');
+      lines.push(`${i}else:`);
+      const fpLines = [];
+      emitChain(node.id, 'false', fpLines, i + '    ');
+      if (fpLines.length) fpLines.forEach(l => lines.push(l));
+      else lines.push(`${i}    pass`);
+      break;
+
+    case 'logic_cooldown': {
+      const sec = p.seconds || '5';
+      lines.push(`${i}from nerimity_sdk import CooldownManager, CooldownError`);
+      lines.push(`${i}# cooldown: ${sec}s per ${p.scope || 'user'}`);
+      lines.push(`${i}try:`);
+      emitChain(node.id, 'ok', lines, i + '    ');
+      lines.push(`${i}except CooldownError as _cd:`);
+      const blockedLines = [];
+      emitChain(node.id, 'blocked', blockedLines, i + '    ');
+      if (blockedLines.length) blockedLines.forEach(l => lines.push(l));
+      else lines.push(`${i}    await ctx.reply(f"⏳ Cooldown! Try again in {_cd.retry_after:.1f}s.")`);
+      break;
+    }
+    // ── Utility ──────────────────────────────────────────────────────────
+    case 'action_webhook':
+      lines.push(`${i}from nerimity_sdk import Webhook`);
+      lines.push(`${i}await Webhook("${esc2(p.url||'')}").send("${esc2(p.text||'')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_http': {
+      const method = (p.method||'GET').upper ? p.method : p.method||'GET';
+      const hasBody = p.body && p.body.trim();
+      lines.push(`${i}import aiohttp as _aiohttp`);
+      lines.push(`${i}async with _aiohttp.ClientSession() as _sess:`);
+      if (hasBody) {
+        lines.push(`${i}    async with _sess.${(p.method||'GET').toLowerCase()}("${esc2(p.url||'')}", json=${p.body.trim()}) as _r:`);
+      } else {
+        lines.push(`${i}    async with _sess.${(p.method||'GET').toLowerCase()}("${esc2(p.url||'')}") as _r:`);
+      }
+      lines.push(`${i}        ${p.var||'response'} = await _r.json()`);
+      emitChain(node.id, 'exec', lines, i);
+      const errLines = [];
+      emitChain(node.id, 'error', errLines, i);
+      break;
+    }
+
+    case 'action_random_int':
+      lines.push(`${i}import random as _random`);
+      lines.push(`${i}${p.var||'rand'} = _random.randrange(${p.min||1}, ${p.max||100})`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_random_choice':
+      lines.push(`${i}import random as _random`);
+      lines.push(`${i}${p.var||'choice'} = _random.choice([${(p.items||'yes,no').split(',').map(s=>`"${s.trim()}"`).join(', ')}])`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_random_text':
+      lines.push(`${i}import random as _random`);
+      lines.push(`${i}${p.var||'rand_text'} = _random.choice([${(p.items||'Hello!').split('\n').map(s=>`"${esc2(s.trim())}"`).join(', ')}])`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_loop_start': {
+      const times = p.times && p.times.trim();
+      if (times) {
+        lines.push(`${i}for _i in range(${times}):`);
+      } else {
+        lines.push(`${i}while True:`);
+      }
+      const loopBody = [];
+      emitChain(node.id, 'loop', loopBody, i + '    ');
+      if (loopBody.length) loopBody.forEach(l => lines.push(l));
+      else lines.push(`${i}    pass`);
+      emitChain(node.id, 'done', lines, i);
+      break;
+    }
+
+    case 'action_loop_stop':
+      lines.push(`${i}break`);
+      break;
+
+    case 'action_math':
+      lines.push(`${i}${p.var||'result'} = ${p.expr||'0'}`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_string_format':
+      lines.push(`${i}${p.var||'text'} = f"${esc2(p.template||'')}"`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_set_var':
+      lines.push(`${i}${p.var||'my_var'} = "${esc2(p.value||'')}"`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_get_rest':
+      lines.push(`${i}${p.var||'input'} = ctx.rest_text or ""`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_get_arg':
+      lines.push(`${i}${p.var||'arg'} = ctx.args[${p.index||0}] if ctx.args and len(ctx.args) > ${p.index||0} else ""`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_log':
+      lines.push(`${i}print("[bot]", "${esc2(p.text||'')}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_add_role':
+      lines.push(`${i}await bot.rest.add_role(ctx.server_id, ctx.author.id, "${p.role_id||'YOUR_ROLE_ID'}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_remove_role':
+      lines.push(`${i}await bot.rest.remove_role(ctx.server_id, ctx.author.id, "${p.role_id||'YOUR_ROLE_ID'}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_unban':
+      lines.push(`${i}await bot.rest.unban_member(ctx.server_id, "${p.user_id||'USER_ID'}")`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_pin':
+      lines.push(`${i}await bot.rest.pin_message(ctx.channel_id, ctx.message.id)`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_delete_msg':
+      lines.push(`${i}await bot.rest.delete_message(ctx.channel_id, ctx.message.id)`);
+      emitChain(node.id, 'exec', lines, i);
+      break;
+
+    case 'action_fetch_user': {
+      const uid = p.user_id==='author' ? 'ctx.author.id' : `"${esc2(p.user_id||'')}"`;
+      lines.push(`${i}${p.var||'fetched_user'} = await bot.rest.fetch_user(${uid})`);
+      emitChain(node.id, 'exec', lines, i); break;
+    }
+    case 'action_fetch_msg':
+      lines.push(`${i}${p.var||'fetched_msg'} = await bot.rest.fetch_message("${esc2(p.channel||'')}", "${esc2(p.msg_id||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_fetch_msgs':
+      lines.push(`${i}${p.var||'messages'} = await bot.rest.fetch_messages("${esc2(p.channel||'')}", limit=${p.limit||50})`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_update_msg':
+      lines.push(`${i}await bot.rest.update_message("${esc2(p.channel||'')}", "${esc2(p.msg_id||'')}", "${esc2(p.text||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_bulk_delete':
+      lines.push(`${i}await bot.rest.bulk_delete_messages("${esc2(p.channel||'')}", [${(p.ids||'').split(',').map(s=>`"${s.trim()}"`).join(',')}])`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_add_reaction':
+      lines.push(`${i}await bot.rest.add_reaction("${esc2(p.channel||'')}", "${esc2(p.msg_id||'')}", "${esc2(p.emoji||'👍')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_remove_reaction':
+      lines.push(`${i}await bot.rest.remove_reaction("${esc2(p.channel||'')}", "${esc2(p.msg_id||'')}", "${esc2(p.emoji||'👍')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_create_role':
+      lines.push(`${i}await bot.rest.create_role(ctx.server_id, "${esc2(p.name||'New Role')}", hex_color="${esc2(p.color||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_delete_role':
+      lines.push(`${i}await bot.rest.delete_role(ctx.server_id, "${esc2(p.role_id||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_set_nickname': {
+      const uid2 = p.user_id==='author' ? 'ctx.author.id' : `"${esc2(p.user_id||'')}"`;
+      const nick = p.nick ? `"${esc2(p.nick)}"` : 'None';
+      lines.push(`${i}await bot.rest.set_nickname(ctx.server_id, ${uid2}, ${nick})`);
+      emitChain(node.id, 'exec', lines, i); break;
+    }
+    case 'action_create_channel':
+      lines.push(`${i}await bot.rest.create_channel(ctx.server_id, "${esc2(p.name||'new-channel')}", channel_type=${p.type||0})`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_send_typing':
+      lines.push(`${i}await bot.rest.send_typing("${esc2(p.channel||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_upload_file':
+      lines.push(`${i}${p.var||'file_id'} = await bot.rest.upload_file("${esc2(p.path||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    case 'action_unpin':
+      lines.push(`${i}await bot.rest.unpin_message(ctx.channel_id, ctx.message.id)`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_reply_buttons': {
+      const btns = [];
+      if (p.btn1_id) btns.push(`Button(id=f"${esc2(p.btn1_id)}", label="${esc2(p.btn1_label||'Option 1')}")`);
+      if (p.btn2_id) btns.push(`Button(id=f"${esc2(p.btn2_id)}", label="${esc2(p.btn2_label||'Option 2')}"${p.btn2_alert==='true'||p.btn2_alert===true?', alert=True':''})`);
+      lines.push(`${i}from nerimity_sdk import Button`);
+      lines.push(`${i}await ctx.reply(f"${esc2(p.text||'Choose:')}", buttons=[${btns.join(', ')}])`);
+      emitChain(node.id, 'exec', lines, i); break;
+    }
+    case 'action_popup':
+      lines.push(`${i}await bctx.popup("${esc2(p.title||'Done!')}", "${esc2(p.text||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+  }
+}
+
+function pluginCallCode(node) {
+  const p = node.props;
+  switch (node.type) {
+    case 'plugin_welcome':   return `WelcomePlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}", message="${esc2(p.msg||'Welcome!')}")`;
+    case 'plugin_leveling':  return `LevelingPlugin(announce_channel_id="${p.channel||'YOUR_CHANNEL_ID'}", xp_per_message=${p.xp||10})`;
+    case 'plugin_automod':   return `AutoModPlugin(blocked=[${(p.words||'').split(',').map(w=>`"${w.trim()}"`).join(',')}], log_channel_id="${p.log||'YOUR_LOG_CHANNEL_ID'}")`;
+    case 'plugin_antispam':  return `AntiSpamPlugin(max_messages=${p.max||5}, window=${p.window||5}, action="${p.action||'kick'}")`;
+    case 'plugin_starboard': return `StarboardPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}", threshold=${p.threshold||3})`;
+    case 'plugin_tickets':   return `TicketPlugin(staff_channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_economy':   return `EconomyPlugin(daily_amount=${p.daily||100}, currency_name="${p.currency||'coins'}")`;
+    case 'plugin_quiz':      return `QuizPlugin(rounds=${p.rounds||5}, answer_timeout=${p.timeout||20})`;
+    case 'plugin_afk':       return `AFKPlugin()`;
+    case 'plugin_autorole':  return `AutoRolePlugin(role_id="${p.role_id||'YOUR_ROLE_ID'}")`;
+    case 'plugin_birthday':  return `BirthdayPlugin(announce_channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_counter':   return `CounterPlugin()`;
+    case 'plugin_custom_cmd':return `CustomCommandPlugin()`;
+    case 'plugin_giveaway':  return `GiveawayPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_msg_filter':return `MessageFilterPlugin(blocked=[${(p.words||'badword').split(',').map(w=>`"${w.trim()}"`).join(',')}])`;
+    case 'plugin_msg_snap':  return `MessageSnapshotPlugin()`;
+    case 'plugin_mod_log':   return `ModerationLogPlugin(log_channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
+    case 'plugin_mute':      return `MutePlugin(log_channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
+    case 'plugin_pinboard':  return `PinboardPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}", threshold=${p.threshold||3})`;
+    case 'plugin_poll':      return `PollPlugin()`;
+    case 'plugin_raid_guard':return `RaidGuardPlugin(alert_channel_id="${p.channel||'YOUR_CHANNEL_ID'}", threshold=${p.threshold||10})`;
+    case 'plugin_reaction_roles': return `ReactionRolesPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_reminders': return `ReminderPlugin()`;
+    case 'plugin_role_menu': return `RoleMenuPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_logging':   return `LoggingPlugin(channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
+    case 'plugin_server_stats': return `ServerStatsPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_slowmode':  return `SlowmodePlugin(seconds=${p.seconds||5})`;
+    case 'plugin_suggestions': return `SuggestionPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_tags':      return `TagPlugin()`;
+    case 'plugin_temp_channel': return `TempChannelPlugin(timeout=${p.timeout||300})`;
+    case 'plugin_translate': return `TranslatePlugin()`;
+    case 'plugin_warn':      return `WarnPlugin(threshold=${p.threshold||3}, log_channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
+    case 'plugin_auto_reply': {
+      const rules = (p.rules||'hello:Hi!').split('\n').map(l => {
+        const [k,...v] = l.split(':'); return k && v.length ? `("${k.trim()}", "${v.join(':').trim()}")` : null;
+      }).filter(Boolean);
+      return `AutoReplyPlugin(rules=[${rules.join(', ')}])`;
+    }
+    default: return `${NODE_DEFS[node.type].label}()`;
+  }
+}
+
+// escape for Python string literals
+function esc2(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/"/g,'\\"').replace(/\n/g,'\\n'); }
+
+// ── Code panel ─────────────────────────────────────────────────────────────
+let codeEditMode = false;
+
+function openCode() {
+  validateGraph();
+  const ta = document.getElementById('code-pre');
+  if (!codeEditMode) ta.value = generateCode();
+  document.getElementById('code-panel').classList.add('open');
+}
+function closeCode() {
+  document.getElementById('code-panel').classList.remove('open');
+}
+function toggleCodeEdit() {
+  codeEditMode = !codeEditMode;
+  const ta = document.getElementById('code-pre');
+  const btn = document.getElementById('code-edit-btn');
+  const title = document.getElementById('code-panel-title');
+  if (codeEditMode) {
+    ta.removeAttribute('readonly');
+    ta.style.borderTop = '1px solid rgba(167,139,250,.3)';
+    btn.textContent = '🔒 Lock';
+    btn.style.color = 'var(--green)';
+    title.textContent = 'bot.py - editing';
+    ta.focus();
+  } else {
+    // validate before locking
+    const errs = lintCode(ta.value);
+    if (errs.length) {
+      codeEditMode = true;
+      showCodeErrors(errs);
+      return;
+    }
+    clearCodeErrors();
+    // re-parse the edited code back into nodes
+    importPy(ta.value);
+    ta.setAttribute('readonly', '');
+    ta.style.borderTop = '';
+    btn.textContent = '✏️ Edit';
+    btn.style.color = '';
+    title.textContent = 'Generated bot.py';
+  }
+}
+
+function lintCode(code) {
+  const errors = [];
+  if (!code.trim()) { errors.push('Code is empty.'); return errors; }
+  const pairs = {'(':')', '[':']', '{':"}"};
+  const stack = [];
+  let inStr = null, escape = false;
+  code.split('\n').forEach((line, li) => {
+    for (let ci = 0; ci < line.length; ci++) {
+      const ch = line[ci];
+      if (escape) { escape=false; continue; }
+      if (ch==='\\') { escape=true; continue; }
+      if (inStr) { if (ch===inStr) inStr=null; continue; }
+      if (ch==='"'||ch==="'") { inStr=ch; continue; }
+      if (pairs[ch]) stack.push({ch, line:li+1});
+      else if (Object.values(pairs).includes(ch)) {
+        const last = stack[stack.length-1];
+        if (!last||pairs[last.ch]!==ch) errors.push(`Line ${li+1}: unexpected '${ch}'`);
+        else stack.pop();
+      }
+    }
+  });
+  stack.forEach(s => errors.push(`Line ${s.line}: unclosed '${s.ch}'`));
+  const lines = code.split('\n');
+  if (lines.some(l=>l.startsWith('\t')) && lines.some(l=>l.startsWith('    ')))
+    errors.push('Mixed tabs and spaces — Python will reject this.');
+  if (!code.includes('Bot(')) errors.push("No Bot() constructor found — did you delete it?");
+  lines.forEach((line,li) => {
+    if (/^\s*async def /.test(line)) {
+      const body = lines.slice(li+1,li+10).join('\n');
+      if (!/\bawait\b/.test(body)&&!/\bpass\b/.test(body))
+        errors.push(`Line ${li+1}: async function may be missing 'await'.`);
+    }
+  });
+  return errors;
+}
+
+function showCodeErrors(errs) {
+  clearCodeErrors();
+  const box = document.createElement('div');
+  box.id = 'code-error-box';
+  box.style.cssText = 'background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:7px;padding:.65rem .85rem;margin:.5rem 1rem 0;font-size:.75rem;color:#fca5a5;line-height:1.7;flex-shrink:0';
+  box.innerHTML = '<strong style="color:#f87171">⚠ Fix these errors before locking:</strong><br>' +
+    errs.map(e=>`• ${e}`).join('<br>');
+  document.getElementById('code-box').insertBefore(box, document.getElementById('code-pre'));
+}
+
+function clearCodeErrors() { document.getElementById('code-error-box')?.remove(); }
+
+function copyCode() {
+  navigator.clipboard.writeText(document.getElementById('code-pre').value);
+  const btn = document.querySelector('#code-box-header .tb-btn');
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy', 1500);
+}
+function downloadBot() {
+  const code = codeEditMode
+    ? document.getElementById('code-pre').value
+    : generateCode();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([code], {type:'text/plain'}));
+  a.download = 'bot.py';
+  a.click();
+}
+
+// ── Save / load graph (localStorage) ──────────────────────────────────────
+const LS_KEY = 'botzombie_graph';
+
+function saveGraph() {
+  const data = {
+    botName: document.getElementById('bot-name-input').value,
+    nodes: nodes.map(n => ({id:n.id, type:n.type, x:n.x, y:n.y, props:n.props})),
+    wires: wires.map(w => ({fromNode:w.fromNode, fromPort:w.fromPort, toNode:w.toNode, toPort:w.toPort})),
+    nodeIdSeq, wireIdSeq,
+  };
+  localStorage.setItem(LS_KEY, JSON.stringify(data));
+  const btn = [...document.querySelectorAll('.tb-btn')].find(b => b.textContent.includes('Save'));
+  if (btn) { btn.textContent = '✓ Saved'; setTimeout(() => btn.textContent = '💾 Save', 1500); }
+}
+
+function loadGraph() {
+  const raw = localStorage.getItem(LS_KEY);
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    clearCanvas();
+    nodeIdSeq = data.nodeIdSeq || 0;
+    wireIdSeq = data.wireIdSeq || 0;
+    if (data.botName) document.getElementById('bot-name-input').value = data.botName;
+    // restore nodes (preserve original IDs)
+    data.nodes.forEach(n => {
+      const node = createNode(n.type, n.x, n.y, n.props);
+      const oldId = node.id;
+      node.id = n.id;
+      node.el.dataset.id = n.id;
+      node.el.querySelectorAll('[data-node]').forEach(el => {
+        if (el.dataset.node == oldId) el.dataset.node = n.id;
+      });
+      // fix the delete button onclick which was baked with the old id
+      const delBtn = node.el.querySelector('.node-del');
+      if (delBtn) delBtn.setAttribute('onclick', `deleteNode(${n.id})`);
+      nodes[nodes.indexOf(node)] = node;
+    });
+    // restore wires
+    data.wires.forEach(w => addWire(w.fromNode, w.fromPort, w.toNode, w.toPort));
+    deselectNode();
+  } catch(e) { console.error('Failed to restore graph', e); }
+}
+
+// ── Import .py ─────────────────────────────────────────────────────────────
+function importPy(input) {
+  if (typeof input === 'string') { parsePySrc(input); return; }
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { parsePySrc(e.target.result); input.value = ''; };
+  reader.readAsText(file);
+}
+
+function parsePySrc(src) {
+  clearCanvas();
+  let y = 60;
+
+  const tokenMatch = src.match(/token\s*=\s*["']([^"']+)["']/);
+  if (tokenMatch) BOT_TOKEN = tokenMatch[1];
+
+  const nameMatch = src.match(/# bot[:\s]+(\w+)/i);
+  if (nameMatch) document.getElementById('bot-name-input').value = nameMatch[1];
+
+  let m;
+
+  // @bot.command(...)
+  const cmdRe = /@bot\.command\(\s*["']([^"']+)["'](?:[^)]*description\s*=\s*["']([^"']*)["'])?[^)]*\)/g;
+  while ((m = cmdRe.exec(src)) !== null) {
+    const after = src.slice(m.index);
+    const body = after.match(/async def \w+\(ctx\):((?:\n(?:    .*))*)/)?.[1] || '';
+    const hasButtons = /buttons\s*=\s*\[/.test(body);
+    const replyMatch = body.match(/ctx\.reply\(\s*f?["'`]([^"'`]+)/);
+    const replyText = replyMatch ? replyMatch[1] : '';
+    const cmd = createNode('trigger_command', 60, y, {name: m[1], desc: m[2]||''});
+    if (hasButtons) {
+      const allBtns = [...body.matchAll(/Button\(id=f?["']([^"']+)["'],\s*label=["']([^"']+)["']([^)]*)/g)];
+      const props = {text: replyText};
+      if (allBtns[0]) { props.btn1_id = allBtns[0][1]; props.btn1_label = allBtns[0][2]; }
+      if (allBtns[1]) { props.btn2_id = allBtns[1][1]; props.btn2_label = allBtns[1][2]; props.btn2_alert = /alert=True/.test(allBtns[1][3]); }
+      const rn = createNode('action_reply_buttons', 340, y, props);
+      addWire(cmd.id, 'exec', rn.id, 'exec');
+    } else if (replyText) {
+      const rn = createNode('action_reply', 340, y, {text: replyText});
+      addWire(cmd.id, 'exec', rn.id, 'exec');
+    }
+    y += 160;
+  }
+
+  // @bot.button(...)
+  const btnRe = /@bot\.button\(\s*["']([^"']+)["']\)/g;
+  while ((m = btnRe.exec(src)) !== null) {
+    const after = src.slice(m.index);
+    const body = after.match(/async def \w+\(bctx\):((?:\n(?:    .*))*)/)?.[1] || '';
+    const btn = createNode('trigger_button', 60, y, {id: m[1]});
+    const popupMatch = body.match(/bctx\.popup\(\s*["']([^"']+)["'],\s*["']([^"']+)["']/);
+    if (popupMatch) {
+      const pn = createNode('action_popup', 340, y, {title: popupMatch[1], text: popupMatch[2]});
+      addWire(btn.id, 'exec', pn.id, 'exec');
+    }
+    y += 140;
+  }
+
+  // event triggers
+  const evMap = {
+    'message:created': 'trigger_message', 'message:updated': 'trigger_msg_update',
+    'message:deleted': 'trigger_msg_delete', 'channel:typing': 'trigger_typing',
+    'message:reaction_added': 'trigger_reaction', 'server:member_joined': 'trigger_join',
+    'server:member_left': 'trigger_leave',
+  };
+  if (src.includes('@bot.on("ready")') || src.includes("@bot.on('ready')")) {
+    createNode('trigger_ready', 60, y); y += 120;
+  }
+  Object.entries(evMap).forEach(([ev, type]) => {
+    if (src.includes(ev)) { createNode(type, 60, y); y += 120; }
+  });
+
+  // plugins
+  const pluginMap = {
+    WelcomePlugin:'plugin_welcome', LevelingPlugin:'plugin_leveling',
+    AutoModPlugin:'plugin_automod', AntiSpamPlugin:'plugin_antispam',
+    StarboardPlugin:'plugin_starboard', TicketPlugin:'plugin_tickets',
+    EconomyPlugin:'plugin_economy', QuizPlugin:'plugin_quiz',
+    AFKPlugin:'plugin_afk', AutoRolePlugin:'plugin_autorole',
+    BirthdayPlugin:'plugin_birthday', CounterPlugin:'plugin_counter',
+    CustomCommandPlugin:'plugin_custom_cmd', GiveawayPlugin:'plugin_giveaway',
+    MessageFilterPlugin:'plugin_msg_filter', MessageSnapshotPlugin:'plugin_msg_snap',
+    ModerationLogPlugin:'plugin_mod_log', MutePlugin:'plugin_mute',
+    PinboardPlugin:'plugin_pinboard', PollPlugin:'plugin_poll',
+    RaidGuardPlugin:'plugin_raid_guard', ReactionRolesPlugin:'plugin_reaction_roles',
+    ReminderPlugin:'plugin_reminders', RoleMenuPlugin:'plugin_role_menu',
+    LoggingPlugin:'plugin_logging', ServerStatsPlugin:'plugin_server_stats',
+    SlowmodePlugin:'plugin_slowmode', SuggestionPlugin:'plugin_suggestions',
+    TagPlugin:'plugin_tags', TempChannelPlugin:'plugin_temp_channel',
+    TranslatePlugin:'plugin_translate', WarnPlugin:'plugin_warn',
+    AutoReplyPlugin:'plugin_auto_reply',
+  };
+  Object.entries(pluginMap).forEach(([cls, type]) => {
+    if (src.includes(cls)) { createNode(type, 60, y); y += 120; }
+  });
+
+  deselectNode();
+}
+
+// ── Accordion palette ──────────────────────────────────────────────────────
+function toggleAcc(header) {
+  const isOpen = header.classList.contains('open');
+  document.querySelectorAll('.acc-header').forEach(h => {
+    h.classList.remove('open');
+    h.nextElementSibling.classList.remove('open');
+  });
+  if (!isOpen) {
+    header.classList.add('open');
+    header.nextElementSibling.classList.add('open');
+  }
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+function applyTheme(prop, value) {
+  if (prop === 'accent') document.documentElement.style.setProperty('--purple', value);
+  else if (prop === 'bg') {
+    document.documentElement.style.setProperty('--bg', value);
+    document.getElementById('canvas-wrap').style.background = value;
+  }
+}
+
+// ── Keybinds ───────────────────────────────────────────────────────────────
+const KEYBINDS = [
+  { keys: 'Del / Backspace', action: 'Delete selected node' },
+  { keys: 'Ctrl + S',        action: 'Save graph' },
+  { keys: 'Ctrl + Z',        action: 'Undo last delete' },
+  { keys: 'Ctrl + P',        action: 'Preview code' },
+  { keys: 'Escape',          action: 'Deselect / close' },
+];
+
+function renderKeybinds() {
+  document.getElementById('keybind-list').innerHTML = KEYBINDS.map(k =>
+    `<div class="keybind-row"><span>${k.action}</span><span class="kbd">${k.keys}</span></div>`
+  ).join('');
+}
+
+// Undo stack
+let undoStack = [];
+const _origDeleteNode = deleteNode;
+window.deleteNode = function(id) {
+  const n = nodes.find(n => n.id === id);
+  if (n) {
+    const cw = wires.filter(w => w.fromNode===id||w.toNode===id)
+      .map(w => ({fromNode:w.fromNode,fromPort:w.fromPort,toNode:w.toNode,toPort:w.toPort}));
+    undoStack.push({node:{type:n.type,x:n.x,y:n.y,props:{...n.props}},wires:cw});
+    if (undoStack.length > 20) undoStack.shift();
+  }
+  _origDeleteNode(id);
+};
+
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  const typing = tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+  if ((e.key==='Delete'||e.key==='Backspace') && !typing && selectedNode) { deleteNode(selectedNode.id); return; }
+  if (e.key==='Escape') { closeTutorial(); deselectNode(); return; }
+  if (e.ctrlKey && e.key==='s') { e.preventDefault(); saveGraph(); return; }
+  if (e.ctrlKey && e.key==='p') { e.preventDefault(); openCode(); return; }
+  if (e.ctrlKey && e.key==='z') {
+    e.preventDefault();
+    const last = undoStack.pop();
+    if (!last) return;
+    createNode(last.node.type, last.node.x, last.node.y, last.node.props);
+  }
+});
+
+renderKeybinds();
+
+// ── Bot Preview ────────────────────────────────────────────────────────────
+const AVATAR_COLORS = ['#a78bfa','#60a5fa','#34d399','#f472b6','#fb923c','#fbbf24','#f87171'];
+let previewUsers = [
+  {id:'u1', name:'User1', color:'#60a5fa'},
+  {id:'u2', name:'User2', color:'#34d399'},
+];
+let activePreviewUser = 'u1';
+let previewVars = {}; // runtime variable store for preview
+
+function openPreview() {
+  document.getElementById('preview-panel').classList.add('open');
+  renderPreviewUsers();
+}
+function closePreview() {
+  document.getElementById('preview-panel').classList.remove('open');
+}
+function clearPreview() {
+  document.getElementById('preview-messages').innerHTML = '';
+  previewVars = {};
+}
+
+function renderPreviewUsers() {
+  const wrap = document.getElementById('preview-users');
+  wrap.innerHTML = '<span style="font-size:.68rem;color:var(--text-dim);white-space:nowrap">As:</span>';
+  previewUsers.forEach(u => {
+    const chip = document.createElement('div');
+    chip.className = 'preview-user-chip' + (u.id === activePreviewUser ? ' active' : '');
+    chip.innerHTML = `<div class="pu-avatar" style="background:${u.color}">${u.name[0].toUpperCase()}</div>${esc(u.name)}<span style="font-size:.65rem;color:var(--text-dim);cursor:pointer;margin-left:.2rem" onclick="event.stopPropagation();deletePreviewUser('${u.id}')">✕</span>`;
+    chip.onclick = () => { activePreviewUser = u.id; renderPreviewUsers(); };
+    wrap.appendChild(chip);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'preview-user-add';
+  addBtn.textContent = '+ Add user';
+  addBtn.onclick = addPreviewUser;
+  wrap.appendChild(addBtn);
+}
+
+function addPreviewUser() {
+  const name = prompt('Username for fake account:');
+  if (!name || !name.trim()) return;
+  const id = 'u' + Date.now();
+  const color = AVATAR_COLORS[previewUsers.length % AVATAR_COLORS.length];
+  previewUsers.push({id, name: name.trim(), color});
+  activePreviewUser = id;
+  renderPreviewUsers();
+}
+
+function deletePreviewUser(id) {
+  if (previewUsers.length <= 1) return;
+  previewUsers = previewUsers.filter(u => u.id !== id);
+  if (activePreviewUser === id) activePreviewUser = previewUsers[0].id;
+  renderPreviewUsers();
+}
+
+function addPreviewMessage(text, isBot, userName, color) {
+  const feed = document.getElementById('preview-messages');
+  const row = document.createElement('div');
+  row.className = 'pm-row' + (isBot ? ' bot' : '');
+  const initial = (userName||'B')[0].toUpperCase();
+  const avatarColor = isBot ? 'var(--purple)' : (color || '#60a5fa');
+  row.innerHTML = `
+    <div class="pm-avatar" style="background:${avatarColor}">${initial}</div>
+    <div>
+      <div class="pm-name">${esc(userName || 'Bot')}</div>
+      <div class="pm-bubble">${esc(text)}</div>
+    </div>`;
+  feed.appendChild(row);
+  feed.scrollTop = feed.scrollHeight;
+}
+
+function showTypingIndicator() {
+  const feed = document.getElementById('preview-messages');
+  const row = document.createElement('div');
+  row.className = 'pm-row bot'; row.id = 'typing-indicator';
+  row.innerHTML = `<div class="pm-avatar" style="background:var(--purple)">B</div><div class="pm-bubble pm-typing"><span></span><span></span><span></span></div>`;
+  feed.appendChild(row);
+  feed.scrollTop = feed.scrollHeight;
+  return row;
+}
+
+function removeTypingIndicator() {
+  document.getElementById('typing-indicator')?.remove();
+}
+
+async function sendPreviewMessage() {
+  const input = document.getElementById('preview-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  const user = previewUsers.find(u => u.id === activePreviewUser) || previewUsers[0];
+  addPreviewMessage(text, false, user.name, user.color);
+
+  // walk graph
+  const typing = showTypingIndicator();
+  await new Promise(r => setTimeout(r, 400 + Math.random() * 400));
+  removeTypingIndicator();
+
+  const replies = previewWalkGraph(text, user);
+  if (replies.length) {
+    for (const r of replies) {
+      addPreviewMessage(r, true, 'Bot');
+      await new Promise(res => setTimeout(res, 200));
+    }
+  }
+}
+
+// ── Graph walker for preview ───────────────────────────────────────────────
+function previewWalkGraph(text, user) {
+  const replies = [];
+  const prefix = text.startsWith('/') || text.startsWith('!') ? text[0] : null;
+  const isCommand = !!prefix;
+  const commandName = isCommand ? text.slice(1).split(' ')[0].toLowerCase() : null;
+  const restText = isCommand ? text.slice(1 + (commandName||'').length).trim() : text;
+
+  // find matching trigger
+  const triggers = nodes.filter(n => NODE_DEFS[n.type]?.cat === 'trigger');
+  for (const trigger of triggers) {
+    if (trigger.type === 'trigger_command') {
+      if (!isCommand) continue;
+      if ((trigger.props.name||'').toLowerCase() !== commandName) continue;
+    } else if (trigger.type === 'trigger_message') {
+      // always fires on any message
+    } else if (trigger.type === 'trigger_ready' || trigger.type === 'trigger_cron') {
+      continue; // not user-triggered
+    } else {
+      continue;
+    }
+
+    // walk from this trigger's exec port
+    const ctx = {author: user, rest_text: restText, text, replies};
+    previewWalkChain(trigger.id, 'exec', ctx, 0);
+  }
+  return replies;
+}
+
+function previewWalkChain(fromNodeId, outPort, ctx, depth) {
+  if (depth > 20) return; // prevent infinite loops
+  const wire = wires.find(w => w.fromNode === fromNodeId && w.fromPort === outPort);
+  if (!wire) return;
+  const node = nodes.find(n => n.id === wire.toNode);
+  if (!node) return;
+  previewExecNode(node, ctx, depth);
+}
+
+function previewExecNode(node, ctx, depth) {
+  const p = node.props;
+  switch (node.type) {
+    case 'action_reply':
+      ctx.replies.push(previewInterpolate(p.text || '', ctx));
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_reply_buttons': {
+      const btns = [];
+      if (p.btn1_id) btns.push({id: p.btn1_id, label: p.btn1_label||'Button 1', alert: false});
+      if (p.btn2_id) btns.push({id: p.btn2_id, label: p.btn2_label||'Button 2', alert: p.btn2_alert==='true'||p.btn2_alert===true});
+      // render as real clickable buttons in the chat
+      const feed = document.getElementById('preview-messages');
+      const row = document.createElement('div');
+      row.className = 'pm-row bot';
+      const botName = document.getElementById('bot-name-input').value || 'Bot';
+      row.innerHTML = `
+        <div class="pm-avatar" style="background:var(--purple)">${botName[0]}</div>
+        <div>
+          <div class="pm-name">${esc(botName)}</div>
+          <div class="pm-bubble">${esc(previewInterpolate(p.text||'Choose:', ctx))}</div>
+          <div style="display:flex;gap:.4rem;margin-top:.35rem;flex-wrap:wrap" id="btn-row-${node.id}"></div>
+        </div>`;
+      feed.appendChild(row);
+      feed.scrollTop = feed.scrollHeight;
+      const btnRow = document.getElementById('btn-row-' + node.id);
+      btns.forEach(b => {
+        const el = document.createElement('button');
+        el.style.cssText = `background:${b.alert?'rgba(248,113,113,.15)':'rgba(167,139,250,.15)'};border:1px solid ${b.alert?'rgba(248,113,113,.4)':'rgba(167,139,250,.4)'};border-radius:6px;color:${b.alert?'#f87171':'var(--purple)'};cursor:pointer;font-size:.78rem;font-weight:600;padding:.3rem .75rem;transition:background .15s`;
+        el.textContent = b.label;
+        el.onclick = () => {
+          el.disabled = true;
+          btnRow.querySelectorAll('button').forEach(x => x.disabled = true);
+          // find matching trigger_button node and walk its chain
+          const pattern = b.id.replace(/\{[^}]+\}/g, '.*');
+          const re = new RegExp('^' + pattern + '$');
+          const triggerNode = nodes.find(n => n.type === 'trigger_button' && re.test(n.props.id||''));
+          if (triggerNode) {
+            const bctx = {...ctx, button_id: b.id};
+            const replies = [];
+            bctx.replies = replies;
+            previewWalkChain(triggerNode.id, 'exec', bctx, 0);
+            replies.forEach(r => addPreviewMessage(r, true, botName));
+          } else {
+            addPreviewMessage(`[No button handler found for "${b.id}"]`, true, botName);
+          }
+        };
+        btnRow.appendChild(el);
+      });
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    }
+    case 'action_popup':
+      ctx.replies.push(`🪟 ${p.title||'Popup'}: ${previewInterpolate(p.text||'', ctx)}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_send':
+      ctx.replies.push(`[→ #${p.channel||'channel'}] ${previewInterpolate(p.text||'', ctx)}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_dm':
+      ctx.replies.push(`[DM → ${ctx.author.name}] ${previewInterpolate(p.text||'', ctx)}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_log':
+      ctx.replies.push(`[log] ${previewInterpolate(p.text||'', ctx)}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_set_var':
+      previewVars[p.var||'var'] = previewInterpolate(p.value||'', ctx);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_get_rest':
+      previewVars[p.var||'input'] = ctx.rest_text || '';
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_get_arg': {
+      const _args = (ctx.rest_text||'').split(' ').filter(Boolean);
+      previewVars[p.var||'arg'] = _args[+(p.index||0)] || '';
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    }
+    case 'action_random_int': {
+      const val = Math.floor(Math.random() * ((+p.max||100) - (+p.min||1) + 1)) + (+p.min||1);
+      previewVars[p.var||'rand'] = String(val);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    }
+    case 'action_random_choice': {
+      const items = (p.items||'yes,no').split(',').map(s=>s.trim());
+      previewVars[p.var||'choice'] = items[Math.floor(Math.random()*items.length)];
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    }
+    case 'action_random_text': {
+      const lines = (p.items||'Hello!').split('\n').map(s=>s.trim()).filter(Boolean);
+      previewVars[p.var||'rand_text'] = lines[Math.floor(Math.random()*lines.length)];
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    }
+    case 'action_math':
+      try { previewVars[p.var||'result'] = String(eval(previewInterpolate(p.expr||'0', ctx))); } catch(e) { previewVars[p.var||'result'] = 'error'; }
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_string_format':
+      previewVars[p.var||'text'] = previewInterpolate(p.template||'', ctx);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_http':
+      ctx.replies.push(`[HTTP ${p.method||'GET'} ${p.url||''}] → (simulated, no real request in preview)`);
+      previewVars[p.var||'response'] = '{"simulated":true}';
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_kick':
+      ctx.replies.push(`[Kicked ${ctx.author.name}: ${p.reason||''}]`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_ban':
+      ctx.replies.push(`[Banned ${ctx.author.name}: ${p.reason||''}]`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'logic_if_contains': {
+      const word = (p.word||'').toLowerCase();
+      const branch = ctx.text.toLowerCase().includes(word) ? 'true' : 'false';
+      previewWalkChain(node.id, branch, ctx, depth+1);
+      break;
+    }
+    case 'logic_if_perm':
+      // in preview, always grant permission so you can test the happy path
+      ctx.replies.push(`[Permission check: ${p.perm||'?'} — granted in preview]`);
+      previewWalkChain(node.id, 'true', ctx, depth+1);
+      break;
+    case 'logic_cooldown':
+      previewWalkChain(node.id, 'ok', ctx, depth+1);
+      break;
+    case 'action_loop_start': {
+      const times = parseInt(p.times) || 3;
+      const limit = Math.min(times, 5); // cap at 5 in preview
+      for (let i = 0; i < limit; i++) previewWalkChain(node.id, 'loop', ctx, depth+1);
+      previewWalkChain(node.id, 'done', ctx, depth+1);
+      break;
+    }
+    default:
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+  }
+}
+
+function previewInterpolate(str, ctx) {
+  // replace {var_name} with previewVars or author info
+  return str
+    .replace(/\{(\w+)\}/g, (_, k) => {
+      if (k === 'user' || k === 'author') return ctx.author.name;
+      if (k === 'rest_text') return ctx.rest_text;
+      return previewVars[k] !== undefined ? previewVars[k] : `{${k}}`;
+    });
+}
+</script>
 </body>
 </html>
