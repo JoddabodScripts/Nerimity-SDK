@@ -1939,11 +1939,13 @@ function toggleCodeEdit() {
     // validate before locking
     const errs = lintCode(ta.value);
     if (errs.length) {
-      codeEditMode = true; // stay in edit mode
+      codeEditMode = true;
       showCodeErrors(errs);
       return;
     }
     clearCodeErrors();
+    // re-parse the edited code back into nodes
+    importPy(ta.value);
     ta.setAttribute('readonly', '');
     ta.style.borderTop = '';
     btn.textContent = '✏️ Edit';
@@ -2062,11 +2064,15 @@ function loadGraph() {
 
 // ── Import .py ─────────────────────────────────────────────────────────────
 function importPy(input) {
+  if (typeof input === 'string') { parsePySrc(input); return; }
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => {
-    const src = e.target.result;
+  reader.onload = e => { parsePySrc(e.target.result); input.value = ''; };
+  reader.readAsText(file);
+}
+
+function parsePySrc(src) {
     clearCanvas();
     let y = 60;
 
@@ -2114,8 +2120,7 @@ function importPy(input) {
     });
 
     deselectNode();
-    input.value = '';
-  };
+}
   reader.readAsText(file);
 }
 
