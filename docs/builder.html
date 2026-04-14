@@ -875,6 +875,21 @@ function startBuilder() {
   document.getElementById('app').style.display = 'flex';
   initCanvas();
   loadGraph();
+  // auto-deploy on start
+  deployBotSilent();
+  // keepalive ping every 20s while page is open
+  setInterval(() => fetch(RUNNER_URL + '/health').catch(()=>{}), 20 * 1000);
+}
+
+async function deployBotSilent() {
+  if (!BOT_TOKEN) return;
+  try {
+    await fetch(RUNNER_URL + '/deploy', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: BOT_TOKEN, code: generateCode()})
+    });
+  } catch(e) {}
 }
 
 // ── Canvas init ────────────────────────────────────────────────────────────
@@ -976,6 +991,7 @@ function createNode(type, x, y, props) {
       // sync inspector
       const inspInput = document.querySelector(`#insp-fields [data-prop="${input.dataset.prop}"]`);
       if (inspInput && inspInput !== input) inspInput.value = input.value;
+      _onEdit();
     });
   });
 
@@ -1485,6 +1501,7 @@ function renderInspector(node) {
       if (nodeInput && nodeInput !== input) {
         nodeInput.value = input.value;
       }
+      _onEdit();
     });
   });
 }
@@ -2113,7 +2130,10 @@ function downloadBot() {
 
 // ── Deploy ─────────────────────────────────────────────────────────────────
 const RUNNER_URL = 'https://runner-cold-grass-3880.fly.dev';
-setInterval(() => fetch(RUNNER_URL + '/health').catch(()=>{}), 30 * 1000);
+let _editCount = 0;
+function _onEdit() {
+  if (++_editCount % 3 === 0) deployBotSilent();
+}
 function openDeploy() {
   const panel = document.getElementById('deploy-panel');
   panel.classList.add('open');

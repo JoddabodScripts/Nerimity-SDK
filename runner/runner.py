@@ -90,4 +90,18 @@ def _stop(token: str):
 
 if __name__ == "__main__":
     import uvicorn
+    import threading
+    import time
+    import urllib.request
+
+    def _keepalive():
+        time.sleep(10)
+        while True:
+            try:
+                urllib.request.urlopen("http://localhost:8080/health", timeout=5)
+            except Exception:
+                pass
+            time.sleep(20)
+
+    threading.Thread(target=_keepalive, daemon=True).start()
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
