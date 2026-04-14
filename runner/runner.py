@@ -29,6 +29,11 @@ class StatusResponse(BaseModel):
     token_hint: str  # first 8 chars only, never expose full token
 
 
+@app.get("/health")
+async def health():
+    return {"ok": True}
+
+
 @app.post("/deploy")
 async def deploy(req: DeployRequest):
     token = req.token.strip()
@@ -85,4 +90,4 @@ def _stop(token: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

@@ -2113,6 +2113,7 @@ function downloadBot() {
 
 // ── Deploy ─────────────────────────────────────────────────────────────────
 const RUNNER_URL = 'https://runner-cold-grass-3880.fly.dev';
+setInterval(() => fetch(RUNNER_URL + '/health').catch(()=>{}), 30 * 1000);
 function openDeploy() {
   const panel = document.getElementById('deploy-panel');
   panel.classList.add('open');
