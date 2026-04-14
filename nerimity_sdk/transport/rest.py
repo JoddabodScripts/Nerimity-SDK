@@ -179,7 +179,11 @@ class RESTClient:
         if nerimity_file_id:
             data["nerimityCdnFileId"] = nerimity_file_id
         if embed:
-            data["embed"] = embed
+            # embed dict may carry htmlEmbed (HTML string) or legacy json fields
+            if "htmlEmbed" in embed:
+                data["htmlEmbed"] = embed["htmlEmbed"]
+            else:
+                data["htmlEmbed"] = embed  # fallback: pass as-is
         if buttons:
             for b in buttons:
                 data["buttons"].append({
@@ -299,10 +303,13 @@ class RESTClient:
         )
 
     async def update_message(self, channel_id: str, message_id: str, content: str,
-                              buttons: Optional[list[dict]] = None) -> dict:
+                              buttons: Optional[list[dict]] = None,
+                              embed: Optional[dict] = None) -> dict:
         body: dict = {"content": content}
         if buttons is not None:
             body["buttons"] = buttons
+        if embed is not None:
+            body["embed"] = embed
         return await self.request(
             "PATCH", f"/channels/{channel_id}/messages/{message_id}", json=body
         )

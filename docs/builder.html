@@ -218,6 +218,26 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 /* misc */
 .hint{font-size:.72rem;color:var(--text-dim);line-height:1.5}
 
+/* ── Deploy modal ─────────────────────────────────────────────────────── */
+#deploy-panel{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:500;display:none;align-items:center;justify-content:center;padding:2rem;
+}
+#deploy-panel.open{display:flex}
+#deploy-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  width:100%;max-width:480px;display:flex;flex-direction:column;overflow:hidden;
+}
+#deploy-box-header{
+  padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;
+}
+#deploy-box-header span{font-size:.82rem;font-weight:600;flex:1}
+#deploy-body{padding:1.25rem;display:flex;flex-direction:column;gap:1rem}
+#deploy-status{font-size:.8rem;padding:.6rem .9rem;border-radius:var(--radius-sm);display:none}
+#deploy-status.ok{background:rgba(52,211,153,.1);color:#34d399;display:block}
+#deploy-status.err{background:rgba(248,113,113,.1);color:#f87171;display:block}
+#deploy-status.loading{background:rgba(96,165,250,.1);color:#60a5fa;display:block}
+
 /* ── Preview panel ────────────────────────────────────────────────────── */
 #preview-panel{
   position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;
@@ -378,6 +398,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
     <button class="tb-btn" onclick="openCode()" style="margin-left:.25rem">Preview code</button>
     <button class="tb-btn" onclick="openPreview()" style="margin-left:.25rem">💬 Test bot</button>
     <button class="tb-btn primary" onclick="downloadBot()">⬇ Download bot.py</button>
+    <button class="tb-btn" onclick="openDeploy()" style="margin-left:.25rem;background:linear-gradient(135deg,#34d399,#60a5fa);border:none;color:#fff;font-weight:600">🚀 Deploy</button>
   </div>
 
   <!-- main -->
@@ -626,6 +647,22 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
       <button class="tb-btn" onclick="closeCode()" style="margin-left:.25rem">✕</button>
     </div>
     <textarea id="code-pre" spellcheck="false" readonly></textarea>
+  </div>
+</div>
+<div id="deploy-panel">
+  <div id="deploy-box">
+    <div id="deploy-box-header">
+      <span>🚀 Deploy Bot</span>
+      <button class="tb-btn" onclick="closeDeploy()">✕</button>
+    </div>
+    <div id="deploy-body">
+      <div class="hint">Your bot will be hosted for free. Just click Deploy — no setup needed.</div>
+      <div id="deploy-status"></div>
+      <div style="display:flex;gap:.5rem">
+        <button class="tb-btn primary" onclick="deployBot()" style="flex:1">🚀 Deploy</button>
+        <button class="tb-btn" onclick="stopBot()" style="flex:1">⏹ Stop</button>
+      </div>
+    </div>
   </div>
 </div>
 <script>
@@ -2072,6 +2109,54 @@ function downloadBot() {
   a.href = URL.createObjectURL(new Blob([code], {type:'text/plain'}));
   a.download = 'bot.py';
   a.click();
+}
+
+// ── Deploy ─────────────────────────────────────────────────────────────────
+const RUNNER_URL = 'https://runner-cold-grass-3880.fly.dev';
+function openDeploy() {
+  const panel = document.getElementById('deploy-panel');
+  panel.classList.add('open');
+  document.getElementById('deploy-status').className = '';
+  document.getElementById('deploy-status').textContent = '';
+}
+function closeDeploy() {
+  document.getElementById('deploy-panel').classList.remove('open');
+}
+async function deployBot() {
+  if (!BOT_TOKEN) { setDeployStatus('err', 'No token — go back to the start screen.'); return; }
+  const code = generateCode();
+  setDeployStatus('loading', 'Deploying…');
+  try {
+    const res = await fetch(RUNNER_URL + '/deploy', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: BOT_TOKEN, code})
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Deploy failed');
+    setDeployStatus('ok', `✅ Bot is running! (${data.token_hint})`);
+  } catch(e) {
+    setDeployStatus('err', '❌ ' + e.message);
+  }
+}
+async function stopBot() {
+  if (!BOT_TOKEN) return;
+  setDeployStatus('loading', 'Stopping…');
+  try {
+    await fetch(RUNNER_URL + '/stop', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token: BOT_TOKEN, code: ''})
+    });
+    setDeployStatus('ok', '⏹ Bot stopped.');
+  } catch(e) {
+    setDeployStatus('err', '❌ ' + e.message);
+  }
+}
+function setDeployStatus(type, msg) {
+  const el = document.getElementById('deploy-status');
+  el.className = type;
+  el.textContent = msg;
 }
 
 // ── Save / load graph (localStorage) ──────────────────────────────────────

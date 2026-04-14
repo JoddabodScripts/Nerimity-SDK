@@ -97,10 +97,20 @@ async def convert_args(ctx: "Context", converters: list) -> list:
     return results
 
 
+class _Str:
+    name = "string"
+    async def convert(self, ctx: "Context", value: str) -> str:
+        return value
+
+
+Str = _Str()
+
+
 def converters_from_annotations(fn) -> list:
     """Extract converters from a command handler's type annotations.
 
-    Supports: int → Int, str → passthrough, and the SDK converter singletons.
+    Supports: int → Int, float → Float, bool → Bool, str → Str (passthrough),
+    and the SDK converter singletons.
 
     Usage::
 
@@ -110,7 +120,7 @@ def converters_from_annotations(fn) -> list:
     """
     import inspect
     sig = inspect.signature(fn)
-    _type_map = {int: Int, float: Float, bool: Bool, str: None}  # None = no conversion needed
+    _type_map = {int: Int, float: Float, bool: Bool, str: Str}
     converters = []
     params = list(sig.parameters.values())
     # Skip the first param (ctx)
@@ -119,9 +129,7 @@ def converters_from_annotations(fn) -> list:
         if ann is inspect.Parameter.empty:
             continue
         if ann in _type_map:
-            c = _type_map[ann]
-            if c is not None:
-                converters.append(c)
+            converters.append(_type_map[ann])
         elif hasattr(ann, "convert"):
             converters.append(ann)
     return converters

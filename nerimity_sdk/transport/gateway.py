@@ -20,7 +20,7 @@ _GATEWAY_EVENTS = [
     "message:deleted_batch",
     "message:reaction_added",
     "message:reaction_removed",
-    "message:button_clicked_callback",
+    "message:button_clicked",
     "server:joined",
     "server:left",
     "server:updated",

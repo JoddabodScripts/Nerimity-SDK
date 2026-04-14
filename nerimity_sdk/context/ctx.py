@@ -181,24 +181,6 @@ class Context:
         """
         return _TypingContext(self)
 
-
-class _TypingContext:
-    def __init__(self, ctx: "Context") -> None:
-        self._ctx = ctx
-        self._task: "asyncio.Task | None" = None
-
-    async def __aenter__(self) -> "_TypingContext":
-        async def _keep_typing():
-            while True:
-                await self._ctx.rest.send_typing(self._ctx.channel_id)
-                await asyncio.sleep(4)
-        self._task = asyncio.create_task(_keep_typing())
-        return self
-
-    async def __aexit__(self, *_) -> None:
-        if self._task:
-            self._task.cancel()
-
     # ── Conversation helpers ──────────────────────────────────────────────────
 
     async def ask(self, prompt: str, timeout: float = 30.0,
@@ -265,10 +247,16 @@ class _TypingContext:
         return None
 
     async def reply_embed(self, embed: "Any") -> "Message":
-        """Send an embed. Accepts an Embed builder object or a raw dict."""
+        """Send an embed. Accepts an Embed builder object or a raw HTML string."""
         from nerimity_sdk.models import Message
-        embed_dict = embed if isinstance(embed, dict) else embed.to_dict()
-        data = await self.rest.create_message(self.channel_id, "\u200b", embed=embed_dict)
+        if isinstance(embed, str):
+            html = embed
+        elif isinstance(embed, dict):
+            html = embed.get("htmlEmbed", "")
+        else:
+            html = embed.to_html()
+        data = await self.rest.create_message(self.channel_id, "\u200b",
+                                               embed={"htmlEmbed": html})
         return Message.from_dict(data)
 
     async def pin(self) -> None:
@@ -315,3 +303,21 @@ class _TypingContext:
         from nerimity_sdk.models import Message
         raw = await self.rest.fetch_messages(self.channel_id, limit, before, after)
         return [Message.from_dict(m) for m in raw]
+
+
+class _TypingContext:
+    def __init__(self, ctx: "Context") -> None:
+        self._ctx = ctx
+        self._task: "asyncio.Task | None" = None
+
+    async def __aenter__(self) -> "_TypingContext":
+        async def _keep_typing():
+            while True:
+                await self._ctx.rest.send_typing(self._ctx.channel_id)
+                await asyncio.sleep(4)
+        self._task = asyncio.create_task(_keep_typing())
+        return self
+
+    async def __aexit__(self, *_) -> None:
+        if self._task:
+            self._task.cancel()

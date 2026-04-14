@@ -85,14 +85,23 @@ class ButtonContext:
         # Nerimity button clicks are fire-and-forget from the server side;
         # this is a no-op placeholder for API parity with Discord-style bots.
 
-    async def update_message(self, content: str,
+    async def reply_embed(self, embed: Any) -> None:
+        """Post an embed to the channel (same as ctx.reply_embed)."""
+        embed_dict = embed if isinstance(embed, dict) else embed.to_dict()
+        await self.rest.create_message(self.channel_id, "\u200b", embed=embed_dict)
+
+    async def update_message(self, content: Optional[str] = None,
+                              embed: Any = None,
                               buttons: Optional[list[ComponentRow]] = None) -> None:
         """Edit the message that contains the button."""
         btn_data: Optional[list[dict]] = None
         if buttons is not None:
             btn_data = [b for row in buttons for b in row.to_list()]
-        await self.rest.update_message(self.channel_id, self.message_id, content,
-                                       buttons=btn_data)
+        embed_dict: Optional[dict] = None
+        if embed is not None:
+            embed_dict = embed if isinstance(embed, dict) else embed.to_dict()
+        await self.rest.update_message(self.channel_id, self.message_id,
+                                       content or "", buttons=btn_data, embed=embed_dict)
 
 
 # ── ButtonRouter ──────────────────────────────────────────────────────────────

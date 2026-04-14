@@ -238,14 +238,16 @@ class CommandRouter:
             try:
                 ctx.args[:] = await convert_args(ctx, cmd.converters)
             except ConversionError as e:
-                await ctx.reply(str(e))
+                usage_hint = f"\nUsage: `{self.prefix}{cmd.name} {cmd.usage}`" if cmd.usage else \
+                             f"\nUsage: `{self.prefix}{cmd.name} {' '.join(f'<{c.name}>' for c in cmd.converters)}`"
+                await ctx.reply(f"{e}{usage_hint}")
                 return True
 
         # Build middleware chain
         all_mw = self._global_middleware + cmd.middleware
 
         async def run_handler(c: "Context") -> bool:
-            await cmd.handler(c)
+            await cmd.handler(c, *c.args) if cmd.converters else await cmd.handler(c)
             return True
 
         chain = run_handler

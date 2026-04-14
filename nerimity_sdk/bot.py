@@ -127,7 +127,7 @@ class Bot:
         # Wire internal gateway events
         self.emitter.on("user:authenticated", self._on_authenticated)
         self.emitter.on("message:created", self._on_message_created)
-        self.emitter.on("message:button_clicked_callback", self._on_button_clicked)
+        self.emitter.on("message:button_clicked", self._on_button_clicked)
         self.emitter.on("server:member_joined", self._on_member_joined)
         self.emitter.on("server:member_left", self._on_member_left)
         self.emitter.on("server:updated", self._on_server_updated)
