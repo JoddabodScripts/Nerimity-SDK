@@ -226,13 +226,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 #deploy-panel.open{display:flex}
 #deploy-box{
   background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
-  width:100%;max-width:480px;display:flex;flex-direction:column;overflow:hidden;
+  width:100%;max-width:640px;display:flex;flex-direction:column;overflow:hidden;
 }
 #deploy-box-header{
   padding:.75rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem;
 }
 #deploy-box-header span{font-size:.82rem;font-weight:600;flex:1}
 #deploy-body{padding:1.25rem;display:flex;flex-direction:column;gap:1rem}
+#deploy-custom-code{
+  flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.75rem;line-height:1.6;
+  padding:.75rem;resize:none;outline:none;min-height:260px;
+}
+#deploy-custom-code:focus{border-color:rgba(167,139,250,.4)}
 #deploy-status{font-size:.8rem;padding:.6rem .9rem;border-radius:var(--radius-sm);display:none}
 #deploy-status.ok{background:rgba(52,211,153,.1);color:#34d399;display:block}
 #deploy-status.err{background:rgba(248,113,113,.1);color:#f87171;display:block}
@@ -439,15 +445,21 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
       <div class="acc-body">
         <div class="pal-item" draggable="true" data-type="action_reply"><span class="pal-dot" style="background:#a78bfa"></span>Reply</div>
         <div class="pal-item" draggable="true" data-type="action_reply_buttons"><span class="pal-dot" style="background:#a78bfa"></span>Reply with buttons</div>
+        <div class="pal-item" draggable="true" data-type="action_reply_silent"><span class="pal-dot" style="background:#a78bfa"></span>Reply silent</div>
+        <div class="pal-item" draggable="true" data-type="action_reply_then_delete"><span class="pal-dot" style="background:#a78bfa"></span>Reply then delete</div>
+        <div class="pal-item" draggable="true" data-type="action_reply_paginated"><span class="pal-dot" style="background:#a78bfa"></span>Reply paginated</div>
+        <div class="pal-item" draggable="true" data-type="action_ask"><span class="pal-dot" style="background:#60a5fa"></span>Ask question</div>
+        <div class="pal-item" draggable="true" data-type="action_confirm"><span class="pal-dot" style="background:#34d399"></span>Confirm prompt</div>
         <div class="pal-item" draggable="true" data-type="action_popup"><span class="pal-dot" style="background:#a78bfa"></span>Button popup</div>
         <div class="pal-item" draggable="true" data-type="action_send"><span class="pal-dot" style="background:#60a5fa"></span>Send message</div>
         <div class="pal-item" draggable="true" data-type="action_dm"><span class="pal-dot" style="background:#f472b6"></span>Send DM</div>
+        <div class="pal-item" draggable="true" data-type="action_react"><span class="pal-dot" style="background:#fbbf24"></span>React to message</div>
+        <div class="pal-item" draggable="true" data-type="action_forward"><span class="pal-dot" style="background:#60a5fa"></span>Forward message</div>
         <div class="pal-item" draggable="true" data-type="action_kick"><span class="pal-dot" style="background:#fb923c"></span>Kick member</div>
         <div class="pal-item" draggable="true" data-type="action_ban"><span class="pal-dot" style="background:#f87171"></span>Ban member</div>
         <div class="pal-item" draggable="true" data-type="action_unban"><span class="pal-dot" style="background:#34d399"></span>Unban member</div>
         <div class="pal-item" draggable="true" data-type="action_add_role"><span class="pal-dot" style="background:#34d399"></span>Add role</div>
         <div class="pal-item" draggable="true" data-type="action_remove_role"><span class="pal-dot" style="background:#f87171"></span>Remove role</div>
-        <div class="pal-item" draggable="true" data-type="action_pin"><span class="pal-dot" style="background:#60a5fa"></span>Pin message</div>
         <div class="pal-item" draggable="true" data-type="action_delete_msg"><span class="pal-dot" style="background:#f87171"></span>Delete message</div>
         <div class="pal-item" draggable="true" data-type="action_store_set"><span class="pal-dot" style="background:#34d399"></span>Store: set</div>
         <div class="pal-item" draggable="true" data-type="action_store_get"><span class="pal-dot" style="background:#34d399"></span>Store: get</div>
@@ -465,7 +477,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
         <div class="pal-item" draggable="true" data-type="action_create_channel"><span class="pal-dot" style="background:#34d399"></span>Create channel</div>
         <div class="pal-item" draggable="true" data-type="action_send_typing"><span class="pal-dot" style="background:#94a3b8"></span>Send typing</div>
         <div class="pal-item" draggable="true" data-type="action_upload_file"><span class="pal-dot" style="background:#60a5fa"></span>Upload file</div>
-        <div class="pal-item" draggable="true" data-type="action_unpin"><span class="pal-dot" style="background:#94a3b8"></span>Unpin message</div>
       </div>
 
       <!-- Logic -->
@@ -667,7 +678,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
       <button class="tb-btn" onclick="closeDeploy()">✕</button>
     </div>
     <div id="deploy-body">
-      <div class="hint">Your bot will be hosted for free. Just click Deploy - no setup needed.</div>
+      <!-- mode tabs -->
+      <div style="display:flex;gap:.5rem">
+        <button id="dtab-visual" onclick="setDeployTab('visual')" style="flex:1;background:rgba(167,139,250,.2);border:1px solid rgba(167,139,250,.4);border-radius:var(--radius-sm);color:var(--purple);cursor:pointer;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem">🎨 Visual Bot</button>
+        <button id="dtab-custom" onclick="setDeployTab('custom')" style="flex:1;background:transparent;border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;font-size:.8rem;font-weight:600;padding:.4rem">📝 Custom Code</button>
+      </div>
+      <div id="dtab-visual-body">
+        <div class="hint">Deploys the bot generated from your visual nodes. Hosted for free - no setup needed.</div>
+      </div>
+      <div id="dtab-custom-body" style="display:none;flex-direction:column;gap:.75rem">
+        <div class="hint">Paste any Python bot code. It will be deployed and run on the hosted runner.</div>
+        <textarea id="deploy-custom-code" spellcheck="false" placeholder="import os&#10;from nerimity_sdk import Bot&#10;&#10;bot = Bot(token=os.environ['NERIMITY_TOKEN'])&#10;&#10;@bot.command('ping')&#10;async def ping(ctx):&#10;    await ctx.reply('Pong!')&#10;&#10;bot.run()"></textarea>
+      </div>
       <div id="deploy-status"></div>
       <div style="display:flex;gap:.5rem">
         <button class="tb-btn primary" onclick="deployBot()" style="flex:1">🚀 Deploy</button>
@@ -703,7 +725,8 @@ const NODE_DEFS = {
   trigger_ready:    { label:'on_ready',       icon:'⚡', color:'#34d399', cat:'trigger', ins:[], outs:['exec'] },
   trigger_command:  { label:'Command',        icon:'💬', color:'#a78bfa', cat:'trigger', ins:[], outs:['exec'],
     fields:[{k:'name',l:'Command name',t:'text',d:'ping'},{k:'desc',l:'Description',t:'text',d:'A command'},{k:'prefix',l:'Prefix',t:'text',d:'!'},{k:'guild_only',l:'Server only',t:'bool',d:false}] },
-  trigger_message:  { label:'Message created',icon:'✉️', color:'#60a5fa', cat:'trigger', ins:[], outs:['exec'] },
+  trigger_message:  { label:'Message created',icon:'✉️', color:'#60a5fa', cat:'trigger', ins:[], outs:['exec'],
+    fields:[{k:'contains',l:'Only if message contains (leave blank for all)',t:'text',d:''}] },
   trigger_join:     { label:'Member joined',  icon:'👋', color:'#34d399', cat:'trigger', ins:[], outs:['exec'] },
   trigger_leave:    { label:'Member left',    icon:'🚪', color:'#f87171', cat:'trigger', ins:[], outs:['exec'] },
   trigger_reaction: { label:'Reaction added', icon:'⭐', color:'#fbbf24', cat:'trigger', ins:[], outs:['exec'] },
@@ -774,12 +797,25 @@ const NODE_DEFS = {
   action_log:       { label:'Log',            icon:'📋', color:'#94a3b8', cat:'utility', ins:['exec'], outs:['exec'],
     fields:[{k:'text',l:'Message to log',t:'text',d:'debug info'}] },
   action_add_role:  { label:'Add role',       icon:'🏷️', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
-    fields:[{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
+    fields:[{k:'target',l:'Target (mention, user ID, or "author")',t:'text',d:'author'},{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
   action_remove_role:{ label:'Remove role',   icon:'🏷️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
-    fields:[{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
+    fields:[{k:'target',l:'Target (mention, user ID, or "author")',t:'text',d:'author'},{k:'role_id',l:'Role ID',t:'text',d:'YOUR_ROLE_ID'}] },
   action_unban:     { label:'Unban member',   icon:'🔓', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
-    fields:[{k:'user_id',l:'User ID',t:'text',d:'USER_ID'}] },
-  action_pin:       { label:'Pin message',    icon:'📌', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'user_id',l:'User ID (or mention)',t:'text',d:'USER_ID'}] },
+  action_reply_silent: { label:'Reply silent', icon:'🔇', color:'#a78bfa', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Message',t:'textarea',d:'shh...'}] },
+  action_reply_then_delete: { label:'Reply then delete', icon:'💨', color:'#a78bfa', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Message',t:'textarea',d:'Done!'},{k:'delay',l:'Delay (seconds)',t:'text',d:'5'}] },
+  action_reply_paginated: { label:'Reply paginated', icon:'📄', color:'#a78bfa', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'Long text (or variable name)',t:'textarea',d:'very long text here...'}] },
+  action_forward:   { label:'Forward message', icon:'↗️', color:'#60a5fa', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'channel',l:'Target Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  action_react:     { label:'React to message', icon:'⭐', color:'#fbbf24', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'emoji',l:'Emoji',t:'text',d:'👍'}] },
+  action_ask:       { label:'Ask question',   icon:'❓', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'prompt',l:'Question',t:'text',d:'What is your name?'},{k:'var',l:'Store answer in',t:'text',d:'answer'},{k:'timeout',l:'Timeout (s)',t:'text',d:'30'}] },
+  action_confirm:   { label:'Confirm prompt', icon:'✅', color:'#34d399', cat:'action',  ins:['exec'], outs:['yes','no','timeout'],
+    fields:[{k:'prompt',l:'Question',t:'text',d:'Are you sure?'}] },
     fields:[] },
   action_delete_msg:{ label:'Delete message', icon:'🗑️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
     fields:[] },
@@ -816,8 +852,6 @@ const NODE_DEFS = {
     fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
   action_upload_file:{ label:'Upload file',     icon:'📎', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
     fields:[{k:'path',l:'File path',t:'text',d:'./file.png'},{k:'var',l:'Store file ID in',t:'text',d:'file_id'}] },
-  action_unpin:      { label:'Unpin message',   icon:'📌', color:'#94a3b8', cat:'action',  ins:['exec'], outs:['exec'],
-    fields:[] },
   // Buttons
   trigger_button:    { label:'Button clicked',  icon:'🔘', color:'#a78bfa', cat:'trigger', ins:[], outs:['exec'],
     fields:[{k:'id',l:'Button ID pattern (use {param} for wildcards)',t:'text',d:'my_button_{user_id}'}] },
@@ -835,44 +869,44 @@ const NODE_DEFS = {
   // Extra plugins
   plugin_afk:        { label:'AFKPlugin',       icon:'💤', color:'#94a3b8', cat:'plugin', ins:[], outs:[], fields:[] },
   plugin_autorole:   { label:'AutoRolePlugin',  icon:'🏷️', color:'#34d399', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'role_id',l:'Role ID to assign',t:'text',d:'YOUR_ROLE_ID'}] },
+    fields:[{k:'server_id',l:'Server ID',t:'text',d:'YOUR_SERVER_ID'},{k:'role_id',l:'Role ID to assign',t:'text',d:'YOUR_ROLE_ID'}] },
   plugin_birthday:   { label:'BirthdayPlugin',  icon:'🎂', color:'#f472b6', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Announce channel',t:'text',d:'YOUR_CHANNEL_ID'}] },
-  plugin_counter:    { label:'CounterPlugin',   icon:'🔢', color:'#60a5fa', cat:'plugin', ins:[], outs:[], fields:[] },
+    fields:[{k:'channel',l:'Announce channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_counter:    { label:'CounterPlugin',   icon:'🔢', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'server_id',l:'Server ID',t:'text',d:'YOUR_SERVER_ID'},{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'label',l:'Label (e.g. Members)',t:'text',d:'Members'}] },
   plugin_custom_cmd: { label:'CustomCommandPlugin',icon:'⚡',color:'#a78bfa',cat:'plugin', ins:[], outs:[], fields:[] },
-  plugin_giveaway:   { label:'GiveawayPlugin',  icon:'🎉', color:'#fbbf24', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_giveaway:   { label:'GiveawayPlugin',  icon:'🎉', color:'#fbbf24', cat:'plugin', ins:[], outs:[], fields:[] },
   plugin_msg_filter: { label:'MessageFilterPlugin',icon:'🔍',color:'#f87171',cat:'plugin',ins:[], outs:[],
-    fields:[{k:'words',l:'Blocked words (comma-sep)',t:'text',d:'badword'}] },
-  plugin_msg_snap:   { label:'MessageSnapshotPlugin',icon:'📸',color:'#60a5fa',cat:'plugin',ins:[],outs:[],fields:[] },
+    fields:[{k:'words',l:'Blocked words (comma-sep)',t:'text',d:'badword'},{k:'block_links',l:'Block links',t:'bool',d:false},{k:'block_invites',l:'Block invites',t:'bool',d:false}] },
+  plugin_msg_snap:   { label:'MessageSnapshotPlugin',icon:'📸',color:'#60a5fa',cat:'plugin',ins:[],outs:[],
+    fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
   plugin_mod_log:    { label:'ModerationLogPlugin',icon:'📋',color:'#fb923c',cat:'plugin',ins:[],outs:[],
     fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
   plugin_mute:       { label:'MutePlugin',      icon:'🔇', color:'#f87171', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
+    fields:[{k:'muted_role_id',l:'Muted role ID',t:'text',d:'YOUR_MUTED_ROLE_ID'},{k:'channel',l:'Log channel ID (optional)',t:'text',d:''}] },
   plugin_pinboard:   { label:'PinboardPlugin',  icon:'📌', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Pinboard channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Reactions needed',t:'text',d:'3'}] },
+    fields:[{k:'channel',l:'Pinboard channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Reactions needed',t:'text',d:'3'}] },
   plugin_poll:       { label:'PollPlugin',      icon:'📊', color:'#a78bfa', cat:'plugin', ins:[], outs:[], fields:[] },
   plugin_raid_guard: { label:'RaidGuardPlugin', icon:'🚨', color:'#f87171', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Alert channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Join threshold',t:'text',d:'10'}] },
-  plugin_reaction_roles:{ label:'ReactionRolesPlugin',icon:'🎭',color:'#a78bfa',cat:'plugin',ins:[],outs:[],
-    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+    fields:[{k:'channel',l:'Alert channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Join threshold',t:'text',d:'10'}] },
+  plugin_reaction_roles:{ label:'ReactionRolesPlugin',icon:'🎭',color:'#a78bfa',cat:'plugin',ins:[],outs:[], fields:[] },
   plugin_reminders:  { label:'ReminderPlugin',  icon:'⏰', color:'#fb923c', cat:'plugin', ins:[], outs:[], fields:[] },
   plugin_role_menu:  { label:'RoleMenuPlugin',  icon:'📋', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+    fields:[{k:'message_id',l:'Message ID to attach to',t:'text',d:'YOUR_MESSAGE_ID'},{k:'roles',l:'Emoji:RoleID pairs (one per line)',t:'textarea',d:'👍:ROLE_ID_1\n👎:ROLE_ID_2'}] },
   plugin_logging:    { label:'LoggingPlugin',   icon:'📝', color:'#94a3b8', cat:'plugin', ins:[], outs:[],
     fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
   plugin_server_stats:{ label:'ServerStatsPlugin',icon:'📊',color:'#60a5fa',cat:'plugin',ins:[],outs:[],
-    fields:[{k:'channel',l:'Stats channel',t:'text',d:'YOUR_CHANNEL_ID'}] },
-  plugin_slowmode:   { label:'SlowmodePlugin',  icon:'🐢', color:'#fb923c', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'seconds',l:'Slowmode seconds',t:'text',d:'5'}] },
+    fields:[{k:'server_id',l:'Server ID',t:'text',d:'YOUR_SERVER_ID'},{k:'channel',l:'Stats channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
+  plugin_slowmode:   { label:'SlowmodePlugin',  icon:'🐢', color:'#fb923c', cat:'plugin', ins:[], outs:[], fields:[] },
   plugin_suggestions:{ label:'SuggestionPlugin',icon:'💡', color:'#fbbf24', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Suggestions channel',t:'text',d:'YOUR_CHANNEL_ID'}] },
+    fields:[{k:'channel',l:'Suggestions channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'upvote',l:'Upvote emoji',t:'text',d:'👍'},{k:'downvote',l:'Downvote emoji',t:'text',d:'👎'}] },
   plugin_tags:       { label:'TagPlugin',       icon:'🏷️', color:'#a78bfa', cat:'plugin', ins:[], outs:[], fields:[] },
   plugin_temp_channel:{ label:'TempChannelPlugin',icon:'⏱️',color:'#fb923c',cat:'plugin',ins:[],outs:[],
     fields:[{k:'timeout',l:'Timeout (seconds)',t:'text',d:'300'}] },
-  plugin_translate:  { label:'TranslatePlugin', icon:'🌐', color:'#60a5fa', cat:'plugin', ins:[], outs:[], fields:[] },
+  plugin_translate:  { label:'TranslatePlugin', icon:'🌐', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
+    fields:[{k:'channel',l:'Watch channel ID (blank = all)',t:'text',d:''},{k:'lang',l:'Target language',t:'text',d:'en'}] },
   plugin_warn:       { label:'WarnPlugin',      icon:'⚠️', color:'#fbbf24', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'threshold',l:'Warn threshold',t:'text',d:'3'},{k:'channel',l:'Log channel',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
+    fields:[{k:'threshold',l:'Warns before kick',t:'text',d:'3'},{k:'channel',l:'Log channel ID (optional)',t:'text',d:''}] },
   plugin_auto_reply: { label:'AutoReplyPlugin', icon:'💬', color:'#34d399', cat:'plugin', ins:[], outs:[],
     fields:[{k:'rules',l:'Rules (keyword:reply, one per line)',t:'textarea',d:'hello:Hi there!\nthanks:You\'re welcome!'}] },
 };
@@ -1610,6 +1644,7 @@ function generateCode() {
   const types = new Set(nodes.map(n => n.type));
   const hasPlugins = nodes.some(n => n.type.startsWith('plugin_'));
   const hasStore   = types.has('action_store_set') || types.has('action_store_get');
+  const hasCooldown = types.has('logic_cooldown');
   const needsPerms = types.has('logic_if_perm') || types.has('action_ban') || types.has('action_kick');
 
   // imports
@@ -1626,6 +1661,11 @@ function generateCode() {
   }
 
   lines.push('');
+
+  if (hasCooldown) {
+    lines.push('_cooldowns = {}');
+    lines.push('');
+  }
 
   // Bot variables
   if (botVariables.length) {
@@ -1708,6 +1748,10 @@ function emitTrigger(trigger, lines) {
       lines.push('@bot.on("message:created")');
       lines.push('async def on_message(event):');
       lines.push('    msg = event.message');
+      lines.push('    ctx = type("ctx", (), {"message": msg, "author": msg.created_by, "channel_id": msg.channel_id, "server_id": msg.server_id, "args": msg.content.split(), "rest_text": msg.content, "mentions": msg.mentions, "rest": bot.rest, "cache": bot.cache})()');
+      if (trigger.props.contains) {
+        lines.push(`    if "${esc2(trigger.props.contains)}" not in (msg.content or "").lower(): return`);
+      }
       emitChain(trigger.id, 'exec', lines, '    ');
       if (!lines[lines.length-1].trim()) lines.push('    pass');
       break;
@@ -1808,15 +1852,19 @@ function emitAction(node, lines, indent) {
       emitChain(node.id, 'exec', lines, i);
       break;
 
-    case 'action_kick':
-      lines.push(`${i}await bot.rest.kick_member(ctx.server_id, ctx.author.id, reason="${esc2(p.reason || '')}")`);
+    case 'action_kick': {
+      const ktarget = p.target === 'author' || !p.target ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.target)}")`;
+      lines.push(`${i}await bot.rest.kick_member(ctx.server_id, ${ktarget})`);
       emitChain(node.id, 'exec', lines, i);
       break;
+    }
 
-    case 'action_ban':
-      lines.push(`${i}await bot.rest.ban_member(ctx.server_id, ctx.author.id, reason="${esc2(p.reason || '')}")`);
+    case 'action_ban': {
+      const btarget = p.target === 'author' || !p.target ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.target)}")`;
+      lines.push(`${i}await bot.rest.ban_member(ctx.server_id, ${btarget})`);
       emitChain(node.id, 'exec', lines, i);
       break;
+    }
 
     case 'action_store_set':
       lines.push(`${i}await bot.store.set("${esc2(p.key || 'key')}", "${esc2(p.value || '')}")`);
@@ -1839,8 +1887,9 @@ function emitAction(node, lines, indent) {
       break;
 
     case 'logic_if_perm':
-      lines.push(`${i}from nerimity_sdk import has_permission`);
-      lines.push(`${i}if has_permission(ctx.member.permissions, "${p.perm || 'BAN_MEMBERS'}"):`);
+      lines.push(`${i}from nerimity_sdk.permissions.checker import has_permission`);
+      lines.push(`${i}from nerimity_sdk.models import Permissions`);
+      lines.push(`${i}if ctx.member and ctx.server and has_permission(ctx.member, ctx.server, Permissions.${p.perm || 'BAN_MEMBERS'}):`);
       emitChain(node.id, 'true',  lines, i + '    ');
       lines.push(`${i}else:`);
       const fpLines = [];
@@ -1850,16 +1899,21 @@ function emitAction(node, lines, indent) {
       break;
 
     case 'logic_cooldown': {
-      const sec = p.seconds || '5';
-      lines.push(`${i}from nerimity_sdk import CooldownManager, CooldownError`);
-      lines.push(`${i}# cooldown: ${sec}s per ${p.scope || 'user'}`);
-      lines.push(`${i}try:`);
+      const sec = parseFloat(p.seconds || '5');
+      const scope = p.scope || 'user';
+      const scopeKey = scope === 'server' ? 'ctx.server_id' : scope === 'channel' ? 'ctx.channel_id' : 'ctx.author.id';
+      lines.push(`${i}import time as _time`);
+      lines.push(`${i}_cd_key = f"cd_{node.id}_{${scopeKey}}"`);
+      lines.push(`${i}_cd_last = _cooldowns.get(_cd_key, 0)`);
+      lines.push(`${i}_cd_remaining = ${sec} - (_time.monotonic() - _cd_last)`);
+      lines.push(`${i}if _cd_remaining <= 0:`);
+      lines.push(`${i}    _cooldowns[_cd_key] = _time.monotonic()`);
       emitChain(node.id, 'ok', lines, i + '    ');
-      lines.push(`${i}except CooldownError as _cd:`);
+      lines.push(`${i}else:`);
       const blockedLines = [];
       emitChain(node.id, 'blocked', blockedLines, i + '    ');
       if (blockedLines.length) blockedLines.forEach(l => lines.push(l));
-      else lines.push(`${i}    await ctx.reply(f"⏳ Cooldown! Try again in {_cd.retry_after:.1f}s.")`);
+      else lines.push(`${i}    await ctx.reply(f"⏳ Cooldown! Try again in {_cd_remaining:.1f}s.")`);
       break;
     }
     // ── Utility ──────────────────────────────────────────────────────────
@@ -1953,20 +2007,60 @@ function emitAction(node, lines, indent) {
       emitChain(node.id, 'exec', lines, i);
       break;
 
-    case 'action_add_role':
-      lines.push(`${i}await bot.rest.add_role(ctx.server_id, ctx.author.id, "${p.role_id||'YOUR_ROLE_ID'}")`);
-      emitChain(node.id, 'exec', lines, i);
-      break;
+    case 'action_add_role': {
+      const artarget = p.target === 'author' || !p.target ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.target)}")`;
+      lines.push(`${i}await bot.rest.add_role(ctx.server_id, ${artarget}, "${p.role_id||'YOUR_ROLE_ID'}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    }
+    case 'action_remove_role': {
+      const rrtarget = p.target === 'author' || !p.target ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.target)}")`;
+      lines.push(`${i}await bot.rest.remove_role(ctx.server_id, ${rrtarget}, "${p.role_id||'YOUR_ROLE_ID'}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+    }
 
-    case 'action_remove_role':
-      lines.push(`${i}await bot.rest.remove_role(ctx.server_id, ctx.author.id, "${p.role_id||'YOUR_ROLE_ID'}")`);
-      emitChain(node.id, 'exec', lines, i);
-      break;
+    case 'action_unban': {
+      const ubtarget = p.user_id === 'author' || !p.user_id ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.user_id)}")`;
+      lines.push(`${i}await bot.rest.unban_member(ctx.server_id, ${ubtarget})`);
+      emitChain(node.id, 'exec', lines, i); break;
+    }
 
-    case 'action_unban':
-      lines.push(`${i}await bot.rest.unban_member(ctx.server_id, "${p.user_id||'USER_ID'}")`);
-      emitChain(node.id, 'exec', lines, i);
+    case 'action_reply_silent':
+      lines.push(`${i}await ctx.reply_silent("${esc2(p.text||'')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_reply_then_delete':
+      lines.push(`${i}await ctx.reply_then_delete("${esc2(p.text||'')}", delay=${p.delay||5})`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_reply_paginated':
+      lines.push(`${i}await ctx.reply_paginated(${p.text && !p.text.includes(' ') ? p.text : `"${esc2(p.text||'')}"`})`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_forward':
+      lines.push(`${i}await ctx.forward("${esc2(p.channel||'YOUR_CHANNEL_ID')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_react':
+      lines.push(`${i}await ctx.react("${esc2(p.emoji||'👍')}")`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_ask':
+      lines.push(`${i}${p.var||'answer'} = await ctx.ask("${esc2(p.prompt||'')}", timeout=${p.timeout||30})`);
+      lines.push(`${i}if ${p.var||'answer'}: ${p.var||'answer'} = ${p.var||'answer'}.content`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_confirm': {
+      lines.push(`${i}_confirm_result = await ctx.confirm("${esc2(p.prompt||'Are you sure?')}")`);
+      lines.push(`${i}if _confirm_result is True:`);
+      emitChain(node.id, 'yes', lines, i + '    ');
+      lines.push(`${i}elif _confirm_result is False:`);
+      const noLines = []; emitChain(node.id, 'no', noLines, i + '    ');
+      if (noLines.length) noLines.forEach(l => lines.push(l)); else lines.push(`${i}    pass`);
+      lines.push(`${i}else:`);
+      const toLines = []; emitChain(node.id, 'timeout', toLines, i + '    ');
+      if (toLines.length) toLines.forEach(l => lines.push(l)); else lines.push(`${i}    pass`);
       break;
+    }
 
     case 'action_pin':
       lines.push(`${i}await bot.rest.pin_message(ctx.channel_id, ctx.message.id)`);
@@ -2052,29 +2146,29 @@ function pluginCallCode(node) {
     case 'plugin_economy':   return `EconomyPlugin(daily_amount=${p.daily||100}, currency_name="${p.currency||'coins'}")`;
     case 'plugin_quiz':      return `QuizPlugin(rounds=${p.rounds||5}, answer_timeout=${p.timeout||20})`;
     case 'plugin_afk':       return `AFKPlugin()`;
-    case 'plugin_autorole':  return `AutoRolePlugin(role_id="${p.role_id||'YOUR_ROLE_ID'}")`;
+    case 'plugin_autorole':  return `AutoRolePlugin(server_id="${p.server_id||'YOUR_SERVER_ID'}", role_id="${p.role_id||'YOUR_ROLE_ID'}")`;
     case 'plugin_birthday':  return `BirthdayPlugin(announce_channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
-    case 'plugin_counter':   return `CounterPlugin()`;
+    case 'plugin_counter':   return `CounterPlugin(server_id="${p.server_id||'YOUR_SERVER_ID'}", channel_id="${p.channel||'YOUR_CHANNEL_ID'}", label="${p.label||'Members'}")`;
     case 'plugin_custom_cmd':return `CustomCommandPlugin()`;
-    case 'plugin_giveaway':  return `GiveawayPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
-    case 'plugin_msg_filter':return `MessageFilterPlugin(blocked=[${(p.words||'badword').split(',').map(w=>`"${w.trim()}"`).join(',')}])`;
-    case 'plugin_msg_snap':  return `MessageSnapshotPlugin()`;
+    case 'plugin_giveaway':  return `GiveawayPlugin()`;
+    case 'plugin_msg_filter':return `MessageFilterPlugin(blocked=[${(p.words||'badword').split(',').map(w=>`"${w.trim()}"`).join(',')}]${p.block_links?', block_links=True':''}${p.block_invites?', block_invites=True':''})`;
+    case 'plugin_msg_snap':  return `MessageSnapshotPlugin(log_channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
     case 'plugin_mod_log':   return `ModerationLogPlugin(log_channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
-    case 'plugin_mute':      return `MutePlugin(log_channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
+    case 'plugin_mute':      return `MutePlugin(muted_role_id="${p.muted_role_id||'YOUR_MUTED_ROLE_ID'}"${p.channel?`, log_channel_id="${p.channel}"`:''})`;
     case 'plugin_pinboard':  return `PinboardPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}", threshold=${p.threshold||3})`;
     case 'plugin_poll':      return `PollPlugin()`;
     case 'plugin_raid_guard':return `RaidGuardPlugin(alert_channel_id="${p.channel||'YOUR_CHANNEL_ID'}", threshold=${p.threshold||10})`;
-    case 'plugin_reaction_roles': return `ReactionRolesPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_reaction_roles': return `ReactionRolesPlugin()`;
     case 'plugin_reminders': return `ReminderPlugin()`;
-    case 'plugin_role_menu': return `RoleMenuPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_role_menu': { const roleDict = (p.roles||'👍:ROLE_ID').split('\n').map(l=>{const[e,...r]=l.split(':');return e&&r.length?`"${e.trim()}":"${r.join(':').trim()}"`:null;}).filter(Boolean); return `RoleMenuPlugin(message_id="${p.message_id||'YOUR_MESSAGE_ID'}", roles={${roleDict.join(', ')}})`; }
     case 'plugin_logging':   return `LoggingPlugin(channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
-    case 'plugin_server_stats': return `ServerStatsPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
-    case 'plugin_slowmode':  return `SlowmodePlugin(seconds=${p.seconds||5})`;
-    case 'plugin_suggestions': return `SuggestionPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_server_stats': return `ServerStatsPlugin(server_id="${p.server_id||'YOUR_SERVER_ID'}", channel_id="${p.channel||'YOUR_CHANNEL_ID'}")`;
+    case 'plugin_slowmode':  return `SlowmodePlugin()`;
+    case 'plugin_suggestions': return `SuggestionPlugin(channel_id="${p.channel||'YOUR_CHANNEL_ID'}", upvote="${p.upvote||'👍'}", downvote="${p.downvote||'👎'}")`;
     case 'plugin_tags':      return `TagPlugin()`;
     case 'plugin_temp_channel': return `TempChannelPlugin(timeout=${p.timeout||300})`;
-    case 'plugin_translate': return `TranslatePlugin()`;
-    case 'plugin_warn':      return `WarnPlugin(threshold=${p.threshold||3}, log_channel_id="${p.channel||'YOUR_LOG_CHANNEL_ID'}")`;
+    case 'plugin_translate': return `TranslatePlugin(${p.channel?`watch_channel_id="${p.channel}", `:''}target_lang="${p.lang||'en'}")`;
+    case 'plugin_warn':      return `WarnPlugin(threshold=${p.threshold||3}${p.channel?`, log_channel_id="${p.channel}"`:''})`;
     case 'plugin_auto_reply': {
       const rules = (p.rules||'hello:Hi!').split('\n').map(l => {
         const [k,...v] = l.split(':'); return k && v.length ? `("${k.trim()}", "${v.join(':').trim()}")` : null;
@@ -2210,6 +2304,16 @@ function openDeploy() {
 function closeDeploy() {
   document.getElementById('deploy-panel').classList.remove('open');
 }
+let _deployTab = 'visual';
+function setDeployTab(tab) {
+  _deployTab = tab;
+  document.getElementById('dtab-visual').style.background = tab==='visual' ? 'rgba(167,139,250,.2)' : 'transparent';
+  document.getElementById('dtab-visual').style.color = tab==='visual' ? 'var(--purple)' : 'var(--text-mid)';
+  document.getElementById('dtab-custom').style.background = tab==='custom' ? 'rgba(167,139,250,.2)' : 'transparent';
+  document.getElementById('dtab-custom').style.color = tab==='custom' ? 'var(--purple)' : 'var(--text-mid)';
+  document.getElementById('dtab-visual-body').style.display = tab==='visual' ? 'block' : 'none';
+  document.getElementById('dtab-custom-body').style.display = tab==='custom' ? 'flex' : 'none';
+}
 async function deployBotSilent() {
   if (!_session) return;
   try {
@@ -2222,12 +2326,16 @@ async function deployBotSilent() {
 }
 async function deployBot() {
   if (!_session) { setDeployStatus('err', 'Not logged in.'); return; }
+  const code = _deployTab === 'custom'
+    ? document.getElementById('deploy-custom-code').value.trim()
+    : generateCode();
+  if (!code) { setDeployStatus('err', 'No code to deploy.'); return; }
   setDeployStatus('loading', 'Deploying…');
   try {
     const res = await fetch(RUNNER_URL + '/deploy', {
       method: 'POST',
       headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _session},
-      body: JSON.stringify({code: generateCode(), bot_token: BOT_TOKEN || undefined})
+      body: JSON.stringify({code, bot_token: BOT_TOKEN || undefined})
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Deploy failed');
@@ -2733,6 +2841,43 @@ function previewExecNode(node, ctx, depth) {
       break;
     case 'action_ban':
       ctx.replies.push(`[Banned ${ctx.author.name}: ${p.reason||''}]`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_reply_silent':
+      ctx.replies.push(`[silent] ${previewInterpolate(p.text||'', ctx)}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_reply_then_delete':
+      ctx.replies.push(`[deletes after ${p.delay||5}s] ${previewInterpolate(p.text||'', ctx)}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_reply_paginated':
+      ctx.replies.push(`[paginated] ${previewInterpolate(p.text||'', ctx)}`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_forward':
+      ctx.replies.push(`[forwarded to #${p.channel||'?'}]`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_react':
+      ctx.replies.push(`[reacted ${p.emoji||'👍'}]`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_ask':
+      ctx.replies.push(`[asks] ${previewInterpolate(p.prompt||'', ctx)}`);
+      previewVars[p.var||'answer'] = '(user reply)';
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_confirm':
+      ctx.replies.push(`[confirm] ${previewInterpolate(p.prompt||'Are you sure?', ctx)}`);
+      previewWalkChain(node.id, 'yes', ctx, depth+1);
+      break;
+    case 'action_add_role':
+      ctx.replies.push(`[Added role ${p.role_id||'?'} to ${p.target||'author'}]`);
+      previewWalkChain(node.id, 'exec', ctx, depth+1);
+      break;
+    case 'action_remove_role':
+      ctx.replies.push(`[Removed role ${p.role_id||'?'} from ${p.target||'author'}]`);
       previewWalkChain(node.id, 'exec', ctx, depth+1);
       break;
     case 'logic_if_contains': {

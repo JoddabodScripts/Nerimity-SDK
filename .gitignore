@@ -10,3 +10,7 @@ site/
 venv/
 pyproject.toml.bak
 nerimity_sdk_contrib_build/
+data/
+runner/data/
+users.json
+bots.json
