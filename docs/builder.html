@@ -1848,6 +1848,7 @@ function emitChain(fromNodeId, outPort, lines, indent) {
 function emitAction(node, lines, indent) {
   const p = node.props;
   const i = indent;
+  const _rt = v => { if (!v||v==='author') return 'ctx.author.id'; const m=v.match(/\[@:(\d+)\]/); return m?`"${m[1]}"`:v.match(/^\d+$/)?`"${v}"`:`(ctx.mentions[0].id if ctx.mentions else "${esc2(v)}")`; };
 
   switch (node.type) {
     case 'action_reply':
@@ -1867,7 +1868,6 @@ function emitAction(node, lines, indent) {
       break;
 
     case 'action_kick': {
-      const _rt = v => { if (!v||v==='author') return 'ctx.author.id'; const m=v.match(/\[@:(\d+)\]/); return m?`"${m[1]}"`:v.match(/^\d+$/)?`"${v}"`:`(ctx.mentions[0].id if ctx.mentions else "${esc2(v)}")`; };
       const ktarget = _rt(p.target);
       lines.push(`${i}await bot.rest.kick_member(ctx.server_id, ${ktarget})`);
       emitChain(node.id, 'exec', lines, i);
