@@ -3,3 +3,4 @@ uvicorn
 pydantic
 nerimity-sdk
 python-dotenv
+firebase-admin

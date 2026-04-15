@@ -1,56 +1,52 @@
 import asyncio
 import hashlib
-import json
 import os
 import secrets
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
+import firebase_admin
+from firebase_admin import credentials, firestore
 
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
-DATA = Path("/data")
-DATA.mkdir(parents=True, exist_ok=True)
-BOTS_FILE  = DATA / "bots.json"
-USERS_FILE = DATA / "users.json"
+# ── Firebase init ──────────────────────────────────────────────────────────────
+cred = credentials.Certificate(os.environ["FIREBASE_CREDENTIALS_JSON"])
+firebase_admin.initialize_app(cred)
+db = firestore.client()
 
-_bots:    dict[str, dict] = {}   # token → {proc, code}
-_users:   dict[str, dict] = {}   # username → {pw_hash, bot_token}
-_sessions: dict[str, str] = {}   # session_token → username
+_bots:    dict[str, dict] = {}   # token → {proc, code}  (in-memory only)
+_sessions: dict[str, str] = {}   # session_token → username  (in-memory, short-lived)
 
 
-# ── Persistence ────────────────────────────────────────────────────────────
+# ── Firestore helpers ──────────────────────────────────────────────────────────
 
-def _load():
-    if BOTS_FILE.exists():
-        try:
-            for token, code in json.loads(BOTS_FILE.read_text()).items():
-                _bots[token] = {"proc": _launch(token, code), "code": code}
-        except Exception:
-            pass
-    if USERS_FILE.exists():
-        try:
-            _users.update(json.loads(USERS_FILE.read_text()))
-        except Exception:
-            pass
+def _get_user(username: str) -> Optional[dict]:
+    doc = db.collection("users").document(username).get()
+    return doc.to_dict() if doc.exists else None
+
+def _set_user(username: str, data: dict):
+    db.collection("users").document(username).set(data)
+
+def _get_bots() -> dict:
+    doc = db.collection("state").document("bots").get()
+    return doc.to_dict() or {} if doc.exists else {}
 
 def _save_bots():
-    BOTS_FILE.write_text(json.dumps({t: b["code"] for t, b in _bots.items()}))
-
-def _save_users():
-    USERS_FILE.write_text(json.dumps(_users))
+    db.collection("state").document("bots").set(
+        {token: bot["code"] for token, bot in _bots.items()}
+    )
 
 def _hash(pw: str) -> str:
     return hashlib.sha256(pw.encode()).hexdigest()
 
 
-# ── Bot process management ─────────────────────────────────────────────────
+# ── Bot process management ─────────────────────────────────────────────────────
 
 def _launch(token: str, code: str) -> subprocess.Popen:
     code = code.replace('os.environ["NERIMITY_TOKEN"]', f'"{token}"')
@@ -73,10 +69,9 @@ async def _watchdog():
                 bot["proc"] = _launch(token, bot["code"])
 
 
-# ── Auth helpers ───────────────────────────────────────────────────────────
+# ── Auth helpers ───────────────────────────────────────────────────────────────
 
 def _require_session(authorization: Optional[str]) -> str:
-    """Returns username or raises 401."""
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Not authenticated")
     token = authorization.removeprefix("Bearer ").strip()
@@ -86,15 +81,17 @@ def _require_session(authorization: Optional[str]) -> str:
     return username
 
 
-# ── Startup ────────────────────────────────────────────────────────────────
+# ── Startup ────────────────────────────────────────────────────────────────────
 
 @app.on_event("startup")
 async def startup():
-    _load()
+    # reload bots from Firestore
+    for token, code in _get_bots().items():
+        _bots[token] = {"proc": _launch(token, code), "code": code}
     asyncio.create_task(_watchdog())
 
 
-# ── Auth endpoints ─────────────────────────────────────────────────────────
+# ── Auth endpoints ─────────────────────────────────────────────────────────────
 
 class AuthRequest(BaseModel):
     username: str
@@ -103,20 +100,19 @@ class AuthRequest(BaseModel):
 @app.post("/auth/register")
 async def register(req: AuthRequest):
     u = req.username.strip().lower()
-    if not u or len(u) < 3:
+    if len(u) < 3:
         raise HTTPException(400, "Username must be at least 3 characters")
-    if u in _users:
+    if _get_user(u):
         raise HTTPException(409, "Username already taken")
-    _users[u] = {"pw_hash": _hash(req.password), "bot_token": ""}
-    _save_users()
+    _set_user(u, {"pw_hash": _hash(req.password), "bot_token": ""})
     session = secrets.token_hex(32)
     _sessions[session] = u
-    return {"session": session, "username": u}
+    return {"session": session, "username": u, "bot_token": ""}
 
 @app.post("/auth/login")
 async def login(req: AuthRequest):
     u = req.username.strip().lower()
-    user = _users.get(u)
+    user = _get_user(u)
     if not user or user["pw_hash"] != _hash(req.password):
         raise HTTPException(401, "Invalid username or password")
     session = secrets.token_hex(32)
@@ -125,33 +121,27 @@ async def login(req: AuthRequest):
 
 @app.post("/auth/logout")
 async def logout(authorization: Optional[str] = Header(None)):
-    username = _require_session(authorization)
-    token = authorization.removeprefix("Bearer ").strip()
+    token = (authorization or "").removeprefix("Bearer ").strip()
     _sessions.pop(token, None)
     return {"status": "logged out"}
 
 
-# ── Bot endpoints (require auth) ───────────────────────────────────────────
+# ── Bot endpoints ──────────────────────────────────────────────────────────────
 
 class DeployRequest(BaseModel):
     code: str
-    bot_token: Optional[str] = None  # if provided, saves it to account
+    bot_token: Optional[str] = None
 
 @app.post("/deploy")
 async def deploy(req: DeployRequest, authorization: Optional[str] = Header(None)):
     username = _require_session(authorization)
-    user = _users[username]
-
-    # use provided token or saved one
+    user = _get_user(username)
     token = (req.bot_token or user.get("bot_token", "")).strip()
     if not token:
-        raise HTTPException(400, "No bot token - save one to your account first")
-
-    # save token to account if new
+        raise HTTPException(400, "No bot token saved to your account")
     if req.bot_token and req.bot_token != user.get("bot_token"):
         user["bot_token"] = req.bot_token.strip()
-        _save_users()
-
+        _set_user(username, user)
     if token in _bots:
         p = _bots[token]["proc"]
         if p.poll() is None:
@@ -163,7 +153,7 @@ async def deploy(req: DeployRequest, authorization: Optional[str] = Header(None)
 @app.post("/stop")
 async def stop(authorization: Optional[str] = Header(None)):
     username = _require_session(authorization)
-    token = _users[username].get("bot_token", "")
+    token = (_get_user(username) or {}).get("bot_token", "")
     bot = _bots.pop(token, None)
     if bot and bot["proc"].poll() is None:
         bot["proc"].terminate()
@@ -173,12 +163,9 @@ async def stop(authorization: Optional[str] = Header(None)):
 @app.get("/status")
 async def status(authorization: Optional[str] = Header(None)):
     username = _require_session(authorization)
-    token = _users[username].get("bot_token", "")
+    token = (_get_user(username) or {}).get("bot_token", "")
     bot = _bots.get(token)
     return {"running": bool(bot and bot["proc"].poll() is None), "bot_token": token}
-
-
-# ── Health ─────────────────────────────────────────────────────────────────
 
 @app.get("/health")
 async def health():
