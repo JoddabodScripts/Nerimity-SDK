@@ -150,7 +150,7 @@ async def list_tokens(authorization: Optional[str] = Header(None)):
     u = _require_session(authorization)
     user = _get_user(u)
     return {"tokens": [
-        {"token_hint": t["token"][:8] + "...", "name": t.get("name", ""), "running": t["token"] in _bots and _bots[t["token"]]["proc"].poll() is None}
+        {"token": t["token"], "token_hint": t["token"][:8] + "...", "name": t.get("name", ""), "running": t["token"] in _bots and _bots[t["token"]]["proc"].poll() is None}
         for t in user.get("tokens", [])
     ]}
 

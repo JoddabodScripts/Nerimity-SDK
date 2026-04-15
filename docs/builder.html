@@ -2329,12 +2329,12 @@ async function _loadDeployTokens() {
     sel.innerHTML = '<option value="">-- select a bot --</option>';
     (data.tokens || []).forEach(t => {
       const opt = document.createElement('option');
-      opt.value = t.token_hint;
+      opt.value = t.token;
       opt.textContent = (t.name || t.token_hint) + (t.running ? ' 🟢' : ' ⚫');
       sel.appendChild(opt);
     });
     if (prev) sel.value = prev;
-    if (!sel.value && data.tokens && data.tokens.length === 1) sel.value = data.tokens[0].token_hint;
+    if (!sel.value && data.tokens && data.tokens.length === 1) sel.value = data.tokens[0].token;
   } catch(e) {}
 }
 function addDeployToken() {
@@ -2382,8 +2382,7 @@ async function deployBot() {
   if (!code) { setDeployStatus('err', 'No code to deploy.'); return; }
   // get selected token
   const sel = document.getElementById('deploy-token-select');
-  const tokenHint = sel ? sel.value : '';
-  const token = BOT_TOKEN || tokenHint;
+  const token = (sel && sel.value) || BOT_TOKEN;
   if (!token) { setDeployStatus('err', 'Select or add a bot token first.'); return; }
   setDeployStatus('loading', 'Deploying…');
   try {
