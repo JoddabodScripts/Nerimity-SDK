@@ -698,7 +698,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
     </div>
   </div>
 </div>
+
+
+
 <script>
+
 // ── State ──────────────────────────────────────────────────────────────────
 let BOT_TOKEN = '';
 let nodes = [];       // {id, type, x, y, props, el}
@@ -816,7 +820,6 @@ const NODE_DEFS = {
     fields:[{k:'prompt',l:'Question',t:'text',d:'What is your name?'},{k:'var',l:'Store answer in',t:'text',d:'answer'},{k:'timeout',l:'Timeout (s)',t:'text',d:'30'}] },
   action_confirm:   { label:'Confirm prompt', icon:'✅', color:'#34d399', cat:'action',  ins:['exec'], outs:['yes','no','timeout'],
     fields:[{k:'prompt',l:'Question',t:'text',d:'Are you sure?'}] },
-    fields:[] },
   action_delete_msg:{ label:'Delete message', icon:'🗑️', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
     fields:[] },
   trigger_cron:     { label:'Scheduler (cron)',icon:'⏰',color:'#fb923c', cat:'trigger', ins:[], outs:['exec'],
@@ -1549,8 +1552,8 @@ function renderTutStep() {
     card.style.transform = 'translate(-50%,-50%)';
   }
 }
-</script>
-<script>
+
+
 // ── Inspector ──────────────────────────────────────────────────────────────
 function renderInspector(node) {
   const def = NODE_DEFS[node.type];
@@ -1633,8 +1636,8 @@ function loadExample() {
 
   deselectNode();
 }
-</script>
-<script>
+
+
 // ── Code generation ────────────────────────────────────────────────────────
 function generateCode() {
   const botName = document.getElementById('bot-name-input').value || 'MyBot';
@@ -2915,6 +2918,7 @@ function previewInterpolate(str, ctx) {
       return previewVars[k] !== undefined ? previewVars[k] : `{${k}}`;
     });
 }
+
 </script>
 </body>
 </html>
