@@ -692,6 +692,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
               <option value="">-- select a token --</option>
             </select>
             <button class="tb-btn" onclick="addDeployToken()" title="Add new token">+</button>
+            <button class="tb-btn" onclick="removeDeployToken()" title="Remove selected token" style="color:#f87171">🗑</button>
           </div>
           <input id="deploy-new-token" type="password" placeholder="Paste bot token" style="display:none;margin-top:.35rem">
           <input id="deploy-new-name" type="text" placeholder="Bot name (e.g. My Economy Bot)" style="display:none;margin-top:.25rem">
@@ -2336,6 +2337,18 @@ async function _loadDeployTokens() {
     if (prev) sel.value = prev;
     if (!sel.value && data.tokens && data.tokens.length === 1) sel.value = data.tokens[0].token;
   } catch(e) {}
+}
+async function removeDeployToken() {
+  const sel = document.getElementById('deploy-token-select');
+  const token = sel && sel.value;
+  if (!token) { setDeployStatus('err', 'Select a bot to remove.'); return; }
+  if (!confirm('Remove this bot token from your account? The bot will be stopped.')) return;
+  await fetch(RUNNER_URL + '/tokens/remove', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json','Authorization':'Bearer '+_session},
+    body: JSON.stringify({bot_token: token})
+  });
+  _loadDeployTokens();
 }
 function addDeployToken() {
   const inp = document.getElementById('deploy-new-token');
