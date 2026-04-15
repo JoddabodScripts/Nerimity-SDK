@@ -16,7 +16,9 @@ app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 # ── Firebase init ──────────────────────────────────────────────────────────────
-cred = credentials.Certificate(os.environ["FIREBASE_CREDENTIALS_JSON"])
+import json
+_cred_data = json.loads(os.environ["FIREBASE_CREDENTIALS_JSON"])
+cred = credentials.Certificate(_cred_data)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
