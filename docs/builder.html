@@ -693,7 +693,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
             </select>
             <button class="tb-btn" onclick="addDeployToken()" title="Add new token">+</button>
           </div>
-          <input id="deploy-new-token" type="password" placeholder="Paste new bot token and click +" style="display:none;margin-top:.35rem">
+          <input id="deploy-new-token" type="password" placeholder="Paste bot token" style="display:none;margin-top:.35rem">
+          <input id="deploy-new-name" type="text" placeholder="Bot name (e.g. My Economy Bot)" style="display:none;margin-top:.25rem">
         </div>
       </div>
       <div id="dtab-custom-body" style="display:none;flex-direction:column;gap:.75rem">
@@ -1865,14 +1866,15 @@ function emitAction(node, lines, indent) {
       break;
 
     case 'action_kick': {
-      const ktarget = p.target === 'author' || !p.target ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.target)}")`;
+      const _rt = v => { if (!v||v==='author') return 'ctx.author.id'; const m=v.match(/\[@:(\d+)\]/); return m?`"${m[1]}"`:v.match(/^\d+$/)?`"${v}"`:`(ctx.mentions[0].id if ctx.mentions else "${esc2(v)}")`; };
+      const ktarget = _rt(p.target);
       lines.push(`${i}await bot.rest.kick_member(ctx.server_id, ${ktarget})`);
       emitChain(node.id, 'exec', lines, i);
       break;
     }
 
     case 'action_ban': {
-      const btarget = p.target === 'author' || !p.target ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.target)}")`;
+      const btarget = _rt(p.target);
       lines.push(`${i}await bot.rest.ban_member(ctx.server_id, ${btarget})`);
       emitChain(node.id, 'exec', lines, i);
       break;
@@ -2020,18 +2022,18 @@ function emitAction(node, lines, indent) {
       break;
 
     case 'action_add_role': {
-      const artarget = p.target === 'author' || !p.target ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.target)}")`;
+      const artarget = _rt(p.target);
       lines.push(`${i}await bot.rest.add_role(ctx.server_id, ${artarget}, "${p.role_id||'YOUR_ROLE_ID'}")`);
       emitChain(node.id, 'exec', lines, i); break;
     }
     case 'action_remove_role': {
-      const rrtarget = p.target === 'author' || !p.target ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.target)}")`;
+      const rrtarget = _rt(p.target);
       lines.push(`${i}await bot.rest.remove_role(ctx.server_id, ${rrtarget}, "${p.role_id||'YOUR_ROLE_ID'}")`);
       emitChain(node.id, 'exec', lines, i); break;
     }
 
     case 'action_unban': {
-      const ubtarget = p.user_id === 'author' || !p.user_id ? 'ctx.author.id' : `(ctx.mentions[0].id if ctx.mentions else "${esc2(p.user_id)}")`;
+      const ubtarget = _rt(p.user_id);
       lines.push(`${i}await bot.rest.unban_member(ctx.server_id, ${ubtarget})`);
       emitChain(node.id, 'exec', lines, i); break;
     }
@@ -2322,28 +2324,33 @@ async function _loadDeployTokens() {
     const res = await fetch(RUNNER_URL + '/tokens', {headers:{'Authorization':'Bearer '+_session}});
     const data = await res.json();
     const sel = document.getElementById('deploy-token-select');
-    sel.innerHTML = '<option value="">-- select a token --</option>';
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">-- select a bot --</option>';
     (data.tokens || []).forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.token_hint;
-      opt.textContent = t.token_hint + (t.running ? ' 🟢' : ' ⚫');
+      opt.textContent = (t.name || t.token_hint) + (t.running ? ' 🟢' : ' ⚫');
       sel.appendChild(opt);
     });
-    // pre-select if only one
-    if (data.tokens && data.tokens.length === 1) sel.value = data.tokens[0].token_hint;
+    if (prev) sel.value = prev;
+    if (!sel.value && data.tokens && data.tokens.length === 1) sel.value = data.tokens[0].token_hint;
   } catch(e) {}
 }
 function addDeployToken() {
   const inp = document.getElementById('deploy-new-token');
-  if (inp.style.display === 'none') { inp.style.display = 'block'; inp.focus(); return; }
+  const nameInp = document.getElementById('deploy-new-name');
+  if (inp.style.display === 'none') {
+    inp.style.display = 'block'; nameInp.style.display = 'block'; inp.focus(); return;
+  }
   const tok = inp.value.trim();
+  const name = nameInp.value.trim() || tok.slice(0,8) + '...';
   if (!tok) return;
   BOT_TOKEN = tok;
-  inp.value = ''; inp.style.display = 'none';
-  // add to account
+  inp.value = ''; nameInp.value = '';
+  inp.style.display = 'none'; nameInp.style.display = 'none';
   fetch(RUNNER_URL + '/tokens/add', {
     method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+_session},
-    body: JSON.stringify({bot_token: tok})
+    body: JSON.stringify({bot_token: tok, name})
   }).then(() => _loadDeployTokens());
 }
 let _deployTab = 'visual';

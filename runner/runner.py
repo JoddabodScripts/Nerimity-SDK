@@ -119,26 +119,26 @@ async def logout(authorization: Optional[str] = Header(None)):
 
 class TokenRequest(BaseModel):
     bot_token: str
+    name: str = ""
 
 @app.post("/tokens/add")
 async def add_token(req: TokenRequest, authorization: Optional[str] = Header(None)):
     u = _require_session(authorization)
     user = _get_user(u)
     tokens = user.get("tokens", [])
-    if req.bot_token not in tokens:
-        tokens.append(req.bot_token.strip())
+    if not any(t["token"] == req.bot_token for t in tokens):
+        tokens.append({"token": req.bot_token.strip(), "name": req.name or req.bot_token[:8] + "..."})
         user["tokens"] = tokens
         _set_user(u, user)
-    return {"tokens": tokens}
+    return {"tokens": [{k: v for k, v in t.items() if k != "token"} | {"token_hint": t["token"][:8] + "..."} for t in tokens]}
 
 @app.post("/tokens/remove")
 async def remove_token(req: TokenRequest, authorization: Optional[str] = Header(None)):
     u = _require_session(authorization)
     user = _get_user(u)
-    tokens = [t for t in user.get("tokens", []) if t != req.bot_token]
+    tokens = [t for t in user.get("tokens", []) if t["token"] != req.bot_token]
     user["tokens"] = tokens
     _set_user(u, user)
-    # stop bot if running
     bot = _bots.pop(req.bot_token, None)
     if bot and bot["proc"].poll() is None:
         bot["proc"].terminate()
@@ -149,8 +149,10 @@ async def remove_token(req: TokenRequest, authorization: Optional[str] = Header(
 async def list_tokens(authorization: Optional[str] = Header(None)):
     u = _require_session(authorization)
     user = _get_user(u)
-    tokens = user.get("tokens", [])
-    return {"tokens": [{"token_hint": t[:8] + "...", "running": t in _bots and _bots[t]["proc"].poll() is None} for t in tokens]}
+    return {"tokens": [
+        {"token_hint": t["token"][:8] + "...", "name": t.get("name", ""), "running": t["token"] in _bots and _bots[t["token"]]["proc"].poll() is None}
+        for t in user.get("tokens", [])
+    ]}
 
 
 # ── Deploy / stop ──────────────────────────────────────────────────────────────
@@ -166,10 +168,9 @@ async def deploy(req: DeployRequest, authorization: Optional[str] = Header(None)
     token = req.bot_token.strip()
     if not token:
         raise HTTPException(400, "bot_token required")
-    # auto-add token to account if not already there
     tokens = user.get("tokens", [])
-    if token not in tokens:
-        tokens.append(token)
+    if not any(t["token"] == token for t in tokens):
+        tokens.append({"token": token, "name": token[:8] + "..."})
         user["tokens"] = tokens
         _set_user(u, user)
     if token in _bots:
@@ -188,7 +189,7 @@ async def stop(req: StopRequest, authorization: Optional[str] = Header(None)):
     u = _require_session(authorization)
     user = _get_user(u)
     token = req.bot_token.strip()
-    if token not in user.get("tokens", []):
+    if not any(t["token"] == token for t in user.get("tokens", [])):
         raise HTTPException(403, "Token not in your account")
     bot = _bots.pop(token, None)
     if bot and bot["proc"].poll() is None:
@@ -201,7 +202,7 @@ async def status(authorization: Optional[str] = Header(None)):
     u = _require_session(authorization)
     user = _get_user(u)
     return {"tokens": [
-        {"token_hint": t[:8] + "...", "running": t in _bots and _bots[t]["proc"].poll() is None}
+        {"token_hint": t["token"][:8] + "...", "name": t.get("name", ""), "running": t["token"] in _bots and _bots[t["token"]]["proc"].poll() is None}
         for t in user.get("tokens", [])
     ]}
 
