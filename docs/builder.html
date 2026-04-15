@@ -706,7 +706,9 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
       <div style="display:flex;gap:.5rem">
         <button class="tb-btn primary" onclick="deployBot()" style="flex:1">🚀 Deploy</button>
         <button class="tb-btn" onclick="stopBot()" style="flex:1">⏹ Stop</button>
+        <button class="tb-btn" onclick="showLogs()" title="View bot logs">📋</button>
       </div>
+      <pre id="deploy-logs" style="display:none;background:rgba(0,0,0,.3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:#94a3b8;font-size:.7rem;max-height:180px;overflow-y:auto;padding:.6rem;white-space:pre-wrap;word-break:break-all"></pre>
     </div>
   </div>
 </div>
@@ -2430,6 +2432,19 @@ async function stopBot() {
   } catch(e) {
     setDeployStatus('err', '❌ ' + e.message);
   }
+}
+async function showLogs() {
+  const logEl = document.getElementById('deploy-logs');
+  logEl.style.display = logEl.style.display === 'none' ? 'block' : 'none';
+  if (logEl.style.display === 'none') return;
+  logEl.textContent = 'Loading…';
+  try {
+    const res = await fetch(RUNNER_URL + '/logs', {headers:{'Authorization':'Bearer '+_session}});
+    const data = await res.json();
+    const entries = Object.entries(data);
+    logEl.textContent = entries.length ? entries.map(([n,l]) => `=== ${n} ===\n${l}`).join('\n\n') : '(no logs)';
+    logEl.scrollTop = logEl.scrollHeight;
+  } catch(e) { logEl.textContent = '❌ ' + e.message; }
 }
 function setDeployStatus(type, msg) {
   const el = document.getElementById('deploy-status');

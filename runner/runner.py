@@ -45,30 +45,34 @@ def _hash(pw: str) -> str:
 
 # ── Process management ─────────────────────────────────────────────────────────
 
-def _launch(token: str, code: str) -> subprocess.Popen:
+def _launch(token: str, code: str) -> tuple[subprocess.Popen, str]:
     code = code.replace('os.environ["NERIMITY_TOKEN"]', f'"{token}"')
     code = code.replace("os.environ['NERIMITY_TOKEN']", f'"{token}"')
     tmp = tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w")
     tmp.write(code); tmp.flush(); tmp.close()
+    logpath = tmp.name + ".log"
+    log = open(logpath, "w")
     return subprocess.Popen(
-        [sys.executable, tmp.name],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        [sys.executable, "-u", tmp.name],
+        stdout=log, stderr=log,
         env={**os.environ, "NERIMITY_TOKEN": token, "NERIMITY_CHILD": "1"},
-    )
+    ), logpath
 
 async def _watchdog():
     while True:
         await asyncio.sleep(20)
         for token, bot in list(_bots.items()):
             if bot["proc"].poll() is not None:
-                bot["proc"] = _launch(token, bot["code"])
+                proc, logpath = _launch(token, bot["code"])
+                bot["proc"] = proc
 
 @app.on_event("startup")
 async def startup():
     doc = db.collection("state").document("bots").get()
     if doc.exists:
         for token, code in (doc.to_dict() or {}).items():
-            _bots[token] = {"proc": _launch(token, code), "code": code}
+            proc, logpath = _launch(token, code)
+            _bots[token] = {"proc": proc, "code": code, "log": logpath}
     asyncio.create_task(_watchdog())
 
 
@@ -186,9 +190,26 @@ async def deploy(req: DeployRequest, authorization: Optional[str] = Header(None)
         p = _bots[token]["proc"]
         if p.poll() is None:
             p.terminate()
-    _bots[token] = {"proc": _launch(token, req.code), "code": req.code}
+    proc, logpath = _launch(token, req.code)
+    _bots[token] = {"proc": proc, "code": req.code, "log": logpath}
     _save_bots()
     return {"status": "started", "token_hint": token[:8] + "..."}
+
+@app.get("/logs")
+async def get_logs(authorization: Optional[str] = Header(None)):
+    u = _require_session(authorization)
+    user = _get_user(u)
+    result = {}
+    for t in user.get("tokens", []):
+        token = t["token"]
+        bot = _bots.get(token)
+        if bot and "log" in bot:
+            try:
+                with open(bot["log"]) as f:
+                    result[t.get("name", token[:8])] = f.read()[-3000:]
+            except Exception:
+                result[t.get("name", token[:8])] = "(no logs yet)"
+    return result
 
 class StopRequest(BaseModel):
     bot_token: str
