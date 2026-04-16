@@ -72,34 +72,35 @@ nav:
   - Bot Builder: builder.html
   - Runner:
     - About: runner.md
-  - Legacy SDK:
-    - Installation: guide/installation.md
-    - Quick Start: guide/quickstart.md
-    - Configuration: guide/configuration.md
-    - Recipes: guide/recipes.md
-    - Contrib Plugins: guide/contrib.md
-    - Sharding: guide/sharding.md
-    - Rate Limiting: guide/rate-limiting.md
-    - Security: guide/security.md
-    - Hosting (24/7): guide/hosting.md
-    - Troubleshooting: guide/troubleshooting.md
-  - API Reference:
-    - Bot: api/bot.md
-    - Context: api/context.md
-    - Commands: api/commands.md
-    - Slash Commands: api/slash.md
-    - Buttons: api/buttons.md
-    - Events: api/events.md
-    - REST Client: api/rest.md
-    - Webhooks: api/webhooks.md
-    - OAuth2: api/oauth2.md
-    - Error Types: api/errors.md
-    - Cache: api/cache.md
-    - Permissions: api/permissions.md
-    - Plugins: api/plugins.md
-    - Storage: api/storage.md
-    - Scheduler: api/scheduler.md
-    - Utilities: api/utils.md
-  - Example Bot: example.md
-  - Changelog: changelog.md
-  - Contributing: contributing.md
+  - Legacy Docs:
+    - Guides:
+      - Installation: guide/installation.md
+      - Quick Start: guide/quickstart.md
+      - Configuration: guide/configuration.md
+      - Recipes: guide/recipes.md
+      - Contrib Plugins: guide/contrib.md
+      - Sharding: guide/sharding.md
+      - Rate Limiting: guide/rate-limiting.md
+      - Security: guide/security.md
+      - Hosting (24/7): guide/hosting.md
+      - Troubleshooting: guide/troubleshooting.md
+    - API Reference:
+      - Bot: api/bot.md
+      - Context: api/context.md
+      - Commands: api/commands.md
+      - Slash Commands: api/slash.md
+      - Buttons: api/buttons.md
+      - Events: api/events.md
+      - REST Client: api/rest.md
+      - Webhooks: api/webhooks.md
+      - OAuth2: api/oauth2.md
+      - Error Types: api/errors.md
+      - Cache: api/cache.md
+      - Permissions: api/permissions.md
+      - Plugins: api/plugins.md
+      - Storage: api/storage.md
+      - Scheduler: api/scheduler.md
+      - Utilities: api/utils.md
+    - Example Bot: example.md
+    - Changelog: changelog.md
+    - Contributing: contributing.md

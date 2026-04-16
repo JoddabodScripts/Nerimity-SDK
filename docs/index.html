@@ -398,6 +398,73 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 .tut-btn:hover{background:rgba(167,139,250,.25)}
 .tut-btn.primary{background:linear-gradient(135deg,var(--purple),var(--pink));border:none;color:#fff}
 #tutorial-highlight{position:absolute;border-radius:var(--radius-sm);box-shadow:0 0 0 4px rgba(167,139,250,.6),0 0 0 9999px rgba(0,0,0,.45);pointer-events:none;transition:all .3s ease;z-index:801}
+
+/* ── Palette search ──────────────────────────────────────────────────── */
+#palette-search{
+  width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;
+  font-size:.78rem;padding:.45rem .65rem;outline:none;margin-bottom:.5rem;
+  transition:border-color .2s,box-shadow .2s;
+}
+#palette-search:focus{border-color:rgba(167,139,250,.5);box-shadow:0 0 0 3px rgba(167,139,250,.12)}
+#palette-search::placeholder{color:var(--text-dim)}
+.pal-item.hidden{display:none!important}
+.acc-header.hidden,.acc-body.hidden{display:none!important}
+
+/* ── Status bar ──────────────────────────────────────────────────────── */
+#status-bar{
+  position:absolute;bottom:.5rem;right:.5rem;z-index:10;
+  display:flex;align-items:center;gap:.75rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:.3rem .75rem;font-size:.68rem;color:var(--text-dim);
+  pointer-events:all;user-select:none;
+}
+#status-bar .stat{display:flex;align-items:center;gap:.25rem}
+#status-bar button{
+  background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:4px;
+  color:var(--text-mid);cursor:pointer;font-family:'Inter',sans-serif;font-size:.65rem;
+  padding:.15rem .45rem;transition:background .15s;
+}
+#status-bar button:hover{background:rgba(167,139,250,.15);color:var(--purple)}
+
+/* ── Toast notifications ─────────────────────────────────────────────── */
+#toast-container{
+  position:fixed;bottom:1.25rem;left:50%;transform:translateX(-50%);z-index:9999;
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;pointer-events:none;
+}
+.toast{
+  background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  color:var(--text);font-size:.78rem;padding:.5rem 1rem;box-shadow:0 4px 20px rgba(0,0,0,.4);
+  animation:toast-in .3s ease;pointer-events:all;white-space:nowrap;
+}
+.toast.success{border-color:rgba(52,211,153,.3);color:var(--green)}
+.toast.error{border-color:rgba(248,113,113,.3);color:var(--red)}
+@keyframes toast-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toast-out{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-10px)}}
+
+/* ── Comment node ────────────────────────────────────────────────────── */
+.node.comment-node{background:rgba(251,191,36,.08)!important;border:1px dashed rgba(251,191,36,.3)!important;min-width:180px}
+.node.comment-node .node-header{background:rgba(251,191,36,.12)!important;border-bottom:1px solid rgba(251,191,36,.2)!important}
+
+/* ── Minimap ─────────────────────────────────────────────────────────── */
+#minimap{
+  position:absolute;bottom:3rem;right:.5rem;z-index:9;
+  width:160px;height:110px;background:rgba(15,15,23,.85);
+  border:1px solid var(--border2);border-radius:var(--radius-sm);
+  overflow:hidden;cursor:pointer;
+}
+#minimap canvas{width:100%;height:100%}
+#minimap-viewport{
+  position:absolute;border:1.5px solid var(--purple);border-radius:2px;
+  pointer-events:none;opacity:.6;
+}
+
+/* ── Multi-select ────────────────────────────────────────────────────── */
+.node.multi-selected{outline:2px solid var(--purple);outline-offset:2px}
+#selection-box{
+  position:absolute;border:1px solid var(--purple);background:rgba(167,139,250,.08);
+  pointer-events:none;z-index:50;border-radius:2px;
+}
 </style>
 </head>
 <body>
@@ -448,6 +515,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
     <button class="tb-btn primary" onclick="downloadBot()">⬇ Download bot.py</button>
     <button class="tb-btn" onclick="openDashboard()" style="margin-left:.25rem">🤖 Bots</button>
     <button class="tb-btn" onclick="openTemplates()" style="margin-left:.25rem">📋 Templates</button>
+    <button class="tb-btn" onclick="exportGraphJSON()" title="Export graph as JSON">📤 Export</button>
+    <label class="tb-btn" title="Import a .json graph" style="cursor:pointer">📥 Import<input type="file" accept=".json" style="display:none" onchange="importGraphJSON(this)"></label>
     <button class="tb-btn" onclick="openDeploy()" style="margin-left:.25rem;background:linear-gradient(135deg,#34d399,#60a5fa);border:none;color:#fff;font-weight:600">🚀 Deploy</button>
   </div>
 
@@ -456,6 +525,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 
     <!-- palette -->
     <div id="palette">
+      <input type="text" id="palette-search" placeholder="Search nodes..." oninput="filterPalette(this.value)">
 
       <!-- Triggers -->
       <div class="acc-header open" onclick="toggleAcc(this)"><span>Triggers</span><span class="acc-arrow">▶</span></div>
@@ -541,42 +611,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
         <div class="pal-item" draggable="true" data-type="action_log"><span class="pal-dot" style="background:#94a3b8"></span>Log</div>
       </div>
 
-      <!-- Plugins -->
-      <div class="acc-header" onclick="toggleAcc(this)"><span>Plugins</span><span class="acc-arrow">▶</span></div>
+      <!-- Annotations -->
+      <div class="acc-header" onclick="toggleAcc(this)"><span>Annotations</span><span class="acc-arrow">▶</span></div>
       <div class="acc-body">
-        <div class="pal-item" draggable="true" data-type="plugin_welcome"><span class="pal-dot" style="background:#34d399"></span>WelcomePlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_leveling"><span class="pal-dot" style="background:#a78bfa"></span>LevelingPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_automod"><span class="pal-dot" style="background:#f87171"></span>AutoModPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_antispam"><span class="pal-dot" style="background:#fb923c"></span>AntiSpamPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_starboard"><span class="pal-dot" style="background:#fbbf24"></span>StarboardPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_tickets"><span class="pal-dot" style="background:#60a5fa"></span>TicketPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_economy"><span class="pal-dot" style="background:#34d399"></span>EconomyPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_quiz"><span class="pal-dot" style="background:#f472b6"></span>QuizPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_afk"><span class="pal-dot" style="background:#94a3b8"></span>AFKPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_autorole"><span class="pal-dot" style="background:#34d399"></span>AutoRolePlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_birthday"><span class="pal-dot" style="background:#f472b6"></span>BirthdayPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_counter"><span class="pal-dot" style="background:#60a5fa"></span>CounterPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_custom_cmd"><span class="pal-dot" style="background:#a78bfa"></span>CustomCommandPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_giveaway"><span class="pal-dot" style="background:#fbbf24"></span>GiveawayPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_msg_filter"><span class="pal-dot" style="background:#f87171"></span>MessageFilterPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_msg_snap"><span class="pal-dot" style="background:#60a5fa"></span>MessageSnapshotPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_mod_log"><span class="pal-dot" style="background:#fb923c"></span>ModerationLogPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_mute"><span class="pal-dot" style="background:#f87171"></span>MutePlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_pinboard"><span class="pal-dot" style="background:#60a5fa"></span>PinboardPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_poll"><span class="pal-dot" style="background:#a78bfa"></span>PollPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_raid_guard"><span class="pal-dot" style="background:#f87171"></span>RaidGuardPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_reaction_roles"><span class="pal-dot" style="background:#a78bfa"></span>ReactionRolesPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_reminders"><span class="pal-dot" style="background:#fb923c"></span>ReminderPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_role_menu"><span class="pal-dot" style="background:#60a5fa"></span>RoleMenuPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_logging"><span class="pal-dot" style="background:#94a3b8"></span>LoggingPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_server_stats"><span class="pal-dot" style="background:#60a5fa"></span>ServerStatsPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_slowmode"><span class="pal-dot" style="background:#fb923c"></span>SlowmodePlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_suggestions"><span class="pal-dot" style="background:#fbbf24"></span>SuggestionPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_tags"><span class="pal-dot" style="background:#a78bfa"></span>TagPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_temp_channel"><span class="pal-dot" style="background:#fb923c"></span>TempChannelPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_translate"><span class="pal-dot" style="background:#60a5fa"></span>TranslatePlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_warn"><span class="pal-dot" style="background:#fbbf24"></span>WarnPlugin</div>
-        <div class="pal-item" draggable="true" data-type="plugin_auto_reply"><span class="pal-dot" style="background:#34d399"></span>AutoReplyPlugin</div>
+        <div class="pal-item" draggable="true" data-type="comment"><span class="pal-dot" style="background:#fbbf24"></span>Comment / Note</div>
       </div>
 
     </div>
@@ -589,6 +627,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
       <div style="position:absolute;bottom:1rem;left:50%;transform:translateX(-50%);
         font-size:.72rem;color:var(--text-dim);pointer-events:none;white-space:nowrap">
         Drag nodes from the left · Connect ports with wires · Click a node to inspect
+      </div>
+      <div id="minimap"><canvas id="minimap-canvas" width="320" height="220"></canvas><div id="minimap-viewport"></div></div>
+      <div id="status-bar">
+        <span class="stat" id="stat-nodes">0 nodes</span>
+        <span class="stat" id="stat-wires">0 wires</span>
+        <span class="stat" id="stat-zoom">100%</span>
+        <button onclick="zoomToFit()" title="Fit all nodes in view">Fit</button>
+        <button onclick="centerCanvas()" title="Reset pan and zoom">Reset</button>
       </div>
     </div>
 
@@ -815,23 +861,9 @@ const NODE_DEFS = {
     fields:[{k:'perm',l:'Permission',t:'select',d:'BAN_MEMBERS',opts:['BAN_MEMBERS','KICK_MEMBERS','MANAGE_CHANNELS','MANAGE_ROLES','ADMINISTRATOR']}] },
   logic_cooldown:   { label:'Cooldown',       icon:'⏱️', color:'#fb923c', cat:'logic',   ins:['exec'], outs:['ok','blocked'],
     fields:[{k:'seconds',l:'Seconds',t:'text',d:'5'},{k:'scope',l:'Scope',t:'select',d:'user',opts:['user','server','channel']}] },
-  // Plugins
-  plugin_welcome:   { label:'WelcomePlugin',  icon:'👋', color:'#34d399', cat:'plugin',  ins:[], outs:[],
-    fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'msg',l:'Welcome message',t:'textarea',d:'Welcome {user}!'}] },
-  plugin_leveling:  { label:'LevelingPlugin', icon:'⭐', color:'#a78bfa', cat:'plugin',  ins:[], outs:[],
-    fields:[{k:'channel',l:'Announce channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'xp',l:'XP per message',t:'text',d:'10'}] },
-  plugin_automod:   { label:'AutoModPlugin',  icon:'🛡️', color:'#f87171', cat:'plugin',  ins:[], outs:[],
-    fields:[{k:'words',l:'Blocked words (comma-sep)',t:'text',d:'badword,spam'},{k:'log',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
-  plugin_antispam:  { label:'AntiSpamPlugin', icon:'🚫', color:'#fb923c', cat:'plugin',  ins:[], outs:[],
-    fields:[{k:'max',l:'Max messages',t:'text',d:'5'},{k:'window',l:'Window (sec)',t:'text',d:'5'},{k:'action',l:'Action',t:'select',d:'kick',opts:['kick','ban','warn']}] },
-  plugin_starboard: { label:'StarboardPlugin',icon:'⭐', color:'#fbbf24', cat:'plugin',  ins:[], outs:[],
-    fields:[{k:'channel',l:'Starboard channel',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Reactions needed',t:'text',d:'3'}] },
-  plugin_tickets:   { label:'TicketPlugin',   icon:'🎫', color:'#60a5fa', cat:'plugin',  ins:[], outs:[],
-    fields:[{k:'channel',l:'Staff channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
-  plugin_economy:   { label:'EconomyPlugin',  icon:'🪙', color:'#34d399', cat:'plugin',  ins:[], outs:[],
-    fields:[{k:'daily',l:'Daily amount',t:'text',d:'100'},{k:'currency',l:'Currency name',t:'text',d:'coins'}] },
-  plugin_quiz:      { label:'QuizPlugin',     icon:'🧠', color:'#f472b6', cat:'plugin',  ins:[], outs:[],
-    fields:[{k:'rounds',l:'Default rounds',t:'text',d:'5'},{k:'timeout',l:'Answer timeout (sec)',t:'text',d:'20'}] },
+  // Annotations
+  comment:          { label:'Comment',         icon:'📝', color:'#fbbf24', cat:'annotation', ins:[], outs:[],
+    fields:[{k:'text',l:'Note',t:'textarea',d:'Your notes here...'}] },
   // Utility
   action_webhook:   { label:'Send webhook',   icon:'🔗', color:'#60a5fa', cat:'utility', ins:['exec'], outs:['exec'],
     fields:[{k:'url',l:'Webhook URL',t:'text',d:'https://...'},{k:'text',l:'Message text',t:'textarea',d:'Hello from Bot Zombie!'}] },
@@ -936,49 +968,6 @@ const NODE_DEFS = {
     ] },
   action_popup:      { label:'Button popup',    icon:'💬', color:'#a78bfa', cat:'action',  ins:['exec'], outs:['exec'],
     fields:[{k:'title',l:'Popup title',t:'text',d:'Done!'},{k:'text',l:'Popup body',t:'text',d:'Action completed.'}] },
-  // Extra plugins
-  plugin_afk:        { label:'AFKPlugin',       icon:'💤', color:'#94a3b8', cat:'plugin', ins:[], outs:[], fields:[] },
-  plugin_autorole:   { label:'AutoRolePlugin',  icon:'🏷️', color:'#34d399', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'server_id',l:'Server ID',t:'text',d:'YOUR_SERVER_ID'},{k:'role_id',l:'Role ID to assign',t:'text',d:'YOUR_ROLE_ID'}] },
-  plugin_birthday:   { label:'BirthdayPlugin',  icon:'🎂', color:'#f472b6', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Announce channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
-  plugin_counter:    { label:'CounterPlugin',   icon:'🔢', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'server_id',l:'Server ID',t:'text',d:'YOUR_SERVER_ID'},{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'label',l:'Label (e.g. Members)',t:'text',d:'Members'}] },
-  plugin_custom_cmd: { label:'CustomCommandPlugin',icon:'⚡',color:'#a78bfa',cat:'plugin', ins:[], outs:[], fields:[] },
-  plugin_giveaway:   { label:'GiveawayPlugin',  icon:'🎉', color:'#fbbf24', cat:'plugin', ins:[], outs:[], fields:[] },
-  plugin_msg_filter: { label:'MessageFilterPlugin',icon:'🔍',color:'#f87171',cat:'plugin',ins:[], outs:[],
-    fields:[{k:'words',l:'Blocked words (comma-sep)',t:'text',d:'badword'},{k:'block_links',l:'Block links',t:'bool',d:false},{k:'block_invites',l:'Block invites',t:'bool',d:false}] },
-  plugin_msg_snap:   { label:'MessageSnapshotPlugin',icon:'📸',color:'#60a5fa',cat:'plugin',ins:[],outs:[],
-    fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
-  plugin_mod_log:    { label:'ModerationLogPlugin',icon:'📋',color:'#fb923c',cat:'plugin',ins:[],outs:[],
-    fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
-  plugin_mute:       { label:'MutePlugin',      icon:'🔇', color:'#f87171', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'muted_role_id',l:'Muted role ID',t:'text',d:'YOUR_MUTED_ROLE_ID'},{k:'channel',l:'Log channel ID (optional)',t:'text',d:''}] },
-  plugin_pinboard:   { label:'PinboardPlugin',  icon:'📌', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Pinboard channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Reactions needed',t:'text',d:'3'}] },
-  plugin_poll:       { label:'PollPlugin',      icon:'📊', color:'#a78bfa', cat:'plugin', ins:[], outs:[], fields:[] },
-  plugin_raid_guard: { label:'RaidGuardPlugin', icon:'🚨', color:'#f87171', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Alert channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'threshold',l:'Join threshold',t:'text',d:'10'}] },
-  plugin_reaction_roles:{ label:'ReactionRolesPlugin',icon:'🎭',color:'#a78bfa',cat:'plugin',ins:[],outs:[], fields:[] },
-  plugin_reminders:  { label:'ReminderPlugin',  icon:'⏰', color:'#fb923c', cat:'plugin', ins:[], outs:[], fields:[] },
-  plugin_role_menu:  { label:'RoleMenuPlugin',  icon:'📋', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'message_id',l:'Message ID to attach to',t:'text',d:'YOUR_MESSAGE_ID'},{k:'roles',l:'Emoji:RoleID pairs (one per line)',t:'textarea',d:'👍:ROLE_ID_1\n👎:ROLE_ID_2'}] },
-  plugin_logging:    { label:'LoggingPlugin',   icon:'📝', color:'#94a3b8', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Log channel ID',t:'text',d:'YOUR_LOG_CHANNEL_ID'}] },
-  plugin_server_stats:{ label:'ServerStatsPlugin',icon:'📊',color:'#60a5fa',cat:'plugin',ins:[],outs:[],
-    fields:[{k:'server_id',l:'Server ID',t:'text',d:'YOUR_SERVER_ID'},{k:'channel',l:'Stats channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
-  plugin_slowmode:   { label:'SlowmodePlugin',  icon:'🐢', color:'#fb923c', cat:'plugin', ins:[], outs:[], fields:[] },
-  plugin_suggestions:{ label:'SuggestionPlugin',icon:'💡', color:'#fbbf24', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Suggestions channel ID',t:'text',d:'YOUR_CHANNEL_ID'},{k:'upvote',l:'Upvote emoji',t:'text',d:'👍'},{k:'downvote',l:'Downvote emoji',t:'text',d:'👎'}] },
-  plugin_tags:       { label:'TagPlugin',       icon:'🏷️', color:'#a78bfa', cat:'plugin', ins:[], outs:[], fields:[] },
-  plugin_temp_channel:{ label:'TempChannelPlugin',icon:'⏱️',color:'#fb923c',cat:'plugin',ins:[],outs:[],
-    fields:[{k:'timeout',l:'Timeout (seconds)',t:'text',d:'300'}] },
-  plugin_translate:  { label:'TranslatePlugin', icon:'🌐', color:'#60a5fa', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'channel',l:'Watch channel ID (blank = all)',t:'text',d:''},{k:'lang',l:'Target language',t:'text',d:'en'}] },
-  plugin_warn:       { label:'WarnPlugin',      icon:'⚠️', color:'#fbbf24', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'threshold',l:'Warns before kick',t:'text',d:'3'},{k:'channel',l:'Log channel ID (optional)',t:'text',d:''}] },
-  plugin_auto_reply: { label:'AutoReplyPlugin', icon:'💬', color:'#34d399', cat:'plugin', ins:[], outs:[],
-    fields:[{k:'rules',l:'Rules (keyword:reply, one per line)',t:'textarea',d:'hello:Hi there!\nthanks:You\'re welcome!'}] },
 };
 
 // ── Auth ───────────────────────────────────────────────────────────────────
@@ -1699,9 +1688,6 @@ function loadExample() {
   addWire(ifPerm.id, 'true', banAction.id, 'exec');
   addWire(ifPerm.id, 'false', noPermReply.id, 'exec');
 
-  // WelcomePlugin (standalone)
-  createNode('plugin_welcome', 60, 560, {channel:'YOUR_CHANNEL_ID', msg:'Welcome {user} to the server!'});
-
   deselectNode();
 }
 
@@ -2389,30 +2375,6 @@ function parsePySrc(src) {
     if (src.includes(ev)) { createNode(type, 60, y); y += 120; }
   });
 
-  // plugins
-  const pluginMap = {
-    WelcomePlugin:'plugin_welcome', LevelingPlugin:'plugin_leveling',
-    AutoModPlugin:'plugin_automod', AntiSpamPlugin:'plugin_antispam',
-    StarboardPlugin:'plugin_starboard', TicketPlugin:'plugin_tickets',
-    EconomyPlugin:'plugin_economy', QuizPlugin:'plugin_quiz',
-    AFKPlugin:'plugin_afk', AutoRolePlugin:'plugin_autorole',
-    BirthdayPlugin:'plugin_birthday', CounterPlugin:'plugin_counter',
-    CustomCommandPlugin:'plugin_custom_cmd', GiveawayPlugin:'plugin_giveaway',
-    MessageFilterPlugin:'plugin_msg_filter', MessageSnapshotPlugin:'plugin_msg_snap',
-    ModerationLogPlugin:'plugin_mod_log', MutePlugin:'plugin_mute',
-    PinboardPlugin:'plugin_pinboard', PollPlugin:'plugin_poll',
-    RaidGuardPlugin:'plugin_raid_guard', ReactionRolesPlugin:'plugin_reaction_roles',
-    ReminderPlugin:'plugin_reminders', RoleMenuPlugin:'plugin_role_menu',
-    LoggingPlugin:'plugin_logging', ServerStatsPlugin:'plugin_server_stats',
-    SlowmodePlugin:'plugin_slowmode', SuggestionPlugin:'plugin_suggestions',
-    TagPlugin:'plugin_tags', TempChannelPlugin:'plugin_temp_channel',
-    TranslatePlugin:'plugin_translate', WarnPlugin:'plugin_warn',
-    AutoReplyPlugin:'plugin_auto_reply',
-  };
-  Object.entries(pluginMap).forEach(([cls, type]) => {
-    if (src.includes(cls)) { createNode(type, 60, y); y += 120; }
-  });
-
   deselectNode();
 }
 
@@ -3021,6 +2983,309 @@ function applyEmbedToNode() {
   closeEmbedEditor();
 }
 
+// ── Palette search / filter ─────────────────────────────────────────────
+function filterPalette(query) {
+  const q = query.toLowerCase().trim();
+  const headers = document.querySelectorAll('#palette .acc-header');
+  headers.forEach(header => {
+    const body = header.nextElementSibling;
+    if (!body) return;
+    const items = body.querySelectorAll('.pal-item');
+    let visibleCount = 0;
+    items.forEach(item => {
+      const label = item.textContent.toLowerCase();
+      const type = (item.dataset.type || '').toLowerCase();
+      const match = !q || label.includes(q) || type.includes(q);
+      item.classList.toggle('hidden', !match);
+      if (match) visibleCount++;
+    });
+    header.classList.toggle('hidden', visibleCount === 0 && q.length > 0);
+    body.classList.toggle('hidden', visibleCount === 0 && q.length > 0);
+    if (q && visibleCount > 0) {
+      header.classList.add('open');
+      body.classList.add('open');
+    }
+  });
+}
+
+// ── Toast notifications ─────────────────────────────────────────────────
+function showToast(message, type) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (type ? ' ' + type : '');
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'toast-out .3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
+// ── Status bar updates ──────────────────────────────────────────────────
+function updateStatusBar() {
+  const sn = document.getElementById('stat-nodes');
+  const sw = document.getElementById('stat-wires');
+  const sz = document.getElementById('stat-zoom');
+  if (sn) sn.textContent = nodes.length + ' node' + (nodes.length !== 1 ? 's' : '');
+  if (sw) sw.textContent = wires.length + ' wire' + (wires.length !== 1 ? 's' : '');
+  if (sz) sz.textContent = Math.round(zoom * 100) + '%';
+}
+
+// Hook into node/wire changes
+const _origCreateNode = createNode;
+createNode = function() {
+  const result = _origCreateNode.apply(this, arguments);
+  if (result && result.type === 'comment') result.el.classList.add('comment-node');
+  updateStatusBar();
+  updateMinimap();
+  return result;
+};
+
+const _origAddWire = addWire;
+addWire = function() {
+  const result = _origAddWire.apply(this, arguments);
+  updateStatusBar();
+  updateMinimap();
+  return result;
+};
+
+const _realDeleteNode = window.deleteNode;
+const _wrappedDelete = function(id) {
+  _realDeleteNode(id);
+  updateStatusBar();
+  updateMinimap();
+};
+window.deleteNode = _wrappedDelete;
+
+const _origApplyTransform = applyTransform;
+applyTransform = function() {
+  _origApplyTransform.apply(this, arguments);
+  updateStatusBar();
+  updateMinimap();
+};
+
+// ── Zoom to fit ─────────────────────────────────────────────────────────
+function zoomToFit() {
+  if (!nodes.length) { centerCanvas(); return; }
+  const pad = 60;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + 220);
+    maxY = Math.max(maxY, n.y + 100);
+  });
+  const wrap = document.getElementById('canvas-wrap');
+  const ww = wrap.clientWidth;
+  const wh = wrap.clientHeight;
+  const graphW = maxX - minX + pad * 2;
+  const graphH = maxY - minY + pad * 2;
+  zoom = Math.min(2, Math.max(0.3, Math.min(ww / graphW, wh / graphH)));
+  panX = (ww - graphW * zoom) / 2 - minX * zoom + pad * zoom;
+  panY = (wh - graphH * zoom) / 2 - minY * zoom + pad * zoom;
+  applyTransform();
+  showToast('Zoomed to fit ' + nodes.length + ' nodes', 'success');
+}
+
+function centerCanvas() {
+  zoom = 1;
+  panX = 0;
+  panY = 0;
+  applyTransform();
+  showToast('Canvas reset', 'success');
+}
+
+// ── Duplicate node (Ctrl+D) ─────────────────────────────────────────────
+function duplicateSelected() {
+  if (!selectedNode) return;
+  const n = selectedNode;
+  const newNode = createNode(n.type, n.x + 30, n.y + 30, {...n.props});
+  selectNode(newNode);
+  showToast('Node duplicated', 'success');
+}
+
+// ── Multi-select ────────────────────────────────────────────────────────
+let multiSelected = [];
+
+function selectAllNodes() {
+  multiSelected = [...nodes];
+  nodes.forEach(n => n.el.classList.add('multi-selected'));
+  showToast('Selected all ' + nodes.length + ' nodes', 'success');
+}
+
+function clearMultiSelect() {
+  multiSelected.forEach(n => n.el.classList.remove('multi-selected'));
+  multiSelected = [];
+}
+
+// ── Export / Import graph as JSON ───────────────────────────────────────
+function exportGraphJSON() {
+  const data = {
+    version: 2,
+    botName: document.getElementById('bot-name-input').value,
+    nodes: nodes.map(n => ({id:n.id, type:n.type, x:n.x, y:n.y, props:n.props})),
+    wires: wires.map(w => ({fromNode:w.fromNode, fromPort:w.fromPort, toNode:w.toNode, toPort:w.toPort})),
+    nodeIdSeq, wireIdSeq,
+    exportedAt: new Date().toISOString(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (data.botName || 'bot') + '_graph.json';
+  a.click();
+  showToast('Graph exported as JSON', 'success');
+}
+
+function importGraphJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.nodes || !Array.isArray(data.nodes)) throw new Error('Invalid graph file');
+      if (!confirm('Import graph? This will replace your current canvas.')) return;
+      clearCanvas();
+      nodeIdSeq = data.nodeIdSeq || 0;
+      wireIdSeq = data.wireIdSeq || 0;
+      if (data.botName) document.getElementById('bot-name-input').value = data.botName;
+      data.nodes.forEach(n => {
+        const node = createNode(n.type, n.x, n.y, n.props);
+        if (!node) return;
+        const oldId = node.id;
+        node.id = n.id;
+        node.el.dataset.id = n.id;
+        node.el.querySelectorAll('[data-node]').forEach(el => {
+          if (el.dataset.node == oldId) el.dataset.node = n.id;
+        });
+        const delBtn = node.el.querySelector('.node-del');
+        if (delBtn) delBtn.setAttribute('onclick', `deleteNode(${n.id})`);
+      });
+      (data.wires || []).forEach(w => addWire(w.fromNode, w.fromPort, w.toNode, w.toPort));
+      deselectNode();
+      showToast('Graph imported (' + data.nodes.length + ' nodes)', 'success');
+    } catch(err) {
+      showToast('Import failed: ' + err.message, 'error');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ── Minimap ─────────────────────────────────────────────────────────────
+function updateMinimap() {
+  const mmCanvas = document.getElementById('minimap-canvas');
+  if (!mmCanvas) return;
+  const ctx = mmCanvas.getContext('2d');
+  const w = mmCanvas.width;
+  const h = mmCanvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  if (!nodes.length) return;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + 220);
+    maxY = Math.max(maxY, n.y + 100);
+  });
+  const pad = 30;
+  minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+  const scaleX = w / (maxX - minX);
+  const scaleY = h / (maxY - minY);
+  const scale = Math.min(scaleX, scaleY);
+
+  // draw wires
+  ctx.strokeStyle = 'rgba(167,139,250,.3)';
+  ctx.lineWidth = 1;
+  wires.forEach(wire => {
+    const from = nodes.find(n => n.id === wire.fromNode);
+    const to = nodes.find(n => n.id === wire.toNode);
+    if (!from || !to) return;
+    ctx.beginPath();
+    ctx.moveTo((from.x + 110 - minX) * scale, (from.y + 50 - minY) * scale);
+    ctx.lineTo((to.x + 110 - minX) * scale, (to.y + 50 - minY) * scale);
+    ctx.stroke();
+  });
+
+  // draw nodes
+  nodes.forEach(n => {
+    const def = NODE_DEFS[n.type];
+    ctx.fillStyle = def ? def.color : '#a78bfa';
+    ctx.globalAlpha = 0.7;
+    ctx.fillRect(
+      (n.x - minX) * scale,
+      (n.y - minY) * scale,
+      220 * scale,
+      Math.max(40 * scale, 3)
+    );
+  });
+  ctx.globalAlpha = 1;
+
+  // draw viewport indicator
+  const wrap = document.getElementById('canvas-wrap');
+  if (!wrap) return;
+  const vp = document.getElementById('minimap-viewport');
+  const ww = wrap.clientWidth;
+  const wh = wrap.clientHeight;
+  const vpLeft = (-panX / zoom - minX) * scale;
+  const vpTop = (-panY / zoom - minY) * scale;
+  const vpW = (ww / zoom) * scale;
+  const vpH = (wh / zoom) * scale;
+  const mmRect = document.getElementById('minimap');
+  const mmW = mmRect.clientWidth;
+  const mmH = mmRect.clientHeight;
+  vp.style.left = (vpLeft * mmW / w) + 'px';
+  vp.style.top = (vpTop * mmH / h) + 'px';
+  vp.style.width = Math.min(vpW * mmW / w, mmW) + 'px';
+  vp.style.height = Math.min(vpH * mmH / h, mmH) + 'px';
+}
+
+// ── Enhanced keybinds ───────────────────────────────────────────────────
+// Override the existing keydown handler to add new shortcuts
+document.removeEventListener('keydown', arguments.callee);
+const _existingKeydown = document.onkeydown;
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement.tagName;
+  const typing = tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+  // Ctrl+D: Duplicate selected node
+  if (e.ctrlKey && e.key==='d' && !typing) { e.preventDefault(); duplicateSelected(); return; }
+  // Ctrl+A: Select all nodes
+  if (e.ctrlKey && e.key==='a' && !typing) { e.preventDefault(); selectAllNodes(); return; }
+  // Ctrl+E: Export graph
+  if (e.ctrlKey && e.key==='e' && !typing) { e.preventDefault(); exportGraphJSON(); return; }
+  // Ctrl+Shift+S: Zoom to fit
+  if (e.ctrlKey && e.shiftKey && e.key==='S' && !typing) { e.preventDefault(); zoomToFit(); return; }
+});
+
+// Update the keybinds list to include new shortcuts
+KEYBINDS.push(
+  { keys: 'Ctrl + D',        action: 'Duplicate selected node' },
+  { keys: 'Ctrl + A',        action: 'Select all nodes' },
+  { keys: 'Ctrl + E',        action: 'Export graph as JSON' },
+  { keys: 'Ctrl + Shift + S', action: 'Zoom to fit' },
+);
+renderKeybinds();
+
+// Override saveGraph to show toast
+const _origSaveGraph = saveGraph;
+saveGraph = function() {
+  _origSaveGraph();
+  showToast('Graph saved', 'success');
+};
+
+// Override copyCode to show toast
+const _origCopyCode = copyCode;
+copyCode = function() {
+  _origCopyCode();
+  showToast('Code copied to clipboard', 'success');
+};
+
+// Initial status bar update
+setTimeout(() => { updateStatusBar(); updateMinimap(); }, 100);
+
 </script>
 <!-- ── Dashboard modal ──────────────────────────────────────────────── -->
 <div id="dashboard-overlay">
@@ -3088,5 +3353,6 @@ function applyEmbedToNode() {
   </div>
 </div>
 
+<div id="toast-container"></div>
 </body>
 </html>
