@@ -85,6 +85,12 @@ class Context:
         return resolve_mentions(self.message.content, self.cache)
 
     @property
+    def mention_ids(self) -> list[str]:
+        """Extract all [@:id] mention IDs from message content without needing cache."""
+        from nerimity_sdk.utils.mentions import parse_mention_ids
+        return parse_mention_ids(self.message.content or "")
+
+    @property
     def rest_text(self) -> str:
         """All remaining args joined as a single string."""
         return " ".join(self.args)

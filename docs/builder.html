@@ -1852,10 +1852,10 @@ function emitAction(node, lines, indent) {
   const i = indent;
   const _rt = v => {
     if (!v || v === 'author') return 'ctx.author.id';
-    if (v === 'mention') return '(ctx.mentions[0].id if ctx.mentions else (ctx.args[0] if ctx.args else ctx.author.id))';
+    if (v === 'mention') return '(ctx.mention_ids[0] if ctx.mention_ids else (ctx.args[0] if ctx.args else ctx.author.id))';
     const m = v.match(/\[@:(\d+)\]/); if (m) return `"${m[1]}"`;
     if (v.match(/^\d+$/)) return `"${v}"`;
-    return `(ctx.mentions[0].id if ctx.mentions else "${esc2(v)}")`;
+    return `(ctx.mention_ids[0] if ctx.mention_ids else "${esc2(v)}")`;
   };
 
   switch (node.type) {
