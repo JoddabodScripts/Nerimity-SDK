@@ -15,7 +15,16 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ORIGINS", "https://runner-cold-grass-3880.fly.dev"
+).split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 _cred_data = json.loads(os.environ["FIREBASE_CREDENTIALS_JSON"])
 cred = credentials.Certificate(_cred_data)
@@ -27,7 +36,20 @@ _sessions: dict[str, str]  = {}
 
 def _get_user(u): doc = db.collection("users").document(u).get(); return doc.to_dict() if doc.exists else None
 def _set_user(u, d): db.collection("users").document(u).set(d)
-def _hash(pw): return hashlib.sha256(pw.encode()).hexdigest()
+def _hash(pw, salt=None):
+    """Hash a password with PBKDF2-HMAC-SHA256 (100k iterations)."""
+    if salt is None:
+        salt = os.urandom(16)
+    dk = hashlib.pbkdf2_hmac("sha256", pw.encode(), salt, 100_000)
+    return salt.hex() + ":" + dk.hex()
+
+def _verify(pw, stored):
+    """Verify a password against a stored PBKDF2 hash."""
+    if ":" not in stored:
+        # Legacy unsalted SHA-256 hash -- verify and signal upgrade needed
+        return stored == hashlib.sha256(pw.encode()).hexdigest(), True
+    salt_hex, _ = stored.split(":", 1)
+    return _hash(pw, bytes.fromhex(salt_hex)) == stored, False
 def _save_bots(): db.collection("state").document("bots").set({t: b["code"] for t, b in _bots.items()})
 
 def _require_session(authorization):
@@ -40,6 +62,19 @@ def _require_session(authorization):
         if not doc.exists: raise HTTPException(401, "Invalid or expired session")
         u = doc.to_dict()["username"]; _sessions[tok] = u
     return u
+
+# Env vars that are safe to pass to child bot processes.
+_SAFE_ENV_KEYS = {"PATH", "HOME", "USER", "LANG", "NODE_PATH", "NODE_ENV", "PORT"}
+
+def _safe_child_env(token: str) -> dict:
+    """Build a minimal environment for child bot processes.
+
+    Excludes server secrets like FIREBASE_CREDENTIALS_JSON.
+    """
+    env = {k: v for k, v in os.environ.items() if k in _SAFE_ENV_KEYS}
+    env["NERIMITY_TOKEN"] = token
+    env["NERIMITY_CHILD"] = "1"
+    return env
 
 def _launch(token: str, code: str):
     # Write bot.js to a temp dir with package.json
@@ -59,7 +94,7 @@ def _launch(token: str, code: str):
     proc = subprocess.Popen(
         ["node", bot_path],
         stdout=log, stderr=log,
-        env={**os.environ, "NERIMITY_TOKEN": token},
+        env=_safe_child_env(token),
         cwd=tmpdir,
     )
     return proc, log_path
@@ -89,6 +124,8 @@ class AuthRequest(BaseModel):
 async def register(req: AuthRequest):
     u = req.username.strip().lower()
     if len(u) < 3: raise HTTPException(400, "Username too short")
+    if len(req.password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
     if _get_user(u): raise HTTPException(409, "Username taken")
     _set_user(u, {"pw_hash": _hash(req.password), "tokens": []})
     session = secrets.token_hex(32); _sessions[session] = u
@@ -99,7 +136,15 @@ async def register(req: AuthRequest):
 async def login(req: AuthRequest):
     u = req.username.strip().lower()
     user = _get_user(u)
-    if not user or user["pw_hash"] != _hash(req.password): raise HTTPException(401, "Invalid credentials")
+    if not user:
+        raise HTTPException(401, "Invalid credentials")
+    ok, is_legacy = _verify(req.password, user["pw_hash"])
+    if not ok:
+        raise HTTPException(401, "Invalid credentials")
+    # Transparently upgrade legacy SHA-256 hashes to PBKDF2
+    if is_legacy:
+        user["pw_hash"] = _hash(req.password)
+        _set_user(u, user)
     session = secrets.token_hex(32); _sessions[session] = u
     db.collection("sessions").document(session).set({"username": u})
     return {"session": session, "username": u, "tokens": user.get("tokens", [])}
@@ -121,7 +166,7 @@ async def add_token(req: TokenRequest, authorization: Optional[str] = Header(Non
     if not any(t["token"] == req.bot_token for t in tokens):
         tokens.append({"token": req.bot_token.strip(), "name": req.name or req.bot_token[:8] + "..."})
         user["tokens"] = tokens; _set_user(u, user)
-    return {"tokens": [{"token": t["token"], "token_hint": t["token"][:8]+"...", "name": t.get("name",""), "running": t["token"] in _bots and _bots[t["token"]]["proc"].poll() is None} for t in tokens]}
+    return {"tokens": [{"token_hint": t["token"][:8]+"...", "name": t.get("name",""), "running": t["token"] in _bots and _bots[t["token"]]["proc"].poll() is None} for t in tokens]}
 
 @app.post("/tokens/remove")
 async def remove_token(req: TokenRequest, authorization: Optional[str] = Header(None)):
@@ -135,7 +180,7 @@ async def remove_token(req: TokenRequest, authorization: Optional[str] = Header(
 @app.get("/tokens")
 async def list_tokens(authorization: Optional[str] = Header(None)):
     u = _require_session(authorization); user = _get_user(u)
-    return {"tokens": [{"token": t["token"], "token_hint": t["token"][:8]+"...", "name": t.get("name",""), "running": t["token"] in _bots and _bots[t["token"]]["proc"].poll() is None} for t in user.get("tokens", [])]}
+    return {"tokens": [{"token_hint": t["token"][:8]+"...", "name": t.get("name",""), "running": t["token"] in _bots and _bots[t["token"]]["proc"].poll() is None} for t in user.get("tokens", [])]}
 
 class DeployRequest(BaseModel):
     code: str

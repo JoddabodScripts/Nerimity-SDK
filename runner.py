@@ -13,7 +13,16 @@ from pydantic import BaseModel
 from typing import Optional
 
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+_ALLOWED_ORIGINS = os.environ.get(
+    "CORS_ORIGINS", "https://runner-cold-grass-3880.fly.dev"
+).split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 DATA = Path("/data")
 DATA.mkdir(parents=True, exist_ok=True)
@@ -46,11 +55,39 @@ def _save_bots():
 def _save_users():
     USERS_FILE.write_text(json.dumps(_users))
 
-def _hash(pw: str) -> str:
-    return hashlib.sha256(pw.encode()).hexdigest()
+def _hash(pw: str, salt: bytes | None = None) -> str:
+    """Hash a password with PBKDF2-HMAC-SHA256 (100k iterations)."""
+    if salt is None:
+        salt = os.urandom(16)
+    dk = hashlib.pbkdf2_hmac("sha256", pw.encode(), salt, 100_000)
+    return salt.hex() + ":" + dk.hex()
+
+def _verify(pw: str, stored: str) -> tuple[bool, bool]:
+    """Verify a password against a stored hash.
+
+    Returns (matches, is_legacy_hash).
+    """
+    if ":" not in stored:
+        # Legacy unsalted SHA-256 hash -- verify and signal upgrade needed
+        return stored == hashlib.sha256(pw.encode()).hexdigest(), True
+    salt_hex, _ = stored.split(":", 1)
+    return _hash(pw, bytes.fromhex(salt_hex)) == stored, False
 
 
 # ── Bot process management ─────────────────────────────────────────────────
+
+# Env vars that are safe to pass to child bot processes.
+_SAFE_ENV_KEYS = {"PATH", "HOME", "USER", "LANG", "VIRTUAL_ENV", "PYTHONPATH"}
+
+def _safe_child_env(token: str) -> dict:
+    """Build a minimal environment for child bot processes.
+
+    Only passes safe, necessary env vars -- excludes server secrets.
+    """
+    env = {k: v for k, v in os.environ.items() if k in _SAFE_ENV_KEYS}
+    env["NERIMITY_TOKEN"] = token
+    env["NERIMITY_CHILD"] = "1"
+    return env
 
 def _launch(token: str, code: str) -> subprocess.Popen:
     code = code.replace('os.environ["NERIMITY_TOKEN"]', f'"{token}"')
@@ -62,7 +99,7 @@ def _launch(token: str, code: str) -> subprocess.Popen:
     return subprocess.Popen(
         [sys.executable, tmp.name],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        env={**os.environ, "NERIMITY_TOKEN": token, "NERIMITY_CHILD": "1"},
+        env=_safe_child_env(token),
     )
 
 async def _watchdog():
@@ -105,6 +142,8 @@ async def register(req: AuthRequest):
     u = req.username.strip().lower()
     if not u or len(u) < 3:
         raise HTTPException(400, "Username must be at least 3 characters")
+    if len(req.password) < 8:
+        raise HTTPException(400, "Password must be at least 8 characters")
     if u in _users:
         raise HTTPException(409, "Username already taken")
     _users[u] = {"pw_hash": _hash(req.password), "bot_token": ""}
@@ -117,11 +156,18 @@ async def register(req: AuthRequest):
 async def login(req: AuthRequest):
     u = req.username.strip().lower()
     user = _users.get(u)
-    if not user or user["pw_hash"] != _hash(req.password):
+    if not user:
         raise HTTPException(401, "Invalid username or password")
+    ok, is_legacy = _verify(req.password, user["pw_hash"])
+    if not ok:
+        raise HTTPException(401, "Invalid username or password")
+    # Transparently upgrade legacy SHA-256 hashes to PBKDF2
+    if is_legacy:
+        user["pw_hash"] = _hash(req.password)
+        _save_users()
     session = secrets.token_hex(32)
     _sessions[session] = u
-    return {"session": session, "username": u, "bot_token": user.get("bot_token", "")}
+    return {"session": session, "username": u}
 
 @app.post("/auth/logout")
 async def logout(authorization: Optional[str] = Header(None)):
@@ -175,7 +221,8 @@ async def status(authorization: Optional[str] = Header(None)):
     username = _require_session(authorization)
     token = _users[username].get("bot_token", "")
     bot = _bots.get(token)
-    return {"running": bool(bot and bot["proc"].poll() is None), "bot_token": token}
+    hint = (token[:8] + "...") if token else ""
+    return {"running": bool(bot and bot["proc"].poll() is None), "bot_token_hint": hint}
 
 
 # ── Health ─────────────────────────────────────────────────────────────────
