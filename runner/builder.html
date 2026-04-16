@@ -218,6 +218,37 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
 /* misc */
 .hint{font-size:.72rem;color:var(--text-dim);line-height:1.5}
 
+/* ── Dashboard / Templates / Embed modals ─────────────────────────────── */
+#dashboard-overlay,#templates-overlay,#embed-editor-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;
+}
+#dashboard-overlay.open,#templates-overlay.open,#embed-editor-overlay.open{display:flex}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  width:min(700px,95vw);max-height:85vh;display:flex;flex-direction:column;overflow:hidden;
+}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-header h2{font-size:1rem;font-weight:700}
+.modal-body{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:.75rem}
+.bot-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.85rem 1rem;display:flex;align-items:center;gap:.75rem;transition:border-color .15s}
+.bot-card.active{border-color:var(--purple)}
+.bot-status{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.bot-status.online{background:#34d399}.bot-status.offline{background:#64748b}
+.bot-name{font-weight:600;font-size:.88rem;flex:1}
+.bot-hint{font-size:.72rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+.template-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.75rem}
+.template-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;cursor:pointer;transition:border-color .15s,transform .1s;text-align:center}
+.template-card:hover{border-color:var(--purple);transform:translateY(-2px)}
+.template-card .t-icon{font-size:1.8rem;margin-bottom:.4rem}
+.template-card .t-name{font-size:.82rem;font-weight:600}
+.template-card .t-desc{font-size:.7rem;color:var(--text-dim);margin-top:.2rem;line-height:1.4}
+#embed-editor-overlay .modal-box{width:min(860px,95vw)}
+.embed-toolbar{display:flex;flex-wrap:wrap;gap:.3rem;padding:.5rem;background:var(--surface3);border-radius:var(--radius-sm)}
+.embed-toolbar button{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;font-size:.75rem;padding:.25rem .5rem;transition:background .15s}
+.embed-toolbar button:hover{background:rgba(255,255,255,.15)}
+.embed-split{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.embed-preview{background:#1a1a2e;border:1px solid var(--border2);border-radius:var(--radius-sm);padding:1rem;min-height:100px;font-size:.85rem;line-height:1.5;overflow:auto}
+
 /* ── Deploy modal ─────────────────────────────────────────────────────── */
 #deploy-panel{
   position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
@@ -415,6 +446,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
     <button class="tb-btn" onclick="openCode()" style="margin-left:.25rem">Preview code</button>
     <button class="tb-btn" onclick="openPreview()" style="margin-left:.25rem">💬 Test bot</button>
     <button class="tb-btn primary" onclick="downloadBot()">⬇ Download bot.py</button>
+    <button class="tb-btn" onclick="openDashboard()" style="margin-left:.25rem">🤖 Bots</button>
+    <button class="tb-btn" onclick="openTemplates()" style="margin-left:.25rem">📋 Templates</button>
     <button class="tb-btn" onclick="openDeploy()" style="margin-left:.25rem;background:linear-gradient(135deg,#34d399,#60a5fa);border:none;color:#fff;font-weight:600">🚀 Deploy</button>
   </div>
 
@@ -460,6 +493,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
         <div class="pal-item" draggable="true" data-type="action_unban"><span class="pal-dot" style="background:#34d399"></span>Unban member</div>
         <div class="pal-item" draggable="true" data-type="action_add_role"><span class="pal-dot" style="background:#34d399"></span>Add role</div>
         <div class="pal-item" draggable="true" data-type="action_remove_role"><span class="pal-dot" style="background:#f87171"></span>Remove role</div>
+        <div class="pal-item" draggable="true" data-type="action_set_nickname"><span class="pal-dot" style="background:#34d399"></span>Set nickname</div>
+        <div class="pal-item" draggable="true" data-type="action_create_channel"><span class="pal-dot" style="background:#60a5fa"></span>Create channel</div>
+        <div class="pal-item" draggable="true" data-type="action_reply_embed"><span class="pal-dot" style="background:#f472b6"></span>Reply with embed</div>
+        <div class="pal-item" draggable="true" data-type="action_edit_msg"><span class="pal-dot" style="background:#60a5fa"></span>Edit message</div>
         <div class="pal-item" draggable="true" data-type="action_delete_msg"><span class="pal-dot" style="background:#f87171"></span>Delete message</div>
         <div class="pal-item" draggable="true" data-type="action_store_set"><span class="pal-dot" style="background:#34d399"></span>Store: set</div>
         <div class="pal-item" draggable="true" data-type="action_store_get"><span class="pal-dot" style="background:#34d399"></span>Store: get</div>
@@ -877,6 +914,14 @@ const NODE_DEFS = {
     fields:[{k:'channel',l:'Channel ID',t:'text',d:'YOUR_CHANNEL_ID'}] },
   action_upload_file:{ label:'Upload file',     icon:'📎', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
     fields:[{k:'path',l:'File path',t:'text',d:'./file.png'},{k:'var',l:'Store file ID in',t:'text',d:'file_id'}] },
+  action_reply_embed:{ label:'Reply with embed',icon:'🎨', color:'#f472b6', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'html',l:'HTML content',t:'embed',d:'<h3>Title</h3>\n<p>Your message here</p>'}] },
+  action_edit_msg:   { label:'Edit message',    icon:'✏️', color:'#60a5fa', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'text',l:'New content',t:'text',d:'Updated message'}] },
+  action_set_nickname:{ label:'Set nickname',   icon:'📝', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
+    fields:[{k:'user_id',l:'User (mention/ID/"author")',t:'text',d:'mention'},{k:'nick',l:'Nickname (blank to reset)',t:'text',d:''}] },
+  action_create_channel:{ label:'Create channel',icon:'📢', color:'#60a5fa', cat:'action', ins:['exec'], outs:['exec'],
+    fields:[{k:'name',l:'Channel name',t:'text',d:'new-channel'},{k:'var',l:'Store channel ID in',t:'text',d:'new_ch'}] },
   // Buttons
   trigger_button:    { label:'Button clicked',  icon:'🔘', color:'#a78bfa', cat:'trigger', ins:[], outs:['exec'],
     fields:[{k:'id',l:'Button ID pattern (use {param} for wildcards)',t:'text',d:'my_button_{user_id}'}] },
@@ -1605,6 +1650,8 @@ function renderInspector(node) {
 
     if (f.t === 'textarea') {
       inputHTML = `<textarea data-prop="${f.k}" rows="3">${esc(val)}</textarea>`;
+    } else if (f.t === 'embed') {
+      inputHTML = `<textarea data-prop="${f.k}" rows="3">${esc(val)}</textarea><button class="tb-btn" style="margin-top:.3rem;width:100%" onclick="openEmbedEditor(${node.id},'${f.k}',nodes.find(n=>n.id===${node.id})?.props?.${f.k}||'')">🎨 Open Embed Editor</button>`;
     } else if (f.t === 'select' || f.t === 'bool') {
       const opts = f.t === 'bool'
         ? [{v:'false',l:'No'},{v:'true',l:'Yes'}]
@@ -1943,6 +1990,25 @@ function emitAction(node, lines, indent) {
 
     case 'action_embed':
       lines.push(`${i}await message.reply("\\u200b", { htmlEmbed: \`${esc2(p.html||'')}\` });`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_reply_embed':
+      lines.push(`${i}await message.reply("\\u200b", { htmlEmbed: \`${esc2(p.html||'<h3>Title</h3>')}\` });`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_edit_msg':
+      lines.push(`${i}await message.edit("${esc2(p.text||'')}");`);
+      emitChain(node.id, 'exec', lines, i); break;
+
+    case 'action_set_nickname': {
+      const uid3 = _rt(p.user_id);
+      const nickVal = esc2(p.nick || '');
+      lines.push(`${i}await fetch(\`https://nerimity.com/api/servers/\${message.channel?.server?.id}/members/${uid3}\`, {method:'POST',headers:{Authorization:"${BOT_TOKEN}",'Content-Type':'application/json'},body:JSON.stringify({nickname:"${nickVal}"})}).catch(console.error);`);
+      emitChain(node.id, 'exec', lines, i); break;
+    }
+
+    case 'action_create_channel':
+      lines.push(`${i}const ${p.var||'new_ch'} = await fetch(\`https://nerimity.com/api/servers/\${message.channel?.server?.id}/channels\`, {method:'POST',headers:{Authorization:"${BOT_TOKEN}",'Content-Type':'application/json'},body:JSON.stringify({name:"${esc2(p.name||'new-channel')}"})}).then(r=>r.json());`);
       emitChain(node.id, 'exec', lines, i); break;
 
     default:
@@ -2758,6 +2824,269 @@ function previewInterpolate(str, ctx) {
     });
 }
 
+// ── Dashboard ──────────────────────────────────────────────────────────────
+async function openDashboard() {
+  document.getElementById('dashboard-overlay').classList.add('open');
+  await _renderDashboard();
+}
+function closeDashboard() { document.getElementById('dashboard-overlay').classList.remove('open'); }
+
+async function _renderDashboard() {
+  const body = document.getElementById('dashboard-body');
+  if (!_session) { body.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem">Not logged in.</p>'; return; }
+  body.innerHTML = '<div style="color:var(--text-dim);font-size:.82rem">Loading...</div>';
+  try {
+    const res = await fetch(RUNNER_URL + '/tokens', {headers:{'Authorization':'Bearer '+_session}});
+    const data = await res.json();
+    if (!data.tokens?.length) {
+      body.innerHTML = '<p style="color:var(--text-dim);font-size:.82rem">No bots yet. Add a token below.</p>';
+      return;
+    }
+    body.innerHTML = '';
+    data.tokens.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'bot-card' + (t.token === BOT_TOKEN ? ' active' : '');
+      card.innerHTML = `
+        <div class="bot-status ${t.running ? 'online' : 'offline'}"></div>
+        <div style="flex:1">
+          <div class="bot-name">${t.name || t.token_hint}</div>
+          <div class="bot-hint">${t.token_hint} · ${t.running ? '🟢 Running' : '⚫ Stopped'}</div>
+        </div>
+        <button class="tb-btn" onclick="dashSwitch('${t.token}','${t.name||t.token_hint}')" title="Switch to this bot">Switch</button>
+        <button class="tb-btn" onclick="dashToggle('${t.token}','${t.running}')" style="color:${t.running?'#f87171':'#34d399'}">${t.running ? '⏹' : '▶'}</button>
+        <button class="tb-btn" onclick="dashRemove('${t.token}')" style="color:#f87171">🗑</button>`;
+      body.appendChild(card);
+    });
+  } catch(e) { body.innerHTML = `<p style="color:#f87171;font-size:.82rem">Error: ${e.message}</p>`; }
+}
+
+function dashSwitch(token, name) {
+  BOT_TOKEN = token;
+  document.getElementById('bot-name-input').value = name;
+  closeDashboard();
+}
+
+async function dashToggle(token, running) {
+  const endpoint = running === 'true' ? '/stop' : '/deploy';
+  if (running === 'false') {
+    // need code to deploy — use current canvas
+    await fetch(RUNNER_URL + '/deploy', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_session},body:JSON.stringify({code:generateCode(),bot_token:token})});
+  } else {
+    await fetch(RUNNER_URL + '/stop', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_session},body:JSON.stringify({bot_token:token})});
+  }
+  await _renderDashboard();
+}
+
+async function dashRemove(token) {
+  if (!confirm('Remove this bot token?')) return;
+  await fetch(RUNNER_URL + '/tokens/remove', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_session},body:JSON.stringify({bot_token:token})});
+  await _renderDashboard();
+}
+
+async function dashAddToken() {
+  const token = prompt('Paste bot token:');
+  if (!token) return;
+  const name = prompt('Bot name (e.g. My Modbot):') || token.slice(0,8)+'...';
+  await fetch(RUNNER_URL + '/tokens/add', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_session},body:JSON.stringify({bot_token:token,name})});
+  await _renderDashboard();
+}
+
+// ── Templates ──────────────────────────────────────────────────────────────
+const TEMPLATES = [
+  { icon:'🏓', name:'Ping Bot', desc:'Simple ping/pong command', nodes:[
+    {type:'trigger_command',x:80,y:120,props:{name:'ping',desc:'Replies with Pong!'}},
+    {type:'action_reply',x:360,y:120,props:{text:'Pong! 🏓'}}
+  ]},
+  { icon:'👋', name:'Welcome Bot', desc:'Greets new members', nodes:[
+    {type:'trigger_join',x:80,y:120,props:{}},
+    {type:'action_send',x:360,y:120,props:{channel:'YOUR_CHANNEL_ID',text:'Welcome to the server!'}}
+  ]},
+  { icon:'🎲', name:'Dice Roller', desc:'/roll command with random number', nodes:[
+    {type:'trigger_command',x:80,y:120,props:{name:'roll',desc:'Roll a dice'}},
+    {type:'action_random_int',x:340,y:120,props:{min:'1',max:'6',var:'roll'}},
+    {type:'action_reply',x:600,y:120,props:{text:'🎲 You rolled: ${roll}'}}
+  ]},
+  { icon:'🔨', name:'Mod Bot', desc:'Ban and kick commands', nodes:[
+    {type:'trigger_command',x:80,y:80,props:{name:'ban',desc:'Ban a member'}},
+    {type:'action_ban',x:360,y:80,props:{target:'mention'}},
+    {type:'trigger_command',x:80,y:240,props:{name:'kick',desc:'Kick a member'}},
+    {type:'action_kick',x:360,y:240,props:{target:'mention'}}
+  ]},
+  { icon:'💬', name:'Auto Reply', desc:'Replies to keywords', nodes:[
+    {type:'trigger_message',x:80,y:120,props:{contains:'hello'}},
+    {type:'action_reply',x:360,y:120,props:{text:'Hello there! 👋'}}
+  ]},
+  { icon:'⏰', name:'Scheduler', desc:'Sends a message every hour', nodes:[
+    {type:'trigger_cron',x:80,y:120,props:{expr:'0 * * * *'}},
+    {type:'action_send',x:360,y:120,props:{channel:'YOUR_CHANNEL_ID',text:'⏰ Hourly reminder!'}}
+  ]},
+  { icon:'🎭', name:'Button Bot', desc:'Message with buttons + popup', nodes:[
+    {type:'trigger_command',x:80,y:120,props:{name:'menu',desc:'Show menu'}},
+    {type:'action_reply_buttons',x:340,y:120,props:{text:'Choose an option:',btn1_id:'opt_yes_{channel_id}',btn1_label:'✅ Yes',btn2_id:'opt_no_{channel_id}',btn2_label:'❌ No'}},
+    {type:'trigger_button',x:80,y:300,props:{id:'opt_yes_{channel_id}'}},
+    {type:'action_popup',x:340,y:300,props:{title:'You chose Yes!',text:'Great choice 🎉'}}
+  ]},
+  { icon:'🌐', name:'HTTP Fetch', desc:'Fetch data from an API', nodes:[
+    {type:'trigger_command',x:80,y:120,props:{name:'fact',desc:'Get a random fact'}},
+    {type:'action_http',x:340,y:120,props:{url:'https://uselessfacts.jsph.pl/random.json?language=en',method:'GET',var:'data'}},
+    {type:'action_reply',x:620,y:120,props:{text:'${data.text}'}}
+  ]},
+];
+
+function openTemplates() {
+  document.getElementById('templates-overlay').classList.add('open');
+  const grid = document.getElementById('template-grid');
+  grid.innerHTML = '';
+  TEMPLATES.forEach((t, i) => {
+    const card = document.createElement('div');
+    card.className = 'template-card';
+    card.innerHTML = `<div class="t-icon">${t.icon}</div><div class="t-name">${t.name}</div><div class="t-desc">${t.desc}</div>`;
+    card.onclick = () => loadTemplate(i);
+    grid.appendChild(card);
+  });
+}
+function closeTemplates() { document.getElementById('templates-overlay').classList.remove('open'); }
+
+function loadTemplate(idx) {
+  if (!confirm('Load template? This will clear your current canvas.')) return;
+  const tpl = TEMPLATES[idx];
+  clearCanvas();
+  const createdNodes = tpl.nodes.map(n => createNode(n.type, n.x, n.y, n.props));
+  // auto-wire sequential nodes
+  for (let i = 0; i < createdNodes.length - 1; i++) {
+    const from = createdNodes[i], to = createdNodes[i+1];
+    const fromDef = NODE_DEFS[from.type], toDef = NODE_DEFS[to.type];
+    if (fromDef?.outs?.includes('exec') && toDef?.ins?.includes('exec')) {
+      addWire(from.id, 'exec', to.id, 'exec');
+    }
+  }
+  closeTemplates();
+}
+
+// ── HTML Embed Editor ──────────────────────────────────────────────────────
+let _embedTargetNodeId = null;
+let _embedTargetProp = 'html';
+
+function openEmbedEditor(nodeId, prop, currentHtml) {
+  _embedTargetNodeId = nodeId;
+  _embedTargetProp = prop || 'html';
+  document.getElementById('embed-editor-code').value = currentHtml || '<h3>Title</h3>\n<p>Your message here</p>';
+  updateEmbedPreview();
+  document.getElementById('embed-editor-overlay').classList.add('open');
+}
+function closeEmbedEditor() { document.getElementById('embed-editor-overlay').classList.remove('open'); }
+
+function updateEmbedPreview() {
+  const html = document.getElementById('embed-editor-code').value;
+  document.getElementById('embed-preview-box').innerHTML = html;
+}
+
+function embedWrap(tag) {
+  const ta = document.getElementById('embed-editor-code');
+  const sel = ta.value.substring(ta.selectionStart, ta.selectionEnd);
+  const replacement = sel ? `<${tag}>${sel}</${tag}>` : `<${tag}>text</${tag}>`;
+  ta.setRangeText(replacement, ta.selectionStart, ta.selectionEnd, 'end');
+  updateEmbedPreview();
+}
+
+function embedInsert(tag) {
+  const ta = document.getElementById('embed-editor-code');
+  const snippets = {
+    h2: '<h2>Heading</h2>\n', h3: '<h3>Heading</h3>\n',
+    p: '<p>Paragraph</p>\n', hr: '<hr />\n',
+    table: '<table>\n  <tr><th>Col 1</th><th>Col 2</th></tr>\n  <tr><td>A</td><td>B</td></tr>\n</table>\n',
+    progress: '<progress value="70" max="100"></progress>\n',
+  };
+  ta.setRangeText(snippets[tag] || `<${tag}></${tag}>\n`, ta.selectionStart, ta.selectionEnd, 'end');
+  updateEmbedPreview();
+}
+
+function embedColor() {
+  const color = prompt('Hex color (e.g. #a78bfa):', '#a78bfa');
+  if (!color) return;
+  embedWrap(`span style="color:${color}"`);
+}
+
+function applyEmbedToNode() {
+  const html = document.getElementById('embed-editor-code').value;
+  if (_embedTargetNodeId) {
+    const node = nodes.find(n => n.id === _embedTargetNodeId);
+    if (node) {
+      node.props[_embedTargetProp] = html;
+      // update the textarea in the props panel if visible
+      const ta = document.querySelector(`[data-prop="${_embedTargetProp}"]`);
+      if (ta) ta.value = html;
+    }
+  }
+  closeEmbedEditor();
+}
+
 </script>
+<!-- ── Dashboard modal ──────────────────────────────────────────────── -->
+<div id="dashboard-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>🤖 My Bots</h2>
+      <button class="tb-btn" onclick="closeDashboard()">✕</button>
+    </div>
+    <div class="modal-body" id="dashboard-body">
+      <div style="color:var(--text-dim);font-size:.82rem">Loading...</div>
+    </div>
+    <div style="padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:.5rem">
+      <button class="tb-btn primary" onclick="dashAddToken()" style="flex:1">+ Add Bot Token</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Templates modal ──────────────────────────────────────────────── -->
+<div id="templates-overlay">
+  <div class="modal-box" style="width:min(800px,95vw)">
+    <div class="modal-header">
+      <h2>📋 Templates</h2>
+      <button class="tb-btn" onclick="closeTemplates()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--text-dim)">Start from a pre-built bot. This will replace your current canvas.</p>
+      <div class="template-grid" id="template-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HTML Embed editor modal ───────────────────────────────────────── -->
+<div id="embed-editor-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>🎨 HTML Embed Editor</h2>
+      <button class="tb-btn" onclick="closeEmbedEditor()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="embed-toolbar">
+        <button onclick="embedWrap('b')"><b>B</b></button>
+        <button onclick="embedWrap('i')"><i>I</i></button>
+        <button onclick="embedWrap('u')"><u>U</u></button>
+        <button onclick="embedWrap('code')">code</button>
+        <button onclick="embedInsert('h2')">H2</button>
+        <button onclick="embedInsert('h3')">H3</button>
+        <button onclick="embedInsert('p')">P</button>
+        <button onclick="embedInsert('hr')">HR</button>
+        <button onclick="embedInsert('table')">Table</button>
+        <button onclick="embedColor()">🎨 Color</button>
+        <button onclick="embedInsert('progress')">Progress</button>
+      </div>
+      <div class="embed-split">
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <label style="font-size:.75rem;color:var(--text-dim)">HTML</label>
+          <textarea id="embed-editor-code" spellcheck="false" style="flex:1;min-height:220px;background:rgba(0,0,0,.3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:.6rem;resize:vertical;outline:none" oninput="updateEmbedPreview()"></textarea>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <label style="font-size:.75rem;color:var(--text-dim)">Preview</label>
+          <div class="embed-preview" id="embed-preview-box"></div>
+        </div>
+      </div>
+      <button class="tb-btn primary" onclick="applyEmbedToNode()" style="align-self:flex-end">✅ Apply to node</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
