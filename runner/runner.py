@@ -3,6 +3,7 @@ import atexit
 import hashlib
 import json
 import os
+import re
 import secrets
 import subprocess
 import sys
@@ -48,6 +49,103 @@ def _verify(pw, stored):
     return _hash(pw, bytes.fromhex(salt_hex)) == stored, False
 def _save_bots(): db.collection("state").document("bots").set({t: b["code"] for t, b in _bots.items()})
 
+# ── Input-validation constants ──────────────────────────────────────────
+MAX_CODE_LENGTH = 50_000  # 50 KB
+
+# Node.js built-in modules that user code must never load.
+BLOCKED_MODULES: frozenset[str] = frozenset({
+    "child_process", "fs", "fs/promises",
+    "net", "dgram", "tls",
+    "cluster", "worker_threads",
+    "vm", "v8",
+    "os",
+    "inspector", "repl", "readline",
+    "trace_events", "perf_hooks", "async_hooks",
+})
+# Also block the node:-prefixed forms (e.g. "node:fs").
+_BLOCKED_ALL = BLOCKED_MODULES | frozenset(f"node:{m}" for m in BLOCKED_MODULES)
+
+_RE_REQUIRE = re.compile(r"""require\s*\(\s*(['"`])(.*?)\1\s*\)""")
+_RE_IMPORT_FROM = re.compile(r"""import\s+.*?\s+from\s+(['"`])(.*?)\1""")
+_RE_IMPORT_DYNAMIC = re.compile(r"""import\s*\(\s*(['"`])(.*?)\1\s*\)""")
+_RE_IMPORT_BARE = re.compile(r"""import\s+(['"`])(.*?)\1""")
+
+DANGEROUS_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"\bprocess\s*\.\s*binding\b"),  "process.binding is blocked"),
+    (re.compile(r"\bprocess\s*\.\s*dlopen\b"),   "process.dlopen is blocked"),
+    (re.compile(r"\beval\s*\("),                  "eval() is blocked"),
+    (re.compile(r"\bnew\s+Function\s*\("),        "new Function() is blocked"),
+    (re.compile(r"\bFunction\s*\("),              "Function() constructor is blocked"),
+    (re.compile(r"\b__dirname\b"),                "__dirname is blocked"),
+    (re.compile(r"\b__filename\b"),               "__filename is blocked"),
+]
+
+
+def _extract_modules(code: str) -> set[str]:
+    """Return every module name referenced by require() or import."""
+    modules: set[str] = set()
+    for m in _RE_REQUIRE.finditer(code):
+        modules.add(m.group(2))
+    for m in _RE_IMPORT_FROM.finditer(code):
+        modules.add(m.group(2))
+    for m in _RE_IMPORT_DYNAMIC.finditer(code):
+        modules.add(m.group(2))
+    for m in _RE_IMPORT_BARE.finditer(code):
+        modules.add(m.group(2))
+    return modules
+
+
+def _check_process_env(code: str) -> str | None:
+    """Block process.env access except for process.env.NERIMITY_TOKEN."""
+    sanitized = re.sub(r"\bprocess\.env\.NERIMITY_TOKEN\b", "", code)
+    if re.search(r"\bprocess\s*\.\s*env\b", sanitized):
+        return "access to process.env is blocked (only process.env.NERIMITY_TOKEN is allowed)"
+    return None
+
+
+def validate_code(code: str) -> tuple[bool, str]:
+    """
+    Validate user-provided bot code before deployment.
+
+    Returns ``(True, "")`` when the code passes all checks, or
+    ``(False, reason)`` when a violation is detected.
+    """
+    if not code or not code.strip():
+        return False, "Code must not be empty"
+
+    if len(code) > MAX_CODE_LENGTH:
+        return False, f"Code exceeds the maximum allowed length of {MAX_CODE_LENGTH:,} characters"
+
+    # Blocked module imports / requires
+    blocked = _extract_modules(code) & _BLOCKED_ALL
+    if blocked:
+        return False, f"Blocked module(s): {', '.join(sorted(blocked))}"
+
+    # Dangerous runtime patterns
+    for pattern, message in DANGEROUS_PATTERNS:
+        if pattern.search(code):
+            return False, message
+
+    # process.env leak (allow only NERIMITY_TOKEN)
+    env_err = _check_process_env(code)
+    if env_err:
+        return False, env_err
+
+    return True, ""
+
+
+def _sanitize_token_for_js(token: str) -> str:
+    """Escape a bot token so it can be safely embedded in a JS string literal."""
+    return (
+        token
+        .replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("'", "\\'")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
+
+
 def _require_session(authorization):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Not authenticated")
@@ -79,8 +177,9 @@ def _launch(token: str, code: str):
     pkg_path = os.path.join(tmpdir, "package.json")
     log_path = os.path.join(tmpdir, "bot.log")
 
+    safe_token = _sanitize_token_for_js(token)
     with open(bot_path, "w") as f:
-        f.write(code.replace("process.env.NERIMITY_TOKEN", f'"{token}"'))
+        f.write(code.replace("process.env.NERIMITY_TOKEN", f'"{safe_token}"'))
     with open(pkg_path, "w") as f:
         json.dump({"name": "bot", "version": "1.0.0", "dependencies": {"@nerimity/nerimity.js": "latest"}}, f)
 
@@ -229,6 +328,12 @@ async def deploy(req: DeployRequest, authorization: Optional[str] = Header(None)
     u = _require_session(authorization); user = _get_user(u)
     token = req.bot_token.strip()
     if not token: raise HTTPException(400, "bot_token required")
+
+    # ── Validate user-provided code before deployment ──
+    ok, reason = validate_code(req.code)
+    if not ok:
+        raise HTTPException(400, f"Code validation failed: {reason}")
+
     tokens = user.get("tokens", [])
     if not any(t["token"] == token for t in tokens):
         tokens.append({"token": token, "name": token[:8]+"..."}); user["tokens"] = tokens; _set_user(u, user)
