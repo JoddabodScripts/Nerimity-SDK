@@ -756,9 +756,9 @@ const NODE_DEFS = {
   action_dm:        { label:'Send DM',        icon:'💌', color:'#f472b6', cat:'action',  ins:['exec'], outs:['exec'],
     fields:[{k:'text',l:'Message text',t:'textarea',d:'Hey there!'}] },
   action_kick:      { label:'Kick member',    icon:'🦵', color:'#fb923c', cat:'action',  ins:['exec'], outs:['exec'],
-    fields:[{k:'target',l:'Target (mention, user ID, or "author")',t:'text',d:'author'},{k:'reason',l:'Reason',t:'text',d:'Rule violation'}] },
+    fields:[{k:'target',l:'Target ("mention" = first @mention or arg, "author", or paste a user ID)',t:'text',d:'mention'},{k:'reason',l:'Reason',t:'text',d:'Rule violation'}] },
   action_ban:       { label:'Ban member',     icon:'🔨', color:'#f87171', cat:'action',  ins:['exec'], outs:['exec'],
-    fields:[{k:'target',l:'Target (mention, user ID, or "author")',t:'text',d:'author'},{k:'reason',l:'Reason',t:'text',d:'Rule violation'}] },
+    fields:[{k:'target',l:'Target ("mention" = first @mention or arg, "author", or paste a user ID)',t:'text',d:'mention'},{k:'reason',l:'Reason',t:'text',d:'Rule violation'}] },
   action_store_set: { label:'Store: set',     icon:'💾', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
     fields:[{k:'key',l:'Key',t:'text',d:'my_key'},{k:'value',l:'Value',t:'text',d:'my_value'}] },
   action_store_get: { label:'Store: get',     icon:'📂', color:'#34d399', cat:'action',  ins:['exec'], outs:['exec'],
@@ -1850,7 +1850,13 @@ function emitChain(fromNodeId, outPort, lines, indent) {
 function emitAction(node, lines, indent) {
   const p = node.props;
   const i = indent;
-  const _rt = v => { if (!v||v==='author') return 'ctx.author.id'; const m=v.match(/\[@:(\d+)\]/); return m?`"${m[1]}"`:v.match(/^\d+$/)?`"${v}"`:`(ctx.mentions[0].id if ctx.mentions else "${esc2(v)}")`; };
+  const _rt = v => {
+    if (!v || v === 'author') return 'ctx.author.id';
+    if (v === 'mention') return '(ctx.mentions[0].id if ctx.mentions else (ctx.args[0] if ctx.args else ctx.author.id))';
+    const m = v.match(/\[@:(\d+)\]/); if (m) return `"${m[1]}"`;
+    if (v.match(/^\d+$/)) return `"${v}"`;
+    return `(ctx.mentions[0].id if ctx.mentions else "${esc2(v)}")`;
+  };
 
   switch (node.type) {
     case 'action_reply':

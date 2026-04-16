@@ -503,9 +503,14 @@ class Bot:
         # Normalise slash invocations: "/ping:botId args" → "!ping args"
         content = msg.content or ""
         if content.startswith("/"):
-            # strip leading / and :botUserId suffix from command token
             parts = content[1:].split(None, 1)
-            cmd_token = parts[0].split(":")[0]
+            token_parts = parts[0].split(":", 1)
+            cmd_token = token_parts[0]
+            bot_id_in_cmd = token_parts[1] if len(token_parts) > 1 else None
+            # If a bot ID is specified and it doesn't match this bot, ignore
+            if bot_id_in_cmd and self._me and bot_id_in_cmd != str(self._me.id):
+                await self.emitter.emit("message", msg)
+                return
             rest_of = parts[1] if len(parts) > 1 else ""
             content = f"{prefix}{cmd_token} {rest_of}".strip()
             # Use a copy so the original Message object is not mutated
