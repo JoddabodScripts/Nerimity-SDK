@@ -121,7 +121,7 @@
         <div id="pg404ts"></div>
       </div>
       <div style="text-align:right">
-        <div>nerimity-sdk</div>
+        <div>bot-zombie</div>
         <div>docs</div>
       </div>
     </div>
@@ -151,7 +151,7 @@
   const tick = () => { const d = new Date(); ts.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
   tick(); setInterval(tick, 1000);
 
-  const items = ['page not found','·','nerimity-sdk','·','404','·','lost in the void','·','check the url','·','nerimity-sdk','·'];
+  const items = ['page not found','·','bot-zombie','·','404','·','lost in the void','·','check the url','·','bot-zombie','·'];
   const track = document.getElementById('pg404track');
   const html = items.map(t => t==='·' ? `<span class="dot">·</span>` : `<span>${t}</span>`).join('');
   track.innerHTML = html + html;

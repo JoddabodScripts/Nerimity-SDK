@@ -1,8 +1,8 @@
-site_name: nerimity-sdk
-site_description: A fully-featured Python SDK for building Nerimity bots
+site_name: Bot Zombie
+site_description: A no-code bot creator for Nerimity -- build and deploy bots visually
 site_url: https://nerimitysdk.readthedocs.io/en/master/
-repo_url: https://github.com/JoddabodScripts/Nerimity-SDK
-repo_name: Nerimity-SDK
+repo_url: https://github.com/JoddabodScripts/Bot-Zombie
+repo_name: Bot-Zombie
 edit_uri: edit/master/docs/
 
 theme:
@@ -41,24 +41,20 @@ extra:
   generator: false
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/JoddabodScripts/Nerimity-SDK
+      link: https://github.com/JoddabodScripts/Bot-Zombie
   meta:
     - name: google-site-verification
       content: gtMtSACbLxzOGzCPi9aMA-0gbRoqLJUhj6n5B5URnZw
     - property: og:type
       content: website
     - property: og:title
-      content: nerimity-sdk - Python SDK for Nerimity bots
+      content: Bot Zombie - No-code Nerimity bot creator
     - property: og:description
-      content: A fully-featured Python SDK for building bots on Nerimity. Commands, events, plugins, storage, OAuth2 and more.
-    - property: og:image
-      content: https://joddabodscripts.github.io/Nerimity-SDK/assets/og-image.png
+      content: Build and deploy Nerimity bots visually with a drag-and-drop node editor. No coding required.
     - property: og:url
-      content: https://joddabodscripts.github.io/Nerimity-SDK/
-    - name: twitter:card
-      content: summary_large_image
+      content: https://github.com/JoddabodScripts/Bot-Zombie
 
-copyright: "Built by <a href='https://github.com/JoddabodScripts'>JoddabodScripts</a> · @Lyney:SHOW on Nerimity"
+copyright: "Built by <a href='https://github.com/JoddabodScripts'>JoddabodScripts</a> · @Kansane:TETO on Nerimity"
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -74,7 +70,9 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Bot Builder: builder.html
-  - Getting Started:
+  - Runner:
+    - About: runner.md
+  - Legacy SDK:
     - Installation: guide/installation.md
     - Quick Start: guide/quickstart.md
     - Configuration: guide/configuration.md
@@ -103,7 +101,5 @@ nav:
     - Scheduler: api/scheduler.md
     - Utilities: api/utils.md
   - Example Bot: example.md
-  - Plugin Marketplace: plugins.md
   - Changelog: changelog.md
-  - Glossary: glossary.md
   - Contributing: contributing.md

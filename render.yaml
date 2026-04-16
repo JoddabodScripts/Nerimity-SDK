@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: nerimity-runner
+    name: bot-zombie-runner
     runtime: python
     buildCommand: |
       pip install -r runner/requirements.txt

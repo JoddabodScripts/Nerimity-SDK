@@ -1,4 +1,5 @@
 import asyncio
+import atexit
 import hashlib
 import json
 import os
@@ -6,6 +7,7 @@ import secrets
 import subprocess
 import sys
 import tempfile
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -14,17 +16,11 @@ from typing import Optional
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-app = FastAPI()
+_MAX_LOG_BYTES = 500_000  # truncate bot logs beyond 500 KB
 
 _ALLOWED_ORIGINS = os.environ.get(
     "CORS_ORIGINS", "https://runner-cold-grass-3880.fly.dev"
 ).split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=_ALLOWED_ORIGINS,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Authorization", "Content-Type"],
-)
 
 _cred_data = json.loads(os.environ["FIREBASE_CREDENTIALS_JSON"])
 cred = credentials.Certificate(_cred_data)
@@ -99,6 +95,22 @@ def _launch(token: str, code: str):
     )
     return proc, log_path
 
+def _truncate_logs():
+    """Trim bot log files that exceed _MAX_LOG_BYTES."""
+    for bot in _bots.values():
+        logpath = bot.get("log")
+        if not logpath:
+            continue
+        try:
+            size = os.path.getsize(logpath)
+            if size > _MAX_LOG_BYTES:
+                with open(logpath, "r+") as f:
+                    f.seek(size - _MAX_LOG_BYTES)
+                    tail = f.read()
+                    f.seek(0); f.write(tail); f.truncate()
+        except OSError:
+            pass
+
 async def _watchdog():
     while True:
         await asyncio.sleep(20)
@@ -106,15 +118,41 @@ async def _watchdog():
             if bot["proc"].poll() is not None:
                 proc, logpath = _launch(token, bot["code"])
                 bot["proc"] = proc; bot["log"] = logpath
+        _truncate_logs()
 
-@app.on_event("startup")
-async def startup():
+def _shutdown_bots():
+    """Terminate all child bot processes on server shutdown."""
+    for token, bot in list(_bots.items()):
+        proc = bot.get("proc")
+        if proc and proc.poll() is None:
+            proc.terminate()
+            try:
+                proc.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+
+atexit.register(_shutdown_bots)
+
+@asynccontextmanager
+async def lifespan(application: FastAPI):
+    # Startup: restore bots and start watchdog
     doc = db.collection("state").document("bots").get()
     if doc.exists:
         for token, code in (doc.to_dict() or {}).items():
             proc, logpath = _launch(token, code)
             _bots[token] = {"proc": proc, "code": code, "log": logpath}
     asyncio.create_task(_watchdog())
+    yield
+    # Shutdown: terminate all bots
+    _shutdown_bots()
+
+app = FastAPI(lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Authorization", "Content-Type"],
+)
 
 class AuthRequest(BaseModel):
     username: str
