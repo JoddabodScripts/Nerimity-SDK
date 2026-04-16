@@ -515,7 +515,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);heigh
     <button class="tb-btn primary" onclick="downloadBot()">⬇ Download bot.py</button>
     <button class="tb-btn" onclick="openDashboard()" style="margin-left:.25rem">🤖 Bots</button>
     <button class="tb-btn" onclick="openTemplates()" style="margin-left:.25rem">📋 Templates</button>
-    <a href="./dashboard.html" class="tb-btn" style="margin-left:.25rem;text-decoration:none">📊 Dashboard</a>
     <button class="tb-btn" onclick="exportGraphJSON()" title="Export graph as JSON">📤 Export</button>
     <label class="tb-btn" title="Import a .json graph" style="cursor:pointer">📥 Import<input type="file" accept=".json" style="display:none" onchange="importGraphJSON(this)"></label>
     <button class="tb-btn" onclick="openDeploy()" style="margin-left:.25rem;background:linear-gradient(135deg,#34d399,#60a5fa);border:none;color:#fff;font-weight:600">🚀 Deploy</button>
@@ -3251,8 +3250,8 @@ const _existingKeydown = document.onkeydown;
 document.addEventListener('keydown', e => {
   const tag = document.activeElement.tagName;
   const typing = tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
-  // Shift+D: Duplicate selected node (avoids Chrome Ctrl+D bookmark conflict)
-  if (!e.ctrlKey && e.shiftKey && e.key==='D' && !typing) { e.preventDefault(); duplicateSelected(); return; }
+  // Ctrl+D: Duplicate selected node
+  if (e.ctrlKey && e.key==='d' && !typing) { e.preventDefault(); duplicateSelected(); return; }
   // Ctrl+A: Select all nodes
   if (e.ctrlKey && e.key==='a' && !typing) { e.preventDefault(); selectAllNodes(); return; }
   // Ctrl+E: Export graph
@@ -3263,7 +3262,7 @@ document.addEventListener('keydown', e => {
 
 // Update the keybinds list to include new shortcuts
 KEYBINDS.push(
-  { keys: 'Shift + D',       action: 'Duplicate selected node' },
+  { keys: 'Ctrl + D',        action: 'Duplicate selected node' },
   { keys: 'Ctrl + A',        action: 'Select all nodes' },
   { keys: 'Ctrl + E',        action: 'Export graph as JSON' },
   { keys: 'Ctrl + Shift + S', action: 'Zoom to fit' },

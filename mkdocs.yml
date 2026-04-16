@@ -70,7 +70,6 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Bot Builder: builder.html
-  - Dashboard: dashboard.html
   - Runner:
     - About: runner.md
   - Legacy Docs:
